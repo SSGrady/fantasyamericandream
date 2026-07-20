@@ -41,6 +41,7 @@ export function mergeDraft(
       ...parsed.balanceSheet,
       brokerage: parsed.balanceSheet?.brokerage ?? defaults.balanceSheet.brokerage,
     },
+    jobOfferSelection: parsed.jobOfferSelection ?? defaults.jobOfferSelection,
   };
 }
 

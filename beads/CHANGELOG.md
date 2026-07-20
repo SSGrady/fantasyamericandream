@@ -2,6 +2,10 @@
 
 Aggregated progress log. Append dated entries when closing tickets.
 
+## 2026-07-20 (playthrough)
+
+- **T078** - Playthrough feedback: impact API loop fix and server cache, CA rental realism, transportation mode and ledger-backed events, briefing editorial/luck attribution, counterfactual CRN comparison, DreamHome polish, debounced command preview.
+
 ## 2026-07-20 (continued)
 
 - **S009 / E006** - Chapter vertical slice (T042-T048): ADR-013, CA engineer chapter, planning/counterfactual routes, interrupts, lesson unlock, XState routing.

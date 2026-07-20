@@ -8,4 +8,10 @@ export {
   rollChapterInterrupt,
   type InterruptChoice,
 } from './chapter/interrupts.js';
+export { resolvePlanningMode, type PlanningMode, type PlanningModeInput } from './chapter/planning-mode.js';
+export {
+  deferralRateFromOffer,
+  resolveJobOffer,
+  type JobOfferOverrides,
+} from './chapter/job-offer.js';
 export type { ChapterDefinition, ChapterId, JobOffer, ChapterInterrupt } from './chapter/types.js';

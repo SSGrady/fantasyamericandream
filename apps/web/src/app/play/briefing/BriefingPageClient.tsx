@@ -1,6 +1,6 @@
 'use client';
 
-import { renderBriefingHeadline, renderBriefingEventsSummary, renderEditorialHeadline } from '@fad/narrative';
+import { renderBriefingHeadline, renderBriefingEventsSummary, renderEditorialHeadline, renderBriefingBullets } from '@fad/narrative';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -9,11 +9,11 @@ import { MonthTimeline, chapterMonthsFromAsOf } from '../../../components/play/M
 import { formatMoney } from '../../../lib/format-money';
 import {
   applyTickToSession,
+  computeMetricBreakdown,
   computeRibbonMetrics,
   formatChapterLabel,
   runSimTick,
   savePlaySession,
-  type PlaySession,
 } from '../../../lib/play-session';
 import { usePlaySession } from '../../../lib/use-play-session';
 
@@ -97,20 +97,39 @@ export function BriefingPageClient() {
 
   const audit = session.currentAudit;
   const metrics = computeRibbonMetrics(audit, session.gameState);
+  const breakdown = computeMetricBreakdown(audit, session.gameState);
   const headline = renderEditorialHeadline(audit, session.gameState.player.name);
   const legacyHeadline = renderBriefingHeadline(audit);
+  const bullets = renderBriefingBullets(audit, session.gameState);
   const eventsSummary = renderBriefingEventsSummary(session.periodEvents ?? []);
   const periodLabel = formatChapterLabel(audit.asOf, session.periodIndex - 1);
   const months = chapterMonthsFromAsOf(audit.asOf);
+  const liquidCents =
+    session.gameState.accounts.checking.balance + session.gameState.accounts.hysa.balance;
 
   return (
     <div className="space-y-6">
-      <MetricsRibbon metrics={metrics} />
+      <MetricsRibbon
+        metrics={metrics}
+        heroKeys={['netWorth', 'emergencyRunwayMonths', 'savingsRate', 'cashSurplusRate']}
+        showRunwayTooltip
+        runwayBreakdown={{
+          liquidCents,
+          monthlyEssentialCents: breakdown.emergencyRunway.monthlyBurnCents,
+        }}
+      />
 
       <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <p className="text-sm font-medium text-accent">{periodLabel}</p>
         <h2 className="mt-1 font-display text-2xl text-ink">{headline}</h2>
         <p className="mt-2 text-sm text-muted">{legacyHeadline}</p>
+        <ul className="mt-3 space-y-2 text-sm text-muted">
+          {bullets.map((bullet) => (
+            <li key={bullet} className="rounded-md bg-surface px-3 py-2">
+              {bullet}
+            </li>
+          ))}
+        </ul>
         <MonthTimeline months={months} activeIndex={months.length - 1} />
         <p className="mt-3 text-muted">
           {session.gameState.player.name}, your {session.gameState.career.title} role in{' '}
@@ -120,6 +139,24 @@ export function BriefingPageClient() {
         </p>
         <p className="mt-3 rounded-md bg-surface px-3 py-2 text-sm text-muted">{eventsSummary}</p>
       </div>
+
+      <aside className="sticky bottom-0 rounded-lg border border-border bg-card/95 p-4 shadow-sm backdrop-blur">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted">Chapter rail</p>
+        <dl className="mt-2 grid grid-cols-3 gap-3 text-sm">
+          <div>
+            <dt className="text-muted">Housing burden</dt>
+            <dd className="font-medium text-ink">{(metrics.housingBurdenPct * 100).toFixed(0)}% of net pay</dd>
+          </div>
+          <div>
+            <dt className="text-muted">DTI</dt>
+            <dd className="font-medium text-ink">{(metrics.dti * 100).toFixed(0)}%</dd>
+          </div>
+          <div>
+            <dt className="text-muted">Net pay / mo</dt>
+            <dd className="font-medium text-ink">{formatMoney(metrics.takeHomePayMonthly)}</dd>
+          </div>
+        </dl>
+      </aside>
 
       <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
         <Link

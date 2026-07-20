@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
+import { comparePoliciesWithCrn } from '@fad/monte-carlo';
 import { CA_ENGINEER_2026 } from '@fad/domain';
 import { formatMoney } from '../../../lib/format-money';
 import { usePlaySession } from '../../../lib/use-play-session';
@@ -20,6 +21,34 @@ export function CounterfactualPageClient() {
   const altOffer =
     chapter.jobOffers.find((o) => o.id === chapter.counterfactualOfferId) ?? chapter.jobOffers[2]!;
 
+  const branchComparison = useMemo(() => {
+    if (!session?.currentAudit || !chosenOffer) return null;
+
+    const audit = session.currentAudit;
+    const salaryRatio = altOffer.baseSalaryAnnual / Math.max(chosenOffer.baseSalaryAnnual, 1);
+    const monthlyNetPay = audit.periodNetPayCents / 6;
+    const altMonthlyNetPay = Math.round(monthlyNetPay * salaryRatio);
+    const monthlySavings = Math.round(audit.savingsRate * monthlyNetPay);
+    const altMonthlySavings = Math.round(audit.savingsRate * altMonthlyNetPay);
+    const monthlyBurn = Math.max(monthlyNetPay - monthlySavings, 1);
+
+    return comparePoliciesWithCrn({
+      seed: `${session.gameState.run.randomSeed}:counterfactual`,
+      horizonMonths: 6,
+      paths: 200,
+      baselineSnapshot: {
+        netWorth: audit.netWorth,
+        monthlySavingsCents: monthlySavings,
+        monthlyBurnCents: monthlyBurn,
+      },
+      policySnapshot: {
+        netWorth: audit.netWorth,
+        monthlySavingsCents: altMonthlySavings,
+        monthlyBurnCents: Math.max(altMonthlyNetPay - altMonthlySavings, 1),
+      },
+    });
+  }, [session, chosenOffer, altOffer]);
+
   if (!ready || !session?.currentAudit || !chosenOffer) {
     return (
       <div className="rounded-lg border border-border bg-card p-6 text-muted shadow-sm">
@@ -29,8 +58,12 @@ export function CounterfactualPageClient() {
   }
 
   const audit = session.currentAudit;
-  const preview = session.impactPreview;
   const salaryDelta = chosenOffer.baseSalaryAnnual - altOffer.baseSalaryAnnual;
+  const altRunway =
+    branchComparison && branchComparison.policyMedianFinal > 0
+      ? audit.emergencyRunwayMonths +
+        (branchComparison.deltaMedianFinal / Math.max(audit.periodNetPayCents / 6, 1)) * 0.02
+      : audit.emergencyRunwayMonths;
 
   return (
     <div className="space-y-6">
@@ -38,7 +71,7 @@ export function CounterfactualPageClient() {
         <p className="text-sm font-medium text-accent">Counterfactual</p>
         <h2 className="mt-1 font-serif text-2xl text-ink">What if you picked differently?</h2>
         <p className="mt-3 text-muted">
-          Same macro seed; compare your chosen offer against the alternate path from this chapter.
+          CRN branch comparison on the same macro seed: your chosen offer vs the alternate path.
         </p>
       </div>
 
@@ -68,18 +101,28 @@ export function CounterfactualPageClient() {
               <dt className="text-muted">Salary delta</dt>
               <dd className="font-medium text-ink">{formatMoney(salaryDelta, { signed: true })}</dd>
             </div>
-            {preview ? (
-              <div className="flex justify-between">
-                <dt className="text-muted">Command impact delta</dt>
-                <dd className="font-medium text-ink">
-                  {formatMoney(preview.deltaNetWorth, { signed: true })}
-                </dd>
-              </div>
+            {branchComparison ? (
+              <>
+                <div className="flex justify-between">
+                  <dt className="text-muted">6-mo NW delta (CRN)</dt>
+                  <dd className="font-medium text-ink">
+                    {formatMoney(branchComparison.deltaMedianFinal, { signed: true })}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted">Est. runway shift</dt>
+                  <dd className="font-medium text-ink">{altRunway.toFixed(1)} mo</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted">Decision vs luck split</dt>
+                  <dd className="font-medium text-ink">
+                    {formatMoney(branchComparison.decisionCents, { signed: true })} /{' '}
+                    {formatMoney(branchComparison.luckCents, { signed: true })}
+                  </dd>
+                </div>
+              </>
             ) : null}
           </dl>
-          <p className="mt-3 text-xs text-muted">
-            Full CRN branch replay ships in the Monte Carlo lab (S010).
-          </p>
         </div>
       </div>
 

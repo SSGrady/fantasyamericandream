@@ -6,7 +6,7 @@ export default function PlanningPage() {
   return (
     <PageShell
       title="Chapter planning"
-      subtitle="Job offers and housing stakes before your six-month window."
+      subtitle="Set six-month policies before your decision day."
       backHref="/play/briefing"
       backLabel="Briefing"
     >

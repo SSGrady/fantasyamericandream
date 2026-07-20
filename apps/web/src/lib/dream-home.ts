@@ -156,9 +156,11 @@ export function generateDreamHomeListings(
     const factor = minFactor + unit * (maxFactor - minFactor);
     const priceCents = Math.round(median * factor);
     const priceToIncome = annualIncome > 0 ? priceCents / annualIncome : 99;
-    const beds = 1 + Math.floor(unit * 3);
-    const baths = 1 + Math.floor(seededUnit(randomSeed, i + 20) * 2);
-    const sqft = 750 + Math.floor(seededUnit(randomSeed, i + 40) * 2200);
+    const beds = stateCode === 'CA' || stateCode === 'NY' ? 1 + Math.floor(unit * 2) : 1 + Math.floor(unit * 3);
+    const baths = 1 + Math.floor(seededUnit(randomSeed, i + 20) * (stateCode === 'CA' ? 1 : 2));
+    const sqftCap = stateCode === 'CA' ? 1400 : 2200;
+    const sqftFloor = stateCode === 'CA' ? 650 : 750;
+    const sqft = sqftFloor + Math.floor(seededUnit(randomSeed, i + 40) * (sqftCap - sqftFloor));
 
     listings.push({
       id: `listing-${periodIndex}-${i}`,

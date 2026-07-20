@@ -1,4 +1,5 @@
 import { assign, setup } from 'xstate';
+import type { PlanningMode } from './planning-mode.js';
 
 export type ChapterPhase =
   | 'briefing'
@@ -12,6 +13,8 @@ export type ChapterPhase =
 export interface ChapterContext {
   chapterIndex: number;
   phase: ChapterPhase;
+  /** Planning UI variant: initial confirmation, recurring policies, or interrupt offer. */
+  planningMode: PlanningMode;
 }
 
 export type ChapterEvent =
@@ -37,7 +40,7 @@ export const chapterMachine = setup({
 }).createMachine({
   id: 'chapter',
   initial: 'briefing',
-  context: { chapterIndex: 0, phase: 'briefing' },
+  context: { chapterIndex: 0, phase: 'briefing', planningMode: 'initialPlan' },
   states: {
     briefing: {
       on: { ADVANCE: { target: 'planning', actions: assign({ phase: 'planning' }) } },

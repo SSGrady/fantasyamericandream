@@ -41,9 +41,20 @@ export function ListingCard({ affordability, selected, onSelect }: ListingCardPr
         <span>PITI est. {formatMoney(pitiMonthlyCents)}/mo</span>
         <span>Cash to close {formatMoney(cashToCloseCents)}</span>
       </div>
+      <p className="mt-2 text-xs font-medium text-accent">
+        {listing.bucket === 'plausible_now'
+          ? 'Within reach now with tighter savings'
+          : listing.bucket === 'one_to_three_yr'
+            ? 'Roughly 12-36 months away at current pace'
+            : listing.bucket === 'stretch'
+              ? 'Stretch goal: boost down payment fund'
+              : 'Dream tier: long horizon'}
+      </p>
       <p className="mt-2 text-xs font-medium text-ink">
         {passCount}/5 gates pass
-        {blockedInGuardrails ? ' · Blocked in guardrails mode' : ''}
+        {blockedInGuardrails
+          ? ' · Raising down payment fund by $750/mo can improve purchase probability'
+          : ''}
       </p>
     </button>
   );

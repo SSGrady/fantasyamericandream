@@ -1,5 +1,9 @@
 export { renderBriefingHeadline, renderBriefingEventsSummary } from './briefing.js';
-export { renderEditorialHeadline, renderConsequenceSummary } from './templates/briefing-templates.js';
+export {
+  renderEditorialHeadline,
+  renderBriefingBullets,
+  renderConsequenceSummary,
+} from './templates/briefing-templates.js';
 export { renderTemplate } from './templates/engine.js';
 export { adaptBriefingNarrative } from './llm/adapter.js';
 export { interpretNaturalLanguageAction } from './llm/action-interpretation.js';

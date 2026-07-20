@@ -14,7 +14,7 @@ export function renderBriefingHeadline(audit: AuditSnapshot): string {
 export function renderBriefingEventsSummary(events: SampledEventOccurrence[]): string {
   const notable = events.filter((event) => event.eventId !== 'quiet_month');
   if (notable.length === 0) {
-    return 'Mostly quiet months. No major interrupts this period.';
+    return 'Routine months dominated this chapter: payroll, rent, and steady transfers. No forced interrupts.';
   }
 
   const titles = [...new Set(notable.map((event) => event.title))];

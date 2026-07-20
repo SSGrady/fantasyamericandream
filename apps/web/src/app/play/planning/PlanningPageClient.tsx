@@ -1,11 +1,22 @@
 'use client';
 
+import {
+  CA_ENGINEER_2026,
+  deferralRateFromOffer,
+  resolveJobOffer,
+} from '@fad/domain';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import type { JobOffer } from '@fad/domain';
-import { CA_ENGINEER_2026 } from '@fad/domain';
+import { JobOfferPicker } from '../../../components/create/JobOfferPicker';
+import { CommandCenter } from '../../../components/play/CommandCenter';
 import { formatMoney } from '../../../lib/format-money';
-import { savePlaySession } from '../../../lib/play-session';
+import {
+  applyJobOfferToSession,
+  commitCommandDraft,
+  formatCalendarRange,
+  resolveSessionPlanningMode,
+  savePlaySession,
+} from '../../../lib/play-session';
 import { usePlaySession } from '../../../lib/use-play-session';
 
 export function PlanningPageClient() {
@@ -16,32 +27,53 @@ export function PlanningPageClient() {
   const chapter = CA_ENGINEER_2026;
   const offers = chapter.jobOffers;
 
-  useEffect(() => {
-    if (session?.gameState.career.title) {
-      const match = offers.find((o) => o.title === session.gameState.career.title);
-      if (match) setSelectedOfferId(match.id);
-    }
-  }, [session, offers]);
+  const planningMode = session ? resolveSessionPlanningMode(session) : 'recurringPlan';
 
-  const selectedOffer: JobOffer | null =
-    offers.find((o) => o.id === selectedOfferId) ?? offers[0] ?? null;
+  const currentOffer = useMemo(() => {
+    if (!session) return null;
+    const offerId = session.selectedJobOfferId ?? chapter.defaultOfferId;
+    return resolveJobOffer(chapter, offerId);
+  }, [session, chapter]);
+
+  useEffect(() => {
+    if (!session) return;
+    if (planningMode === 'interruptJobOffer') {
+      setSelectedOfferId(chapter.counterfactualOfferId);
+      return;
+    }
+    if (planningMode === 'initialPlan') {
+      setSelectedOfferId(session.selectedJobOfferId ?? chapter.defaultOfferId);
+    }
+  }, [session, planningMode, chapter]);
+
+  const selectedOffer =
+    planningMode === 'interruptJobOffer' || planningMode === 'initialPlan'
+      ? resolveJobOffer(chapter, selectedOfferId ?? chapter.defaultOfferId)
+      : currentOffer;
+
+  const effectiveMonthKey = session?.gameState.run.currentDate.slice(0, 7) ?? '2026-01';
+  const planLabel = session?.currentAudit
+    ? `Plan ${formatCalendarRange(session.currentAudit.asOf)}`
+    : 'Plan next six months';
 
   const handleContinue = () => {
-    if (!session || !selectedOffer) return;
-    const next = {
+    if (!session) return;
+
+    if (planningMode === 'interruptJobOffer' || planningMode === 'initialPlan') {
+      if (!selectedOfferId) return;
+      const withOffer = applyJobOfferToSession(session, selectedOfferId);
+      const committed = commitCommandDraft(withOffer);
+      setSession(committed);
+      router.push('/play/decide');
+      return;
+    }
+
+    const committed = commitCommandDraft({
       ...session,
-      gameState: {
-        ...session.gameState,
-        career: {
-          ...session.gameState.career,
-          title: selectedOffer.title,
-          baseSalaryAnnual: selectedOffer.baseSalaryAnnual,
-        },
-      },
-      deferral401kRate: Math.min(0.1, selectedOffer.deferral401kMatchPct + 0.06),
-    };
-    savePlaySession(next);
-    setSession(next);
+      commandCapacityError: null,
+    });
+    setSession(committed);
+    if (committed.commandCapacityError) return;
     router.push('/play/decide');
   };
 
@@ -53,50 +85,96 @@ export function PlanningPageClient() {
     );
   }
 
+  if (planningMode === 'interruptJobOffer' || planningMode === 'initialPlan') {
+    return (
+      <div className="space-y-6">
+        <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+          <p className="text-sm font-medium text-accent">
+            {planningMode === 'interruptJobOffer' ? 'Competing offer' : chapter.title}
+          </p>
+          <h2 className="mt-1 font-serif text-2xl text-ink">
+            {planningMode === 'interruptJobOffer' ? 'Respond to the counter-offer' : 'Confirm your starting offer'}
+          </h2>
+          <p className="mt-3 text-muted">
+            {planningMode === 'interruptJobOffer'
+              ? session.activeInterrupt?.description
+              : 'Your onboarding choice carries into the simulation. Confirm or change it before setting chapter commands.'}
+          </p>
+        </div>
+
+        <JobOfferPicker
+          offers={offers}
+          selectedOfferId={selectedOfferId}
+          onSelect={setSelectedOfferId}
+          showCustom={planningMode === 'initialPlan'}
+          customSelected={selectedOfferId === 'custom'}
+        />
+
+        <div className="flex justify-end border-t border-border pt-6">
+          <button
+            type="button"
+            onClick={handleContinue}
+            disabled={!selectedOfferId}
+            className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
+          >
+            Continue to commands
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-        <p className="text-sm font-medium text-accent">{chapter.title}</p>
-        <h2 className="mt-1 font-serif text-2xl text-ink">Choose your offer</h2>
-        <p className="mt-3 text-muted">{chapter.briefingStakes}</p>
+        <p className="text-sm font-medium text-accent">{planLabel}</p>
+        <h2 className="mt-1 font-serif text-2xl text-ink">Set six-month policies</h2>
+        <p className="mt-3 text-muted">
+          Adjust persistent commands for the next chapter. Your current role stays fixed unless a
+          job-offer interrupt fires mid-cycle.
+        </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {offers.map((offer) => (
-          <button
-            key={offer.id}
-            type="button"
-            onClick={() => setSelectedOfferId(offer.id)}
-            className={`rounded-xl border p-4 text-left shadow-sm transition ${
-              selectedOffer?.id === offer.id
-                ? 'border-accent bg-accent/5 ring-1 ring-accent/30'
-                : 'border-border bg-card hover:border-accent/30'
-            }`}
-          >
-            <p className="text-xs font-medium uppercase tracking-wide text-muted">{offer.riskTag}</p>
-            <p className="mt-1 text-sm font-semibold text-ink">{offer.employer}</p>
-            <p className="text-xs text-muted">{offer.title}</p>
-            <p className="mt-2 text-lg font-semibold text-ink">
-              {formatMoney(offer.baseSalaryAnnual)}/yr
+      {currentOffer ? (
+        <div className="rounded-lg border border-border bg-surface p-4 text-sm shadow-sm">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted">Current role</p>
+          <p className="mt-1 font-semibold text-ink">
+            {currentOffer.title} · {currentOffer.employer}
+          </p>
+          <p className="mt-1 text-muted">
+            {formatMoney(currentOffer.baseSalaryAnnual)}/yr ·{' '}
+            {currentOffer.remoteDaysPerWeek >= 5
+              ? 'Remote'
+              : `${currentOffer.remoteDaysPerWeek} WFH days · ${currentOffer.commuteMinutes} min commute`}{' '}
+            · 401(k) deferral {(deferralRateFromOffer(currentOffer) * 100).toFixed(0)}%
+          </p>
+          {session.gameState.location.rentPaymentMonthly > 0 ? (
+            <p className="mt-2 text-muted">
+              Housing share: {formatMoney(session.gameState.location.rentPaymentMonthly)}/mo in{' '}
+              {session.gameState.location.stateCode}
             </p>
-            <p className="mt-2 text-xs text-muted">
-              {offer.remoteDaysPerWeek >= 5
-                ? 'Remote'
-                : `${offer.remoteDaysPerWeek} WFH days · ${offer.commuteMinutes} min commute`}
-            </p>
-            <p className="mt-2 text-sm text-muted">{offer.flavor}</p>
-          </button>
-        ))}
-      </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      <CommandCenter
+        effectiveMonthKey={effectiveMonthKey}
+        commands={session.commandDraft}
+        capacityError={session.commandCapacityError}
+        onChange={(commandDraft) => {
+          const next = { ...session, commandDraft, commandCapacityError: null };
+          savePlaySession(next);
+          setSession(next);
+        }}
+      />
 
       <div className="flex justify-end border-t border-border pt-6">
         <button
           type="button"
           onClick={handleContinue}
-          disabled={!selectedOffer}
-          className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
+          className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90"
         >
-          Continue to commands
+          Continue to decision day
         </button>
       </div>
     </div>
