@@ -1,7 +1,7 @@
 ---
 id: T058
 title: Editorial headlines and timeline
-status: open
+status: done
 type: feature
 priority: P2
 epic: E008

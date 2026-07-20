@@ -2,6 +2,14 @@
 
 Aggregated progress log. Append dated entries when closing tickets.
 
+## 2026-07-20 (continued)
+
+- **S009 / E006** - Chapter vertical slice (T042-T048): ADR-013, CA engineer chapter, planning/counterfactual routes, interrupts, lesson unlock, XState routing.
+- **S010 / E007** - Monte Carlo lab (T049-T054): `@fad/monte-carlo`, forecast API, fan chart, goal probability, CRN policy comparison, `/play/lab`.
+- **S011 / E008** - Consequence theater (T055-T062): editorial design tokens, ConsequenceCard, MonthTimeline, LifeCompass, motion, dashboard polish.
+- **S012 / E009** - Onboarding redesign (T063-T067): scenario tension/difficulty cards, life priorities, slim/advanced setup, module presets.
+- **S013 / E010** - Local LLM narrative layer (T068-T073): template-first narrative, Zod LLM schemas, NL action interpretation, guardrails.
+
 ## 2026-07-20
 
 - **S007 / E004** - Trust metric fixes complete (T028-T035): split savings ribbon (401k deferral, cash surplus, total), net-worth attribution (contributions vs returns vs choice/luck), chapter calendar framing, rental COL calibration unification, DreamHome aspiration buckets, impact counterfactual API, single-player reaction gating.

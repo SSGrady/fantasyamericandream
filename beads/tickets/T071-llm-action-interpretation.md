@@ -1,7 +1,7 @@
 ---
 id: T071
 title: LLM action interpretation
-status: open
+status: done
 type: feature
 priority: P2
 epic: E010

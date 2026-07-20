@@ -1,7 +1,7 @@
 ---
 id: T053
 title: CRN counterfactual comparison
-status: open
+status: done
 type: feature
 priority: P2
 epic: E007

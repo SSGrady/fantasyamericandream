@@ -1,7 +1,7 @@
 ---
 id: E008
 title: Consequence Theater and Visual Design
-status: open
+status: done
 priority: P2
 sprints:
   - S011

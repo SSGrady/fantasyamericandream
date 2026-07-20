@@ -1,7 +1,7 @@
 ---
 id: T063
 title: Scenario cards tension/difficulty
-status: open
+status: done
 type: feature
 priority: P1
 epic: E009

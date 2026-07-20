@@ -1,7 +1,7 @@
 ---
 id: T066
 title: Slim vs Advanced Life Setup
-status: open
+status: done
 type: feature
 priority: P2
 epic: E009

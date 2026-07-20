@@ -17,6 +17,7 @@ import {
   isHousingArrangementAllowed,
   type V1CharacterDraft,
   type V1StarterScenarioId,
+  type LifePriorityId,
 } from '@fad/shared';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -61,6 +62,15 @@ export function CreatePageClient() {
   };
 
   const scenario = scenarioId ? getV1StarterScenario(scenarioId) : undefined;
+  const advanced = draft?.setupMode === 'advanced';
+
+  const LIFE_PRIORITIES: { id: LifePriorityId; label: string }[] = [
+    { id: 'wealth', label: 'Wealth' },
+    { id: 'freedom', label: 'Freedom' },
+    { id: 'stability', label: 'Stability' },
+    { id: 'experience', label: 'Experience' },
+    { id: 'family', label: 'Family' },
+  ];
 
   if (!draft || !scenarioId) {
     return (
@@ -83,6 +93,59 @@ export function CreatePageClient() {
           <h2 className="mt-1 font-serif text-2xl text-ink">{scenarioId}</h2>
         )}
       </div>
+
+      <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
+        <h2 className="font-serif text-xl text-ink">Setup mode</h2>
+        <p className="mt-1 text-sm text-muted">
+          Slim starts with scenario defaults. Advanced exposes full balance sheet and household fields.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {(['slim', 'advanced'] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => updateDraft({ setupMode: mode })}
+              className={`rounded-md border px-4 py-2 text-sm font-medium capitalize ${
+                draft.setupMode === mode
+                  ? 'border-accent bg-accent/10 text-accent'
+                  : 'border-border bg-surface text-ink'
+              }`}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
+        <h2 className="font-serif text-xl text-ink">Life priorities</h2>
+        <p className="mt-1 text-sm text-muted">Pick up to three priorities that shape briefing tone.</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {LIFE_PRIORITIES.map((priority) => {
+            const selected = draft.lifePriorities?.includes(priority.id) ?? false;
+            return (
+              <button
+                key={priority.id}
+                type="button"
+                onClick={() => {
+                  const current = draft.lifePriorities ?? [];
+                  const next = selected
+                    ? current.filter((id) => id !== priority.id)
+                    : current.length >= 3
+                      ? current
+                      : [...current, priority.id];
+                  updateDraft({ lifePriorities: next });
+                }}
+                className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
+                  selected ? 'border-accent bg-accent/10 text-accent' : 'border-border bg-surface text-ink'
+                }`}
+              >
+                {priority.label}
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
         <h2 className="font-serif text-xl text-ink">Name</h2>
@@ -308,6 +371,12 @@ export function CreatePageClient() {
         value={draft.balanceSheet}
         onChange={(balanceSheet) => updateDraft({ balanceSheet })}
       />
+
+      {advanced ? null : (
+        <p className="text-sm text-muted">
+          Balance sheet uses scenario defaults in slim mode. Switch to Advanced to edit accounts.
+        </p>
+      )}
 
       <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
         <Link

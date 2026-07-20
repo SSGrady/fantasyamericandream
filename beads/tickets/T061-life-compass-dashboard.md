@@ -1,7 +1,7 @@
 ---
 id: T061
 title: Life Compass dashboard
-status: open
+status: done
 type: feature
 priority: P2
 epic: E008

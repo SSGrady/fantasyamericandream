@@ -1,7 +1,7 @@
 ---
 id: T044
 title: Job offers and housing choice
-status: open
+status: done
 type: feature
 priority: P1
 epic: E006

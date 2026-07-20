@@ -1,7 +1,7 @@
 ---
 id: T048
 title: XState chapter machine
-status: open
+status: done
 type: feature
 priority: P1
 epic: E006

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FinalReportPanel } from '../../../components/play/FinalReportPanel';
+import { LifeCompass, buildLifeCompassDimensions } from '../../../components/play/LifeCompass';
 import { MetricsRibbon } from '../../../components/play/MetricsRibbon';
 import { SkillTreeStub } from '../../../components/play/SkillTreeStub';
 import { TimelineHistory } from '../../../components/play/TimelineHistory';
@@ -33,6 +34,7 @@ export function DashboardPageClient() {
   const audit = session.currentAudit;
   const metrics = computeRibbonMetrics(audit, session.gameState);
   const skills = buildSkillTreeProgress(session);
+  const compass = buildLifeCompassDimensions(audit, metrics.housingBurdenPct);
   const ended = isSimulationEnded(session);
   const showFinalReport = ended || isSimulationComplete(session);
 
@@ -73,6 +75,12 @@ export function DashboardPageClient() {
           </p>
         </div>
       )}
+
+      <section className="space-y-3">
+        <h2 className="font-serif text-xl text-ink">Life Compass</h2>
+        <p className="text-sm text-muted">Five dimensions from ledger-derived metrics.</p>
+        <LifeCompass dimensions={compass} />
+      </section>
 
       <section className="space-y-3">
         <h2 className="font-serif text-xl text-ink">Timeline</h2>
@@ -116,6 +124,12 @@ export function DashboardPageClient() {
           className="inline-flex items-center justify-center rounded-md border border-border bg-card px-5 py-2.5 text-sm font-medium text-ink hover:border-accent/40 hover:text-accent"
         >
           Start a new scenario
+        </Link>
+        <Link
+          href="/play/lab"
+          className="inline-flex items-center justify-center rounded-md border border-border bg-card px-5 py-2.5 text-sm font-medium text-ink hover:border-accent/40 hover:text-accent"
+        >
+          Open planning lab
         </Link>
         <Link
           href="/play/audit"

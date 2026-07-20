@@ -1,7 +1,7 @@
 ---
 id: T057
 title: Consequence card types
-status: open
+status: done
 type: feature
 priority: P1
 epic: E008

@@ -2,12 +2,14 @@
 
 ## Tickets
 
-- [ ] T063 - Scenario cards tension/difficulty
-- [ ] T064 - Life priorities selection
-- [ ] T065 - Job offers not sector pick
-- [ ] T066 - Slim vs Advanced Life Setup
-- [ ] T067 - Module presets
+- [x] T063 - Scenario cards tension/difficulty
+- [x] T064 - Life priorities selection
+- [x] T065 - Job offers not sector (chapter planning)
+- [x] T066 - Slim vs advanced life setup
+- [x] T067 - Module presets
 
 ## Notes
 
-2026-07-20: Sprint opened under E009.
+2026-07-20: Scenario fantasy hooks and difficulty, life priorities on create, slim/advanced toggle, module presets Guided/Realistic/Volatile/Harsh/Custom.
+
+Grill-me: Authored difficulty label; fixed tension enum; job offers on /play/planning.

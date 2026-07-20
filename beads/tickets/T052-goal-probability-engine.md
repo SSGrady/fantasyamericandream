@@ -1,7 +1,7 @@
 ---
 id: T052
 title: Goal probability engine
-status: open
+status: done
 type: feature
 priority: P2
 epic: E007

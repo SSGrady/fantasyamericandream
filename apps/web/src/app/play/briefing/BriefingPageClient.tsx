@@ -1,10 +1,11 @@
 'use client';
 
-import { renderBriefingHeadline, renderBriefingEventsSummary } from '@fad/narrative';
+import { renderBriefingHeadline, renderBriefingEventsSummary, renderEditorialHeadline } from '@fad/narrative';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { MetricsRibbon } from '../../../components/play/MetricsRibbon';
+import { MonthTimeline, chapterMonthsFromAsOf } from '../../../components/play/MonthTimeline';
 import { formatMoney } from '../../../lib/format-money';
 import {
   applyTickToSession,
@@ -96,9 +97,11 @@ export function BriefingPageClient() {
 
   const audit = session.currentAudit;
   const metrics = computeRibbonMetrics(audit, session.gameState);
-  const headline = renderBriefingHeadline(audit);
+  const headline = renderEditorialHeadline(audit, session.gameState.player.name);
+  const legacyHeadline = renderBriefingHeadline(audit);
   const eventsSummary = renderBriefingEventsSummary(session.periodEvents ?? []);
   const periodLabel = formatChapterLabel(audit.asOf, session.periodIndex - 1);
+  const months = chapterMonthsFromAsOf(audit.asOf);
 
   return (
     <div className="space-y-6">
@@ -106,7 +109,9 @@ export function BriefingPageClient() {
 
       <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <p className="text-sm font-medium text-accent">{periodLabel}</p>
-        <h2 className="mt-1 font-serif text-2xl text-ink">{headline}</h2>
+        <h2 className="mt-1 font-display text-2xl text-ink">{headline}</h2>
+        <p className="mt-2 text-sm text-muted">{legacyHeadline}</p>
+        <MonthTimeline months={months} activeIndex={months.length - 1} />
         <p className="mt-3 text-muted">
           {session.gameState.player.name}, your {session.gameState.career.title} role in{' '}
           {session.gameState.location.stateCode} closed this audit at {audit.asOf}. Starting net
@@ -125,10 +130,10 @@ export function BriefingPageClient() {
         </Link>
         <button
           type="button"
-          onClick={() => router.push('/play/decide')}
+          onClick={() => router.push('/play/planning')}
           className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90"
         >
-          Continue to decision day
+          Continue to planning
         </button>
       </div>
     </div>

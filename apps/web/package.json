@@ -9,8 +9,10 @@
     "test": "vitest run --config vitest.config.ts"
   },
   "dependencies": {
+    "@fad/domain": "workspace:*",
     "@fad/data": "workspace:*",
     "@fad/ledger": "workspace:*",
+    "@fad/monte-carlo": "workspace:*",
     "@fad/narrative": "workspace:*",
     "@fad/shared": "workspace:*",
     "@fad/sim-engine": "workspace:*",

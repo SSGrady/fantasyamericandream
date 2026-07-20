@@ -1,7 +1,7 @@
 ---
 id: T051
 title: Fan chart visx component
-status: open
+status: done
 type: feature
 priority: P2
 epic: E007

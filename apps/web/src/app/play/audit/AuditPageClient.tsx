@@ -1,12 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { BalanceSheetGrid } from '../../../components/play/BalanceSheetGrid';
 import { MetricsRibbon } from '../../../components/play/MetricsRibbon';
 import { ProgressRings } from '../../../components/play/ProgressRings';
 import { WaterfallList } from '../../../components/play/WaterfallList';
 import { formatMoney } from '../../../lib/format-money';
 import {
+  applyChapterLessonUnlock,
   computeRibbonMetrics,
   detectAutomaticEndReason,
   endSimulation,
@@ -18,6 +20,14 @@ import { usePlaySession } from '../../../lib/use-play-session';
 export function AuditPageClient() {
   const router = useRouter();
   const { session, ready, setSession } = usePlaySession();
+
+  useEffect(() => {
+    if (!session?.currentAudit || session.chapterLessonUnlock) return;
+    const updated = applyChapterLessonUnlock(session);
+    if (updated.chapterLessonUnlock !== session.chapterLessonUnlock) {
+      setSession(updated);
+    }
+  }, [session, setSession]);
 
   if (!ready || !session?.currentAudit) {
     return (
@@ -31,6 +41,7 @@ export function AuditPageClient() {
   const metrics = computeRibbonMetrics(audit, session.gameState);
   const complete = isSimulationComplete(session);
   const autoEnd = detectAutomaticEndReason(session);
+  const lessonUnlock = session.chapterLessonUnlock;
 
   const handleContinue = () => {
     if (autoEnd && !session.endReason) {
@@ -53,6 +64,15 @@ export function AuditPageClient() {
   return (
     <div className="space-y-8">
       <MetricsRibbon metrics={metrics} />
+
+      {lessonUnlock ? (
+        <div className="rounded-lg border border-positive/30 bg-positive/5 p-4 shadow-sm">
+          <p className="text-sm font-medium text-positive">Lesson unlocked</p>
+          <p className="mt-1 text-sm text-muted">
+            {lessonUnlock.replace('_', ' ')} literacy track is now available on your dashboard.
+          </p>
+        </div>
+      ) : null}
 
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
@@ -128,10 +148,10 @@ export function AuditPageClient() {
       <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
         <button
           type="button"
-          onClick={() => router.push('/play/reactions')}
+          onClick={() => router.push('/play/counterfactual')}
           className="inline-flex items-center justify-center rounded-md border border-border bg-card px-5 py-2.5 text-sm font-medium text-ink hover:border-accent/40 hover:text-accent"
         >
-          Back to reactions
+          Back to counterfactual
         </button>
         <button
           type="button"

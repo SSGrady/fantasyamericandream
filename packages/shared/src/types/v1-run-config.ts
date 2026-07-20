@@ -104,6 +104,53 @@ const DEFAULT_MODULES: V1ModuleToggles = {
   insurance: { termLife: false, disability: false },
 };
 
+export type ModulePresetId = 'guided' | 'realistic' | 'volatile' | 'harsh' | 'custom';
+
+export function applyModulePreset(preset: ModulePresetId): V1RunConfig {
+  const base = getDefaultV1RunConfig();
+  switch (preset) {
+    case 'guided':
+      return {
+        ...base,
+        difficulty: 'easy',
+        hintsEnabled: true,
+        modules: {
+          ...base.modules,
+          economy: { recessions: false, spVariability: false },
+          labor: { ghostJobs: false, massLayoffs: false },
+        },
+      };
+    case 'realistic':
+      return base;
+    case 'volatile':
+      return {
+        ...base,
+        difficulty: 'medium',
+        modules: {
+          ...base.modules,
+          economy: { recessions: true, spVariability: true },
+          labor: { ghostJobs: true, massLayoffs: true },
+        },
+      };
+    case 'harsh':
+      return {
+        ...base,
+        difficulty: 'hard',
+        hintsEnabled: false,
+        modules: {
+          ...base.modules,
+          economy: { recessions: true, spVariability: true },
+          labor: { ghostJobs: true, massLayoffs: true },
+          health: { erVisits: true },
+          housing: { housePoorEvents: true, severity: 'hard' },
+        },
+      };
+    case 'custom':
+    default:
+      return base;
+  }
+}
+
 export function getDefaultV1RunConfig(): V1RunConfig {
   return {
     difficulty: 'medium',

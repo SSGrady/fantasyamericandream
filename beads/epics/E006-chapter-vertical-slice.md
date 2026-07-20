@@ -1,7 +1,7 @@
 ---
 id: E006
 title: Chapter Vertical Slice
-status: open
+status: done
 priority: P1
 sprints:
   - S009

@@ -1,7 +1,7 @@
 ---
 id: T069
 title: Zod LLM output schemas
-status: open
+status: done
 type: feature
 priority: P1
 epic: E010

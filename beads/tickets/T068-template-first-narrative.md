@@ -1,7 +1,7 @@
 ---
 id: T068
 title: Template-first narrative
-status: open
+status: done
 type: feature
 priority: P1
 epic: E010

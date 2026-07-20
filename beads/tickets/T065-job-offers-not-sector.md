@@ -1,7 +1,7 @@
 ---
 id: T065
 title: Job offers not sector pick
-status: open
+status: done
 type: feature
 priority: P1
 epic: E009

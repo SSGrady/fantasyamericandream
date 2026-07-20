@@ -1,7 +1,7 @@
 ---
 id: T049
 title: Monte Carlo package scaffold
-status: open
+status: done
 type: feature
 priority: P1
 epic: E007

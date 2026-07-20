@@ -6,6 +6,7 @@ import { CommandCenter } from '../../../components/play/CommandCenter';
 import { LiteracyQuizStub } from '../../../components/play/LiteracyQuizStub';
 import {
   commitCommandDraft,
+  resolveChapterInterrupt,
   savePlaySession,
   unlockLiteracySkill,
   type PendingDecision,
@@ -66,6 +67,44 @@ export function DecidePageClient() {
           capacity; career and lifestyle actions consume weekly hours.
         </p>
       </div>
+
+      {session.activeInterrupt ? (
+        <div className="rounded-lg border border-warning/40 bg-warning/5 p-5 shadow-sm">
+          <p className="text-sm font-medium text-warning">Chapter interrupt</p>
+          <h3 className="mt-1 font-serif text-lg text-ink">{session.activeInterrupt.title}</h3>
+          <p className="mt-2 text-sm text-muted">{session.activeInterrupt.description}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {session.activeInterrupt.type === 'return_to_office' ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setSession(resolveChapterInterrupt(session, 'accept-rto'))}
+                  className="rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-ink hover:border-accent/40"
+                >
+                  Accept RTO (-4h/wk capacity)
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSession(resolveChapterInterrupt(session, 'negotiate-hybrid'))
+                  }
+                  className="rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-ink hover:border-accent/40"
+                >
+                  Negotiate hybrid (-2h/wk)
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setSession(resolveChapterInterrupt(session, 'acknowledge'))}
+                className="rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-ink hover:border-accent/40"
+              >
+                Acknowledge and continue
+              </button>
+            )}
+          </div>
+        </div>
+      ) : null}
 
       <LiteracyQuizStub
         answered={session.literacyQuizAnswered ?? false}

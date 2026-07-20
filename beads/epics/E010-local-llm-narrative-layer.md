@@ -1,7 +1,7 @@
 ---
 id: E010
 title: Local LLM Narrative Layer
-status: open
+status: done
 priority: P3
 sprints:
   - S013

@@ -1,7 +1,7 @@
 ---
 id: T072
 title: LLM reactions and summaries
-status: open
+status: done
 type: feature
 priority: P2
 epic: E010

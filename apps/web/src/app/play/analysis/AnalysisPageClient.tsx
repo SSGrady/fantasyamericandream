@@ -2,7 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { ImpactAnalysisCards } from '../../../components/play/ImpactAnalysisCards';
+import { ConsequenceCard } from '../../../components/play/ConsequenceCard';
 import { MetricsRibbon } from '../../../components/play/MetricsRibbon';
+import { renderConsequenceSummary } from '@fad/narrative';
 import { formatMoney, formatPercent } from '../../../lib/format-money';
 import {
   computeMetricBreakdown,
@@ -41,6 +43,14 @@ export function AnalysisPageClient() {
           macro path; only player-controlled knobs (e.g. 401(k) deferral) differ from baseline.
         </p>
       </div>
+
+      <ConsequenceCard
+        variant="headline"
+        title="Chapter consequence"
+        body={renderConsequenceSummary(audit)}
+        audit={audit}
+        sentiment={preview && preview.deltaNetWorth >= 0 ? 'positive' : 'neutral'}
+      />
 
       {preview ? (
         <div className="grid gap-3 sm:grid-cols-3">

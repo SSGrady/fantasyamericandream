@@ -1,7 +1,7 @@
 ---
 id: T056
 title: Editorial typography system
-status: open
+status: done
 type: feature
 priority: P1
 epic: E008

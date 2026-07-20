@@ -25,6 +25,8 @@ import type {
   SavingsRateBreakdown,
 } from '@fad/ledger';
 import type { TickSixMonthsResult } from '@fad/sim-engine';
+import type { ChapterId, ChapterInterrupt, ChapterPhase } from '@fad/domain';
+import { CA_ENGINEER_2026, evaluateChapterLessonUnlock, rollChapterInterrupt, applyInterruptCapacityDelta } from '@fad/domain';
 import { buildInitialGameState } from './build-game-state';
 import { loadCharacterDraft } from './character-draft';
 import { loadRunConfig } from './run-config';
@@ -85,6 +87,10 @@ export interface PlaySession {
   periodEvents: SampledEventOccurrence[];
   dreamHomeChoiceId: string | null;
   dreamHomeBlocked: boolean;
+  chapterId: ChapterId;
+  chapterPhase: ChapterPhase;
+  activeInterrupt: ChapterInterrupt | null;
+  chapterLessonUnlock: LiteracySkillId | null;
 }
 
 export interface ImpactPreview {
@@ -235,6 +241,10 @@ function normalizeSession(parsed: PlaySession): PlaySession {
     impactPreview: parsed.impactPreview ?? null,
     commandDraft: parsed.commandDraft ?? parsed.gameState.commandState?.activeCommands ?? [],
     commandCapacityError: parsed.commandCapacityError ?? null,
+    chapterId: parsed.chapterId ?? 'ca_engineer_2026',
+    chapterPhase: parsed.chapterPhase ?? 'briefing',
+    activeInterrupt: parsed.activeInterrupt ?? null,
+    chapterLessonUnlock: parsed.chapterLessonUnlock ?? null,
   };
 }
 
@@ -294,6 +304,10 @@ export function initializePlaySession(
     periodEvents: [],
     dreamHomeChoiceId: null,
     dreamHomeBlocked: false,
+    chapterId: 'ca_engineer_2026',
+    chapterPhase: 'briefing',
+    activeInterrupt: null,
+    chapterLessonUnlock: null,
   };
   savePlaySession(session);
   return session;
@@ -440,6 +454,13 @@ export function applyTickToSession(
     tickInProgress: false,
     periodHistory: [...(session.periodHistory ?? []), historyEntry],
     playerAction: '',
+    chapterPhase: 'planning',
+    activeInterrupt:
+      rollChapterInterrupt(
+        CA_ENGINEER_2026,
+        session.gameState.run.randomSeed,
+        session.periodIndex,
+      ) ?? null,
   };
   savePlaySession(next);
   return next;
@@ -572,6 +593,39 @@ export function unlockLiteracySkill(
 
 export function hasUnlockedSkill(session: PlaySession, skillId: LiteracySkillId): boolean {
   return session.literacyProgress[skillId]?.mastery === 'mastered';
+}
+
+export function applyChapterLessonUnlock(session: PlaySession): PlaySession {
+  const chapter = CA_ENGINEER_2026;
+  const unlock = evaluateChapterLessonUnlock(chapter, session.currentAudit!);
+  if (!unlock || session.chapterLessonUnlock) return session;
+  const next = unlockLiteracySkill(session, unlock.skillId);
+  return { ...next, chapterLessonUnlock: unlock.skillId };
+}
+
+export function resolveChapterInterrupt(
+  session: PlaySession,
+  choiceId: string,
+): PlaySession {
+  if (!session.activeInterrupt) return session;
+  const capacityDelta = applyInterruptCapacityDelta(session.activeInterrupt, choiceId);
+  const weeklyCapacityHours = Math.max(
+    4,
+    (session.gameState.commandState?.weeklyCapacityHours ?? 14) + capacityDelta,
+  );
+  const next: PlaySession = {
+    ...session,
+    activeInterrupt: null,
+    gameState: {
+      ...session.gameState,
+      commandState: {
+        ...(session.gameState.commandState ?? DEFAULT_COMMAND_STATE),
+        weeklyCapacityHours,
+      },
+    },
+  };
+  savePlaySession(next);
+  return next;
 }
 
 export function commitCommandDraft(session: PlaySession): PlaySession {

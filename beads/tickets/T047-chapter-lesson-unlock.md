@@ -1,7 +1,7 @@
 ---
 id: T047
 title: Chapter lesson unlock
-status: open
+status: done
 type: feature
 priority: P2
 epic: E006

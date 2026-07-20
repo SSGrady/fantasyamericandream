@@ -1,7 +1,7 @@
 ---
 id: T060
 title: Phase motion animations
-status: open
+status: done
 type: feature
 priority: P3
 epic: E008

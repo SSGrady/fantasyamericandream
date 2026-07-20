@@ -1,7 +1,7 @@
 ---
 id: T073
 title: LLM state mutation guardrails
-status: open
+status: done
 type: task
 priority: P1
 epic: E010

@@ -1,7 +1,7 @@
 ---
 id: T050
 title: Forecast Web Worker + Comlink
-status: open
+status: done
 type: feature
 priority: P1
 epic: E007

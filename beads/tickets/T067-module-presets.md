@@ -1,7 +1,7 @@
 ---
 id: T067
 title: Module presets
-status: open
+status: done
 type: feature
 priority: P2
 epic: E009

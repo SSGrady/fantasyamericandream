@@ -1,7 +1,7 @@
 ---
 id: E009
 title: Onboarding Redesign
-status: open
+status: done
 priority: P2
 sprints:
   - S012

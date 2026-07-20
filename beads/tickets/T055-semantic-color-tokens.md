@@ -1,7 +1,7 @@
 ---
 id: T055
 title: Semantic color CSS tokens
-status: open
+status: done
 type: feature
 priority: P1
 epic: E008

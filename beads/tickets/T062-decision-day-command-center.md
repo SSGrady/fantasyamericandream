@@ -1,7 +1,7 @@
 ---
 id: T062
 title: Decision Day command center
-status: open
+status: done
 type: feature
 priority: P1
 epic: E008

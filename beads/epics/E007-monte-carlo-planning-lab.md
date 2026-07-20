@@ -1,7 +1,7 @@
 ---
 id: E007
 title: Monte Carlo Planning Lab
-status: open
+status: done
 priority: P2
 sprints:
   - S010

@@ -3,6 +3,8 @@
 import {
   V1_DIFFICULTY_OPTIONS,
   V1_HOUSE_POOR_SEVERITY_OPTIONS,
+  applyModulePreset,
+  type ModulePresetId,
   type V1RunConfig,
 } from '@fad/shared';
 import Link from 'next/link';
@@ -66,6 +68,26 @@ export function ModulesPageClient() {
 
   return (
     <div className="space-y-6">
+      <ModuleToggleSection
+        title="Module preset"
+        description="Guided, Realistic, Volatile, Harsh, or Custom. Presets set toggles you can still edit."
+      >
+        <div className="flex flex-wrap gap-2">
+          {(['guided', 'realistic', 'volatile', 'harsh', 'custom'] as ModulePresetId[]).map(
+            (preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => updateConfig(applyModulePreset(preset))}
+                className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium capitalize text-ink hover:border-accent/40"
+              >
+                {preset}
+              </button>
+            ),
+          )}
+        </div>
+      </ModuleToggleSection>
+
       <ModuleToggleSection
         title="Economy"
         description="Macro shocks and market variability shape recessions and portfolio swings."

@@ -20,9 +20,15 @@ importers:
       '@fad/data':
         specifier: workspace:*
         version: link:../../packages/data
+      '@fad/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       '@fad/ledger':
         specifier: workspace:*
         version: link:../../packages/ledger
+      '@fad/monte-carlo':
+        specifier: workspace:*
+        version: link:../../packages/monte-carlo
       '@fad/narrative':
         specifier: workspace:*
         version: link:../../packages/narrative
@@ -115,11 +121,30 @@ importers:
         specifier: ^3.0.0
         version: 3.2.7(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.32.0)
 
+  packages/monte-carlo:
+    dependencies:
+      '@fad/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@fad/sim-engine':
+        specifier: workspace:*
+        version: link:../sim-engine
+    devDependencies:
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.7(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.32.0)
+
   packages/narrative:
     dependencies:
       '@fad/shared':
         specifier: workspace:*
         version: link:../shared
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       typescript:
         specifier: ^5.7.0

@@ -1,7 +1,7 @@
 ---
 id: T054
 title: Lab luck vs decision attribution
-status: open
+status: done
 type: feature
 priority: P2
 epic: E007

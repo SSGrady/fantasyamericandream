@@ -51,9 +51,14 @@ export interface V1RentalListingSelection {
   marketRentMonthly: MoneyCents;
 }
 
+export type LifePriorityId = 'wealth' | 'freedom' | 'stability' | 'experience' | 'family';
+
 export interface V1CharacterDraft {
   scenarioId: V1StarterScenarioId;
   name: string;
+  /** Slim setup hides advanced balance sheet fields. */
+  setupMode?: 'slim' | 'advanced';
+  lifePriorities?: LifePriorityId[];
   ageBand: V1AgeBand;
   stateCode: UsStateCode;
   educationTier: V1EducationTier;
@@ -250,6 +255,8 @@ export function getDefaultV1CharacterDraft(scenarioId: V1StarterScenarioId): V1C
   return {
     scenarioId,
     name: '',
+    setupMode: 'slim',
+    lifePriorities: ['stability', 'wealth'],
     ageBand: overrides.ageBand ?? '25',
     stateCode: 'NY',
     educationTier: overrides.educationTier ?? 'target',

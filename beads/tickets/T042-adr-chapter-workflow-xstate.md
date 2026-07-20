@@ -1,7 +1,7 @@
 ---
 id: T042
 title: ADR chapter workflow + XState
-status: open
+status: done
 type: adr
 priority: P1
 epic: E006

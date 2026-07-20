@@ -1,7 +1,7 @@
 ---
 id: T059
 title: Stakeholder voices component
-status: open
+status: done
 type: feature
 priority: P2
 epic: E008
