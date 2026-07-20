@@ -1,67 +1,96 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { parseDeferral401kRateFromAction } from '../../../lib/parse-player-action';
-import { runImpactPreview, savePlaySession } from '../../../lib/play-session';
+import {
+  computeImpactCacheKey,
+  runImpactPreview,
+  savePlaySession,
+} from '../../../lib/play-session';
 import { usePlaySession } from '../../../lib/use-play-session';
 
 export function ProcessingPageClient() {
   const router = useRouter();
   const { session, ready, setSession } = usePlaySession();
   const [error, setError] = useState<string | null>(null);
+  const inFlightRef = useRef(false);
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
 
   useEffect(() => {
     if (!ready || !session?.currentAudit) return;
 
-    let cancelled = false;
+    const current = sessionRef.current;
+    if (!current) return;
+
+    const chosenDeferral401kRate = parseDeferral401kRateFromAction(
+      current.playerAction,
+      current.deferral401kRate,
+    );
+    const cacheKey = computeImpactCacheKey(current, chosenDeferral401kRate);
+
+    if (current.impactPreview && current.impactPreviewCacheKey === cacheKey) {
+      router.replace('/play/analysis');
+      return;
+    }
+
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
+
+    const abortController = new AbortController();
 
     async function previewImpact() {
-      const chosenDeferral401kRate = parseDeferral401kRateFromAction(
-        session!.playerAction,
-        session!.deferral401kRate,
-      );
-
       try {
-        const impactPreview = await runImpactPreview({
-          startDate: session!.gameState.run.currentDate,
-          randomSeed: session!.gameState.run.randomSeed,
-          accounts: session!.gameState.accounts,
-          debts: session!.gameState.debts,
-          career: session!.gameState.career,
-          location: session!.gameState.location,
-          household: session!.gameState.household,
-          player: {
-            habits: session!.gameState.player.habits,
-            includeEmployerHealthPlan: session!.gameState.player.includeEmployerHealthPlan,
-            ageYears: session!.gameState.player.ageYears,
+        const impactPreview = await runImpactPreview(
+          {
+            startDate: current!.gameState.run.currentDate,
+            randomSeed: current!.gameState.run.randomSeed,
+            accounts: current!.gameState.accounts,
+            debts: current!.gameState.debts,
+            career: current!.gameState.career,
+            location: current!.gameState.location,
+            household: current!.gameState.household,
+            player: {
+              habits: current!.gameState.player.habits,
+              includeEmployerHealthPlan: current!.gameState.player.includeEmployerHealthPlan,
+              ageYears: current!.gameState.player.ageYears,
+            },
+            macro: current!.gameState.macro,
+            deferral401kRate: current!.deferral401kRate,
+            difficulty: current!.gameState.run.difficulty,
+            enabledModules: current!.gameState.run.enabledModules,
+            baselineDeferral401kRate: current!.deferral401kRate,
+            chosenDeferral401kRate,
           },
-          macro: session!.gameState.macro,
-          deferral401kRate: session!.deferral401kRate,
-          difficulty: session!.gameState.run.difficulty,
-          enabledModules: session!.gameState.run.enabledModules,
-          baselineDeferral401kRate: session!.deferral401kRate,
-          chosenDeferral401kRate,
-        });
+          abortController.signal,
+        );
 
-        if (cancelled) return;
+        if (abortController.signal.aborted) return;
 
-        const next = { ...session!, impactPreview };
+        const next = {
+          ...current!,
+          impactPreview,
+          impactPreviewCacheKey: cacheKey,
+        };
         savePlaySession(next);
         setSession(next);
         router.replace('/play/analysis');
       } catch (previewError) {
-        if (cancelled) return;
+        if (abortController.signal.aborted) return;
         setError(previewError instanceof Error ? previewError.message : 'Impact preview failed');
+      } finally {
+        inFlightRef.current = false;
       }
     }
 
     void previewImpact();
 
     return () => {
-      cancelled = true;
+      abortController.abort();
+      inFlightRef.current = false;
     };
-  }, [ready, router, session, setSession]);
+  }, [ready, router, setSession]);
 
   return (
     <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-card px-6 py-16 text-center shadow-sm">

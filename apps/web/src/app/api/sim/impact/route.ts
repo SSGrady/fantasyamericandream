@@ -11,6 +11,7 @@ import type {
   MacroState,
   PlayerState,
 } from '@fad/shared';
+import { createHash } from 'node:crypto';
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
@@ -30,6 +31,9 @@ interface ImpactRequestBody {
   difficulty?: Difficulty;
   enabledModules?: string[];
 }
+
+const impactCache = new Map<string, ImpactPreviewResponse>();
+const IMPACT_CACHE_MAX = 64;
 
 function isIsoDate(value: unknown): value is IsoDate {
   return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
@@ -82,6 +86,46 @@ export interface ImpactPreviewResponse {
   deltaSavingsRate: number;
 }
 
+function impactCacheKey(input: ImpactRequestBody): string {
+  const payload = JSON.stringify({
+    startDate: input.startDate,
+    randomSeed: input.randomSeed,
+    baselineDeferral401kRate: input.baselineDeferral401kRate,
+    chosenDeferral401kRate: input.chosenDeferral401kRate,
+    difficulty: input.difficulty,
+    enabledModules: input.enabledModules,
+    accounts: input.accounts,
+    debts: input.debts,
+    career: input.career,
+    location: input.location,
+    household: input.household,
+    player: input.player,
+    macro: input.macro,
+  });
+  return createHash('sha256').update(payload).digest('hex');
+}
+
+function buildImpactResponse(
+  baselineAudit: AuditSnapshot,
+  chosenAudit: AuditSnapshot,
+): ImpactPreviewResponse {
+  return {
+    baselineAudit,
+    chosenAudit,
+    deltaNetWorth: chosenAudit.netWorth - baselineAudit.netWorth,
+    deltaRunwayMonths: chosenAudit.emergencyRunwayMonths - baselineAudit.emergencyRunwayMonths,
+    deltaSavingsRate: chosenAudit.savingsRate - baselineAudit.savingsRate,
+  };
+}
+
+function rememberImpact(key: string, response: ImpactPreviewResponse): void {
+  impactCache.set(key, response);
+  if (impactCache.size > IMPACT_CACHE_MAX) {
+    const firstKey = impactCache.keys().next().value;
+    if (firstKey) impactCache.delete(firstKey);
+  }
+}
+
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -93,6 +137,12 @@ export async function POST(request: Request) {
   const input = parseImpactRequest(body);
   if (!input) {
     return NextResponse.json({ error: 'Invalid impact request' }, { status: 400 });
+  }
+
+  const cacheKey = impactCacheKey(input);
+  const cached = impactCache.get(cacheKey);
+  if (cached) {
+    return NextResponse.json(cached);
   }
 
   try {
@@ -110,6 +160,16 @@ export async function POST(request: Request) {
       enabledModules: input.enabledModules,
     };
 
+    if (input.baselineDeferral401kRate === input.chosenDeferral401kRate) {
+      const single = tickSixMonthsWithSimulation({
+        ...shared,
+        deferral401kRate: input.baselineDeferral401kRate,
+      });
+      const response = buildImpactResponse(single.audit, single.audit);
+      rememberImpact(cacheKey, response);
+      return NextResponse.json(response);
+    }
+
     const baseline = tickSixMonthsWithSimulation({
       ...shared,
       deferral401kRate: input.baselineDeferral401kRate,
@@ -119,14 +179,8 @@ export async function POST(request: Request) {
       deferral401kRate: input.chosenDeferral401kRate,
     });
 
-    const response: ImpactPreviewResponse = {
-      baselineAudit: baseline.audit,
-      chosenAudit: chosen.audit,
-      deltaNetWorth: chosen.audit.netWorth - baseline.audit.netWorth,
-      deltaRunwayMonths: chosen.audit.emergencyRunwayMonths - baseline.audit.emergencyRunwayMonths,
-      deltaSavingsRate: chosen.audit.savingsRate - baseline.audit.savingsRate,
-    };
-
+    const response = buildImpactResponse(baseline.audit, chosen.audit);
+    rememberImpact(cacheKey, response);
     return NextResponse.json(response);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Impact simulation failed';

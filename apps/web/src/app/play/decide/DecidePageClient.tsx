@@ -1,12 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { CommandCenter } from '../../../components/play/CommandCenter';
+import { useEffect, useMemo, useState } from 'react';
 import { LiteracyQuizStub } from '../../../components/play/LiteracyQuizStub';
+import { formatMoney } from '../../../lib/format-money';
 import {
   commitCommandDraft,
+  computeImpactCacheKey,
   resolveChapterInterrupt,
+  runImpactPreview,
   savePlaySession,
   unlockLiteracySkill,
   type PendingDecision,
@@ -17,12 +19,76 @@ export function DecidePageClient() {
   const router = useRouter();
   const { session, ready, setSession } = usePlaySession();
   const [action, setAction] = useState('');
+  const [previewDelta, setPreviewDelta] = useState<number | null>(null);
+  const [previewRunway, setPreviewRunway] = useState<number | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
     if (session?.playerAction) {
       setAction(session.playerAction);
     }
   }, [session?.playerAction]);
+
+  const deferralFromCommands = useMemo(() => {
+    const cmd = session?.commandDraft.find((c) => c.type === 'set_401k_deferral_rate');
+    return cmd && cmd.type === 'set_401k_deferral_rate' ? cmd.rate : session?.deferral401kRate ?? 0.1;
+  }, [session?.commandDraft, session?.deferral401kRate]);
+
+  useEffect(() => {
+    if (!session?.currentAudit) return;
+
+    let cancelled = false;
+
+    const timer = window.setTimeout(() => {
+      const cacheKey = computeImpactCacheKey(session, deferralFromCommands);
+      if (session.impactPreview && session.impactPreviewCacheKey === cacheKey) {
+        setPreviewDelta(session.impactPreview.deltaNetWorth);
+        setPreviewRunway(session.impactPreview.deltaRunwayMonths);
+        return;
+      }
+
+      setPreviewLoading(true);
+
+      void runImpactPreview({
+        startDate: session.gameState.run.currentDate,
+        randomSeed: session.gameState.run.randomSeed,
+        accounts: session.gameState.accounts,
+        debts: session.gameState.debts,
+        career: session.gameState.career,
+        location: session.gameState.location,
+        household: session.gameState.household,
+        player: {
+          habits: session.gameState.player.habits,
+          includeEmployerHealthPlan: session.gameState.player.includeEmployerHealthPlan,
+          ageYears: session.gameState.player.ageYears,
+        },
+        macro: session.gameState.macro,
+        deferral401kRate: session.deferral401kRate,
+        difficulty: session.gameState.run.difficulty,
+        enabledModules: session.gameState.run.enabledModules,
+        baselineDeferral401kRate: session.deferral401kRate,
+        chosenDeferral401kRate: deferralFromCommands,
+      })
+        .then((preview) => {
+          if (cancelled) return;
+          setPreviewDelta(preview.deltaNetWorth);
+          setPreviewRunway(preview.deltaRunwayMonths);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setPreviewDelta(null);
+          setPreviewRunway(null);
+        })
+        .finally(() => {
+          if (!cancelled) setPreviewLoading(false);
+        });
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [session, deferralFromCommands]);
 
   if (!ready || !session?.currentAudit) {
     return (
@@ -32,13 +98,13 @@ export function DecidePageClient() {
     );
   }
 
-  const effectiveMonthKey = session.gameState.run.currentDate.slice(0, 7);
-
   const handleContinue = () => {
     const withAction = {
       ...session,
       playerAction: action.trim(),
       commandDraft: session.commandDraft,
+      impactPreview: null,
+      impactPreviewCacheKey: null,
     };
     const committed = commitCommandDraft(withAction);
     setSession(committed);
@@ -63,8 +129,8 @@ export function DecidePageClient() {
         <p className="text-sm font-medium text-accent">Decision day</p>
         <h2 className="mt-1 font-serif text-2xl text-ink">Set persistent commands</h2>
         <p className="mt-3 text-muted">
-          Commands persist through the next six-month chapter. Passive finance knobs cost zero
-          capacity; career and lifestyle actions consume weekly hours.
+          Review required and optional decisions for this chapter. Persistent commands were set on
+          the planning screen.
         </p>
       </div>
 
@@ -111,16 +177,16 @@ export function DecidePageClient() {
         onAnswer={handleQuizAnswer}
       />
 
-      <CommandCenter
-        effectiveMonthKey={effectiveMonthKey}
-        commands={session.commandDraft}
-        capacityError={session.commandCapacityError}
-        onChange={(commandDraft) => {
-          const next = { ...session, commandDraft, commandCapacityError: null };
-          savePlaySession(next);
-          setSession(next);
-        }}
-      />
+      <div className="rounded-lg border border-dashed border-border bg-surface p-4 shadow-sm">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted">Consequence preview</p>
+        <p className="mt-1 text-sm text-ink">
+          {previewLoading
+            ? 'Updating preview…'
+            : previewDelta === null
+              ? 'Adjust commands to see six-month deltas.'
+              : `Net worth ${formatMoney(previewDelta, { signed: true })} · Runway ${previewRunway !== null && previewRunway >= 0 ? '+' : ''}${previewRunway?.toFixed(1) ?? '0.0'} mo vs baseline`}
+        </p>
+      </div>
 
       <div className="space-y-4">
         {session.pendingDecisions.map((decision: PendingDecision) => (
@@ -158,10 +224,10 @@ export function DecidePageClient() {
       <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
         <button
           type="button"
-          onClick={() => router.push('/play/briefing')}
+          onClick={() => router.push('/play/planning')}
           className="inline-flex items-center justify-center rounded-md border border-border bg-card px-5 py-2.5 text-sm font-medium text-ink hover:border-accent/40 hover:text-accent"
         >
-          Back to briefing
+          Back to planning
         </button>
         <button
           type="button"

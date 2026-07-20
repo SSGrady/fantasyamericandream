@@ -26,7 +26,7 @@ import type {
 } from '@fad/ledger';
 import type { TickSixMonthsResult } from '@fad/sim-engine';
 import type { ChapterId, ChapterInterrupt, ChapterPhase } from '@fad/domain';
-import { CA_ENGINEER_2026, evaluateChapterLessonUnlock, rollChapterInterrupt, applyInterruptCapacityDelta } from '@fad/domain';
+import { CA_ENGINEER_2026, evaluateChapterLessonUnlock, rollChapterInterrupt, applyInterruptCapacityDelta, deferralRateFromOffer, resolveJobOffer, resolvePlanningMode, type PlanningMode } from '@fad/domain';
 import { buildInitialGameState } from './build-game-state';
 import { loadCharacterDraft } from './character-draft';
 import { loadRunConfig } from './run-config';
@@ -72,6 +72,8 @@ export interface PlaySession {
   currentAudit: AuditSnapshot | null;
   /** Counterfactual impact preview from submitted player action. */
   impactPreview: ImpactPreview | null;
+  /** Cache key for impactPreview; prevents duplicate fetches. */
+  impactPreviewCacheKey: string | null;
   commandDraft: ActionCommand[];
   commandCapacityError: string | null;
   pendingDecisions: PendingDecision[];
@@ -89,6 +91,8 @@ export interface PlaySession {
   dreamHomeBlocked: boolean;
   chapterId: ChapterId;
   chapterPhase: ChapterPhase;
+  /** Offer chosen at onboarding; persists across chapters. */
+  selectedJobOfferId: string | null;
   activeInterrupt: ChapterInterrupt | null;
   chapterLessonUnlock: LiteracySkillId | null;
 }
@@ -239,10 +243,12 @@ function normalizeSession(parsed: PlaySession): PlaySession {
     dreamHomeChoiceId: parsed.dreamHomeChoiceId ?? null,
     dreamHomeBlocked: parsed.dreamHomeBlocked ?? false,
     impactPreview: parsed.impactPreview ?? null,
+    impactPreviewCacheKey: parsed.impactPreviewCacheKey ?? null,
     commandDraft: parsed.commandDraft ?? parsed.gameState.commandState?.activeCommands ?? [],
     commandCapacityError: parsed.commandCapacityError ?? null,
     chapterId: parsed.chapterId ?? 'ca_engineer_2026',
     chapterPhase: parsed.chapterPhase ?? 'briefing',
+    selectedJobOfferId: parsed.selectedJobOfferId ?? null,
     activeInterrupt: parsed.activeInterrupt ?? null,
     chapterLessonUnlock: parsed.chapterLessonUnlock ?? null,
   };
@@ -280,7 +286,7 @@ export function initializePlaySession(
   draft: V1CharacterDraft,
   config: V1RunConfig,
 ): PlaySession {
-  const { gameState, deferral401kRate, startingRothBalance } = buildInitialGameState(draft, config);
+  const { gameState, deferral401kRate, startingRothBalance, selectedJobOfferId } = buildInitialGameState(draft, config);
   const startingNetWorth = netWorth(gameState.accounts, gameState.debts);
   const session: PlaySession = {
     gameState,
@@ -289,6 +295,7 @@ export function initializePlaySession(
     startingRothBalance,
     currentAudit: null,
     impactPreview: null,
+    impactPreviewCacheKey: null,
     commandDraft: [],
     commandCapacityError: null,
     pendingDecisions: [],
@@ -306,6 +313,7 @@ export function initializePlaySession(
     dreamHomeBlocked: false,
     chapterId: 'ca_engineer_2026',
     chapterPhase: 'briefing',
+    selectedJobOfferId,
     activeInterrupt: null,
     chapterLessonUnlock: null,
   };
@@ -454,6 +462,8 @@ export function applyTickToSession(
     tickInProgress: false,
     periodHistory: [...(session.periodHistory ?? []), historyEntry],
     playerAction: '',
+    impactPreview: null,
+    impactPreviewCacheKey: null,
     chapterPhase: 'planning',
     activeInterrupt:
       rollChapterInterrupt(
@@ -603,6 +613,39 @@ export function applyChapterLessonUnlock(session: PlaySession): PlaySession {
   return { ...next, chapterLessonUnlock: unlock.skillId };
 }
 
+export function resolveSessionPlanningMode(session: PlaySession): PlanningMode {
+  return resolvePlanningMode({
+    periodIndex: session.periodIndex,
+    selectedJobOfferId: session.selectedJobOfferId,
+    activeInterrupt: session.activeInterrupt,
+  });
+}
+
+export function applyJobOfferToSession(
+  session: PlaySession,
+  offerId: string,
+): PlaySession {
+  const chapter = CA_ENGINEER_2026;
+  const offer = resolveJobOffer(chapter, offerId);
+  const next: PlaySession = {
+    ...session,
+    selectedJobOfferId: offer.id,
+    deferral401kRate: deferralRateFromOffer(offer),
+    gameState: {
+      ...session.gameState,
+      career: {
+        ...session.gameState.career,
+        title: offer.title,
+        baseSalaryAnnual: offer.baseSalaryAnnual,
+      },
+    },
+    activeInterrupt:
+      session.activeInterrupt?.type === 'competing_offer' ? null : session.activeInterrupt,
+  };
+  savePlaySession(next);
+  return next;
+}
+
 export function resolveChapterInterrupt(
   session: PlaySession,
   choiceId: string,
@@ -703,11 +746,15 @@ export interface ImpactSimRequest extends SimTickRequest {
   chosenDeferral401kRate: number;
 }
 
-export async function runImpactPreview(input: ImpactSimRequest): Promise<ImpactPreview> {
+export async function runImpactPreview(
+  input: ImpactSimRequest,
+  signal?: AbortSignal,
+): Promise<ImpactPreview> {
   const response = await fetch('/api/sim/impact', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
+    signal,
   });
 
   if (!response.ok) {
@@ -717,6 +764,20 @@ export async function runImpactPreview(input: ImpactSimRequest): Promise<ImpactP
 
   const result = (await response.json()) as Omit<ImpactPreview, 'chosenDeferral401kRate'>;
   return { ...result, chosenDeferral401kRate: input.chosenDeferral401kRate };
+}
+
+export function computeImpactCacheKey(
+  session: PlaySession,
+  chosenDeferral401kRate: number,
+): string {
+  return JSON.stringify({
+    date: session.gameState.run.currentDate,
+    seed: session.gameState.run.randomSeed,
+    baseline: session.deferral401kRate,
+    chosen: chosenDeferral401kRate,
+    action: session.playerAction,
+    commands: session.commandDraft.map((command) => command.type),
+  });
 }
 
 export function isSimulationComplete(session: PlaySession): boolean {
