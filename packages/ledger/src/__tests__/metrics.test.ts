@@ -4,12 +4,17 @@ import { fileURLToPath } from 'node:url';
 import type { Accounts } from '@fad/shared';
 import { describe, expect, it } from 'vitest';
 import {
+  computeEmergencyRunwayBreakdown,
+  computeHousingBurdenBreakdown,
   computePeriod401kDeferrals,
   computePeriodNetPay,
   computeSavingsInflows,
   computeSavingsRate,
+  computeSavingsRateBreakdown,
   tickSixMonths,
+  buildContributionProgress,
 } from '../index.js';
+import { IRS_LIMITS_2026 } from '@fad/data';
 import { buildPayrollFromCareer } from '../payroll.js';
 import type { SixMonthTickInput } from '../audit.js';
 
@@ -69,5 +74,65 @@ describe('briefing metrics', () => {
 
     expect(computeSavingsInflows(transactions)).toBe(deferrals);
     expect(computeSavingsRate(transactions)).toBeCloseTo(deferrals / computePeriodNetPay(transactions), 5);
+  });
+
+  it('savings rate breakdown lines reconcile to numerator and denominator', () => {
+    const fixture = JSON.parse(
+      readFileSync(join(__dirname, 'fixtures/six-month-audit-jan-jun.json'), 'utf8'),
+    ) as SixMonthAuditFixture;
+
+    const result = tickSixMonths(fixture.input);
+    const breakdown = computeSavingsRateBreakdown(result.transactions);
+
+    expect(breakdown.rate).toBeCloseTo(result.audit.savingsRate, 10);
+    expect(breakdown.savingsInflowsCents).toBe(breakdown.periodNetPayCents * breakdown.rate);
+    const numeratorLine = breakdown.lines.find((line) => line.label.includes('numerator'));
+    expect(numeratorLine?.amountCents).toBe(breakdown.savingsInflowsCents);
+  });
+
+  it('housing burden uses monthly rent share over monthly net pay', () => {
+    const fixture = JSON.parse(
+      readFileSync(join(__dirname, 'fixtures/six-month-audit-jan-jun.json'), 'utf8'),
+    ) as SixMonthAuditFixture;
+
+    const result = tickSixMonths(fixture.input);
+    const breakdown = computeHousingBurdenBreakdown(result.transactions, 6);
+
+    expect(breakdown.monthlyRentShareCents).toBe(
+      breakdown.periodRentShareCents / 6,
+    );
+    expect(breakdown.rate).toBeCloseTo(
+      breakdown.monthlyRentShareCents / breakdown.monthlyNetPayCents,
+      10,
+    );
+  });
+
+  it('runway burn components use positive cost amounts', () => {
+    const fixture = JSON.parse(
+      readFileSync(join(__dirname, 'fixtures/six-month-audit-jan-jun.json'), 'utf8'),
+    ) as SixMonthAuditFixture;
+
+    const result = tickSixMonths(fixture.input);
+    const breakdown = computeEmergencyRunwayBreakdown({
+      checkingBalanceCents: result.accounts.checking.balance,
+      transactions: result.transactions,
+      periodMonths: 6,
+    });
+
+    expect(breakdown.burnComponents.every((line) => line.amountCents > 0)).toBe(true);
+    expect(breakdown.months).toBeCloseTo(result.audit.emergencyRunwayMonths, 10);
+  });
+
+  it('contribution progress uses IRS 2026 limits from calibration', () => {
+    const fixture = JSON.parse(
+      readFileSync(join(__dirname, 'fixtures/six-month-audit-jan-jun.json'), 'utf8'),
+    ) as SixMonthAuditFixture;
+
+    const result = tickSixMonths(fixture.input);
+    const progress = buildContributionProgress(result.accounts);
+
+    expect(progress.traditional401k?.limitCents).toBe(IRS_LIMITS_2026.employee401kDeferral);
+    expect(progress.rothIra?.limitCents).toBe(IRS_LIMITS_2026.iraContribution);
+    expect(result.audit.metricBreakdown?.savingsRate.rate).toBeCloseTo(result.audit.savingsRate, 10);
   });
 });

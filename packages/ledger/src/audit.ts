@@ -15,9 +15,12 @@ import { cloneAccounts, cloneDebts } from './clone-state.js';
 import { applyMonthlyTick, type MonthlyTickInput } from './monthly-tick.js';
 import {
   computeEmergencyRunwayBreakdown,
+  computeHousingBurdenBreakdown,
   computePeriodNetPay,
   computeSavingsRate,
+  computeSavingsRateBreakdown,
 } from './metrics.js';
+import type { MetricBreakdownSnapshot } from '@fad/shared';
 import { netWorth } from './net-worth.js';
 
 export interface SixMonthTickInput {
@@ -154,6 +157,15 @@ function waterfallEntriesForTransaction(
     if (interest > 0) {
       return [{ label: 'Credit card interest', category: 'expense', amount: -interest }];
     }
+    return [];
+  }
+
+  if (tx.source === 'transfer') {
+    const delta = transactionNetWorthDelta(tx);
+    if (delta === 0) {
+      return [];
+    }
+    return [{ label: 'Transfers between accounts', category: 'other', amount: delta }];
   }
 
   const delta = transactionNetWorthDelta(tx);
@@ -199,6 +211,23 @@ export function buildWaterfallFromTransactions(
   });
 }
 
+export function buildMetricBreakdownSnapshot(input: {
+  transactions: LedgerTransaction[];
+  accounts: Accounts;
+  periodMonths: number;
+}): MetricBreakdownSnapshot {
+  const { transactions, accounts, periodMonths } = input;
+  return {
+    savingsRate: computeSavingsRateBreakdown(transactions),
+    housingBurden: computeHousingBurdenBreakdown(transactions, periodMonths),
+    emergencyRunway: computeEmergencyRunwayBreakdown({
+      checkingBalanceCents: accounts.checking.balance,
+      transactions,
+      periodMonths,
+    }),
+  };
+}
+
 export function buildContributionProgress(accounts: Accounts): Record<string, ContributionProgress> {
   const build = (contributedCents: MoneyCents, limitCents: MoneyCents): ContributionProgress => {
     const remainingCents = Math.max(0, limitCents - contributedCents);
@@ -215,17 +244,6 @@ export function buildContributionProgress(accounts: Accounts): Record<string, Co
   };
 }
 
-function computeEmergencyRunwayMonths(
-  accounts: Accounts,
-  transactions: LedgerTransaction[],
-  months: number,
-): number {
-  return computeEmergencyRunwayBreakdown({
-    checkingBalanceCents: accounts.checking.balance,
-    transactions,
-    periodMonths: months,
-  }).months;
-}
 
 export function monthKeyFromIsoDate(isoDate: IsoDate): string {
   return isoDate.slice(0, 7);
@@ -266,6 +284,12 @@ export function buildAuditSnapshot(input: {
   const endNetWorth = netWorth(input.endAccounts, input.endDebts);
   const months = input.periodMonths ?? 6;
 
+  const metricBreakdown = buildMetricBreakdownSnapshot({
+    transactions: input.transactions,
+    accounts: input.endAccounts,
+    periodMonths: months,
+  });
+
   return {
     asOf: input.asOf,
     netWorth: endNetWorth,
@@ -273,8 +297,9 @@ export function buildAuditSnapshot(input: {
     waterfall: buildWaterfallFromTransactions(input.transactions),
     periodNetPayCents: computePeriodNetPay(input.transactions),
     savingsRate: computeSavingsRate(input.transactions),
-    emergencyRunwayMonths: computeEmergencyRunwayMonths(input.endAccounts, input.transactions, months),
+    emergencyRunwayMonths: metricBreakdown.emergencyRunway.months,
     contributionProgress: buildContributionProgress(input.endAccounts),
+    metricBreakdown,
   };
 }
 

@@ -28,6 +28,7 @@ export {
   buildAuditSnapshot,
   buildWaterfallFromTransactions,
   buildContributionProgress,
+  buildMetricBreakdownSnapshot,
   exportAuditJson,
   waterfallReconciles,
   replayTransactionsNetWorthDelta,

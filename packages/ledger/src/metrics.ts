@@ -127,6 +127,9 @@ export function computeSavingsRateBreakdown(
   if (transferInflows > 0) {
     lines.push({ label: 'Transfers to savings accounts', amountCents: transferInflows });
   }
+  if (savingsInflowsCents > 0) {
+    lines.push({ label: 'Total savings inflows (numerator)', amountCents: savingsInflowsCents });
+  }
 
   return {
     savingsInflowsCents,
@@ -185,13 +188,13 @@ export function computeEmergencyRunwayBreakdown(input: {
     }, 0);
 
   const burnComponents: MetricBreakdownLine[] = [
-    { label: 'Rent', amountCents: rent },
-    { label: 'Childcare', amountCents: childcare },
-    { label: 'Federal withholding', amountCents: withholding },
-    { label: 'FICA', amountCents: fica },
-    { label: 'Credit card interest', amountCents: ccInterest },
-    { label: 'Student loan interest', amountCents: slInterest },
-    { label: 'Student loan principal', amountCents: slPrincipal },
+    { label: 'Rent (6-month total)', amountCents: rent },
+    { label: 'Childcare (6-month total)', amountCents: childcare },
+    { label: 'Federal withholding (6-month total)', amountCents: withholding },
+    { label: 'FICA (6-month total)', amountCents: fica },
+    { label: 'Credit card interest (6-month total)', amountCents: ccInterest },
+    { label: 'Student loan interest (6-month total)', amountCents: slInterest },
+    { label: 'Student loan principal (6-month total)', amountCents: slPrincipal },
   ].filter((line) => line.amountCents > 0);
 
   const periodBurn = burnComponents.reduce((sum, line) => sum + line.amountCents, 0);

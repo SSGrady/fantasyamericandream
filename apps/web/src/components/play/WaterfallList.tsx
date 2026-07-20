@@ -11,14 +11,14 @@ const CATEGORY_LABELS: Record<NetWorthWaterfallLine['category'], string> = {
   income: 'Income',
   expense: 'Expenses',
   growth: 'Growth',
-  debt: 'Debt',
+  debt: 'Debt service',
   other: 'Other',
 };
 
 export function WaterfallList({ lines }: WaterfallListProps) {
   if (lines.length === 0) {
     return (
-      <p className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted shadow-sm">
+      <p className="rounded-lg bg-surface px-3 py-2 text-sm text-muted">
         No waterfall entries for this period.
       </p>
     );
@@ -29,7 +29,7 @@ export function WaterfallList({ lines }: WaterfallListProps) {
       {lines.map((line) => (
         <div
           key={`${line.category}-${line.label}`}
-          className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 shadow-sm"
+          className="flex items-center justify-between rounded-lg bg-surface px-3 py-2"
         >
           <div>
             <p className="text-sm font-medium text-ink">{line.label}</p>

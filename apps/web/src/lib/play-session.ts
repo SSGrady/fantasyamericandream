@@ -88,6 +88,10 @@ export function computeMetricBreakdown(
   gameState: GameState,
   periodMonths = 6,
 ): MetricBreakdown {
+  if (audit.metricBreakdown) {
+    return audit.metricBreakdown;
+  }
+
   const periodNetPayCents = audit.periodNetPayCents;
   const deferrals = sumWaterfallLabels(audit.waterfall, ['401(k) deferrals', 'Partner 401(k) deferrals']);
   const savingsInflowsCents = Math.round(audit.savingsRate * periodNetPayCents);
@@ -104,10 +108,13 @@ export function computeMetricBreakdown(
       ...(savingsInflowsCents > deferrals
         ? [
             {
-              label: 'Other savings transfers',
+              label: 'Transfers to savings accounts',
               amountCents: savingsInflowsCents - deferrals,
             },
           ]
+        : []),
+      ...(savingsInflowsCents > 0
+        ? [{ label: 'Total savings inflows (numerator)', amountCents: savingsInflowsCents }]
         : []),
     ],
   };
@@ -130,13 +137,9 @@ export function computeMetricBreakdown(
   };
 
   const burnLines: MetricBreakdownLine[] = audit.waterfall
-    .filter(
-      (line) =>
-        line.category === 'expense' ||
-        (line.category === 'debt' && line.label.includes('Student loan')),
-    )
+    .filter((line) => line.category === 'expense')
     .map((line) => ({
-      label: line.label,
+      label: `${line.label} (6-month total)`,
       amountCents: Math.abs(line.amount),
     }));
 

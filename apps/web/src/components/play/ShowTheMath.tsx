@@ -1,19 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import type { NetWorthWaterfallLine } from '@fad/shared';
-import { WaterfallList } from './WaterfallList';
+import { useState, type ReactNode } from 'react';
 
 interface ShowTheMathProps {
-  lines: NetWorthWaterfallLine[];
   summary?: string;
+  children?: ReactNode;
 }
 
-export function ShowTheMath({ lines, summary }: ShowTheMathProps) {
+export function ShowTheMath({ summary, children }: ShowTheMathProps) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="mt-3 border-t border-border pt-3">
+    <div className="mt-3 border-t border-border/60 pt-3">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -25,7 +23,7 @@ export function ShowTheMath({ lines, summary }: ShowTheMathProps) {
       {open ? (
         <div className="mt-3 space-y-2">
           {summary ? <p className="text-xs text-muted">{summary}</p> : null}
-          <WaterfallList lines={lines} />
+          {children}
         </div>
       ) : null}
     </div>

@@ -3,8 +3,10 @@
 import type { AuditSnapshot, TaxAdvantagedBucket } from '@fad/shared';
 import type { MetricBreakdown } from '../../lib/play-session';
 import { formatMoney, formatPercent } from '../../lib/format-money';
+import { MetricBreakdownList, type MetricBreakdownListLine } from './MetricBreakdownList';
 import { ProgressRings } from './ProgressRings';
 import { ShowTheMath } from './ShowTheMath';
+import { WaterfallList } from './WaterfallList';
 
 interface ImpactCard {
   id: string;
@@ -13,7 +15,8 @@ interface ImpactCard {
   detail: string;
   tone: 'positive' | 'neutral' | 'warning';
   mathSummary?: string;
-  mathLines?: Array<{ label: string; amountCents: number }>;
+  mathLines?: MetricBreakdownListLine[];
+  useWaterfall?: boolean;
 }
 
 function toneClass(tone: ImpactCard['tone']): string {
@@ -22,14 +25,44 @@ function toneClass(tone: ImpactCard['tone']): string {
   return 'text-ink';
 }
 
-function breakdownToWaterfall(
-  lines: Array<{ label: string; amountCents: number }>,
-): AuditSnapshot['waterfall'] {
-  return lines.map((line) => ({
+function savingsMathLines(breakdown: MetricBreakdown): MetricBreakdownListLine[] {
+  return breakdown.savingsRate.lines.map((line) => ({
     label: line.label,
-    amount: line.amountCents,
-    category: 'other' as const,
+    amountCents: line.amountCents,
+    display: line.label.includes('denominator')
+      ? 'neutral'
+      : line.label.includes('numerator')
+        ? 'balance'
+        : 'balance',
   }));
+}
+
+function housingMathLines(breakdown: MetricBreakdown): MetricBreakdownListLine[] {
+  return breakdown.housingBurden.lines.map((line) => ({
+    label: line.label,
+    amountCents: line.amountCents,
+    display: line.label.includes('numerator') ? 'cost' : 'neutral',
+  }));
+}
+
+function runwayMathLines(breakdown: MetricBreakdown): MetricBreakdownListLine[] {
+  return [
+    {
+      label: 'Checking balance',
+      amountCents: breakdown.emergencyRunway.checkingBalanceCents,
+      display: 'balance',
+    },
+    ...breakdown.emergencyRunway.burnComponents.map((line) => ({
+      label: line.label,
+      amountCents: line.amountCents,
+      display: 'cost' as const,
+    })),
+    {
+      label: 'Monthly essential burn',
+      amountCents: breakdown.emergencyRunway.monthlyBurnCents,
+      display: 'cost',
+    },
+  ];
 }
 
 function buildImpactCards(
@@ -61,7 +94,9 @@ function buildImpactCards(
       value: formatMoney(audit.netWorthDelta, { signed: true }),
       detail: `Closing net worth ${formatMoney(audit.netWorth)} after this six-month window.`,
       tone: deltaTone,
-      mathSummary: 'Ledger waterfall from income through expenses, growth, and debt.',
+      mathSummary:
+        'Ledger waterfall by category: income increases net worth, expenses and debt service reduce it, growth reflects investment returns.',
+      useWaterfall: true,
     },
     {
       id: 'savings-rate',
@@ -72,7 +107,7 @@ function buildImpactCards(
         : 'Intentional savings deposits as a share of net pay this period.',
       tone: savingsTone,
       mathSummary: breakdown.savingsRate.formula,
-      mathLines: breakdown.savingsRate.lines,
+      mathLines: savingsMathLines(breakdown),
     },
     {
       id: 'runway',
@@ -84,13 +119,7 @@ function buildImpactCards(
       detail: 'Months of essential spend covered by checking cash.',
       tone: runwayTone,
       mathSummary: breakdown.emergencyRunway.formula,
-      mathLines: [
-        {
-          label: 'Checking balance',
-          amountCents: breakdown.emergencyRunway.checkingBalanceCents,
-        },
-        ...breakdown.emergencyRunway.burnComponents,
-      ],
+      mathLines: runwayMathLines(breakdown),
     },
     {
       id: 'housing-burden',
@@ -99,7 +128,7 @@ function buildImpactCards(
       detail: 'Your rent share as a share of monthly net pay.',
       tone: housingTone,
       mathSummary: breakdown.housingBurden.formula,
-      mathLines: breakdown.housingBurden.lines,
+      mathLines: housingMathLines(breakdown),
     },
   ];
 }
@@ -125,45 +154,34 @@ export function ImpactAnalysisCards({
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
         {cards.map((card) => (
-          <div
-            key={card.id}
-            className="rounded-lg border border-border bg-card p-4 shadow-sm"
-          >
-            <p className="text-xs font-medium uppercase tracking-wide text-muted">
-              {card.label}
-            </p>
+          <div key={card.id} className="rounded-xl bg-card p-4 shadow-sm ring-1 ring-border/60">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted">{card.label}</p>
             <p className={`mt-1 text-xl font-semibold ${toneClass(card.tone)}`}>{card.value}</p>
             <p className="mt-2 text-sm text-muted">{card.detail}</p>
-            <ShowTheMath
-              lines={
-                card.mathLines
-                  ? breakdownToWaterfall(card.mathLines)
-                  : audit.waterfall
-              }
-              summary={card.mathSummary}
-            />
+            <ShowTheMath summary={card.mathSummary}>
+              {card.useWaterfall ? (
+                <WaterfallList lines={audit.waterfall} />
+              ) : card.mathLines ? (
+                <MetricBreakdownList lines={card.mathLines} />
+              ) : null}
+            </ShowTheMath>
           </div>
         ))}
       </div>
 
       {Object.keys(audit.contributionProgress).length > 0 ? (
-        <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+        <div className="rounded-xl bg-card p-4 shadow-sm ring-1 ring-border/60">
           <p className="text-xs font-medium uppercase tracking-wide text-muted">
             Contribution progress
           </p>
           <p className="mt-1 text-sm text-muted">
-            Tax-year contributions from ledger transactions only. Account balance can include prior
-            savings and market returns.
+            Tax-year contributions from ledger transactions only. Limits use IRS 2026 calibration (
+            $24,500 401(k), $7,500 IRA). Account balance can include prior savings and market
+            returns.
           </p>
           <div className="mt-4">
             <ProgressRings progress={audit.contributionProgress} rothIra={rothIra} />
           </div>
-          <ShowTheMath
-            lines={audit.waterfall.filter(
-              (line) => line.label.includes('401') || line.label.includes('deferral'),
-            )}
-            summary="401(k) deferrals from payroll postings. Roth IRA progress counts tax-year contributions, not investment gains on an existing balance."
-          />
         </div>
       ) : null}
     </div>

@@ -114,7 +114,7 @@ Market gains post as **Investment returns** under the `growth` category.
 | Metric | Source |
 |--------|--------|
 | Savings rate, period net pay | `packages/ledger/src/metrics.ts` via `buildAuditSnapshot` |
-| Metric breakdown for analysis UI | `computeMetricBreakdown` in `apps/web/src/lib/play-session.ts` |
+| Metric breakdown for analysis UI | `metricBreakdown` on `AuditSnapshot` from `buildAuditSnapshot` |
 | Ribbon take-home, housing burden, DTI | `apps/web/src/lib/play-session.ts` `computeRibbonMetrics` |
 | Audit snapshot fields | `packages/shared/src/types/game-state.ts` `AuditSnapshot` |
 | Rent split | `packages/shared/src/types/housing-rent.ts`, `build-game-state.ts` |

@@ -148,6 +148,43 @@ export interface ContributionProgress {
   pctOfLimit: number;
 }
 
+export interface MetricBreakdownLineSnapshot {
+  label: string;
+  amountCents: MoneyCents;
+}
+
+export interface SavingsRateBreakdownSnapshot {
+  savingsInflowsCents: MoneyCents;
+  periodNetPayCents: MoneyCents;
+  rate: number;
+  formula: string;
+  lines: MetricBreakdownLineSnapshot[];
+}
+
+export interface HousingBurdenBreakdownSnapshot {
+  periodRentShareCents: MoneyCents;
+  periodNetPayCents: MoneyCents;
+  monthlyRentShareCents: MoneyCents;
+  monthlyNetPayCents: MoneyCents;
+  rate: number;
+  formula: string;
+  lines: MetricBreakdownLineSnapshot[];
+}
+
+export interface EmergencyRunwayBreakdownSnapshot {
+  checkingBalanceCents: MoneyCents;
+  monthlyBurnCents: MoneyCents;
+  months: number;
+  formula: string;
+  burnComponents: MetricBreakdownLineSnapshot[];
+}
+
+export interface MetricBreakdownSnapshot {
+  savingsRate: SavingsRateBreakdownSnapshot;
+  housingBurden: HousingBurdenBreakdownSnapshot;
+  emergencyRunway: EmergencyRunwayBreakdownSnapshot;
+}
+
 export interface AuditSnapshot {
   asOf: IsoDate;
   netWorth: MoneyCents;
@@ -158,6 +195,8 @@ export interface AuditSnapshot {
   savingsRate: number;
   emergencyRunwayMonths: number;
   contributionProgress: Record<string, ContributionProgress>;
+  /** Ledger-derived metric breakdown for impact analysis UI. */
+  metricBreakdown?: MetricBreakdownSnapshot;
 }
 
 export interface GameState {
