@@ -49,6 +49,8 @@ export interface PlaySession {
   deferral401kRate: number;
   /** Ledger net worth at simulation start (before any ticks). */
   startingNetWorth: number;
+  /** Roth IRA balance at simulation start (for contribution progress footnote). */
+  startingRothBalance: number;
   currentAudit: AuditSnapshot | null;
   pendingDecisions: PendingDecision[];
   playerAction: string;
@@ -171,10 +173,13 @@ function normalizeSession(parsed: PlaySession): PlaySession {
   const startingNetWorth =
     parsed.startingNetWorth ??
     netWorth(parsed.gameState.accounts, parsed.gameState.debts);
+  const startingRothBalance =
+    parsed.startingRothBalance ?? parsed.gameState.accounts.rothIra.balance;
 
   return {
     ...parsed,
     startingNetWorth,
+    startingRothBalance,
     gameState: {
       ...parsed.gameState,
       household: parsed.gameState.household ?? DEFAULT_HOUSEHOLD,
@@ -225,12 +230,13 @@ export function initializePlaySession(
   draft: V1CharacterDraft,
   config: V1RunConfig,
 ): PlaySession {
-  const { gameState, deferral401kRate } = buildInitialGameState(draft, config);
+  const { gameState, deferral401kRate, startingRothBalance } = buildInitialGameState(draft, config);
   const startingNetWorth = netWorth(gameState.accounts, gameState.debts);
   const session: PlaySession = {
     gameState,
     deferral401kRate,
     startingNetWorth,
+    startingRothBalance,
     currentAudit: null,
     pendingDecisions: [],
     playerAction: '',

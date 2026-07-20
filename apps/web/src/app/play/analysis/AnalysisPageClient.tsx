@@ -42,6 +42,7 @@ export function AnalysisPageClient() {
         breakdown={breakdown}
         housingBurdenPct={metrics.housingBurdenPct}
         rothIra={session.gameState.accounts.rothIra}
+        startingRothBalance={session.startingRothBalance}
         emphasizeSavingsRate={emphasizeSavingsRate}
       />
 

@@ -1,11 +1,13 @@
 'use client';
 
-import type { ContributionProgress, TaxAdvantagedBucket } from '@fad/shared';
+import type { ContributionProgress, MoneyCents, TaxAdvantagedBucket } from '@fad/shared';
 import { formatMoney, formatPercent } from '../../lib/format-money';
 
 interface ProgressRingsProps {
   progress: Record<string, ContributionProgress>;
   rothIra?: TaxAdvantagedBucket;
+  startingRothBalance?: MoneyCents;
+  rothMarketReturnsCents?: MoneyCents;
 }
 
 const LABELS: Record<string, string> = {
@@ -13,7 +15,12 @@ const LABELS: Record<string, string> = {
   rothIra: 'Roth IRA contributions',
 };
 
-export function ProgressRings({ progress, rothIra }: ProgressRingsProps) {
+export function ProgressRings({
+  progress,
+  rothIra,
+  startingRothBalance = 0,
+  rothMarketReturnsCents = 0,
+}: ProgressRingsProps) {
   const entries = Object.entries(progress);
 
   if (entries.length === 0) {
@@ -24,10 +31,10 @@ export function ProgressRings({ progress, rothIra }: ProgressRingsProps) {
     <div className="grid gap-4 sm:grid-cols-2">
       {entries.map(([key, item]) => {
         const pct = Math.min(100, Math.round(item.pctOfLimit * 100));
-        const priorBalance =
-          key === 'rothIra' && rothIra
-            ? Math.max(0, rothIra.balance - rothIra.taxYearContributions)
-            : 0;
+        const showRothBreakdown = key === 'rothIra' && rothIra;
+        const contributions = showRothBreakdown ? rothIra.taxYearContributions : 0;
+        const returns = showRothBreakdown ? rothMarketReturnsCents : 0;
+        const starting = showRothBreakdown ? startingRothBalance : 0;
 
         return (
           <div
@@ -54,10 +61,10 @@ export function ProgressRings({ progress, rothIra }: ProgressRingsProps) {
                 <p className="text-xs text-muted">
                   {formatMoney(item.remainingCents)} remaining
                 </p>
-                {priorBalance > 0 ? (
+                {showRothBreakdown && rothIra.balance > 0 ? (
                   <p className="mt-2 text-xs text-muted">
-                    Account balance {formatMoney(rothIra?.balance ?? 0)} includes{' '}
-                    {formatMoney(priorBalance)} from prior savings and market returns.
+                    Balance {formatMoney(rothIra.balance)} = {formatMoney(starting)} starting +{' '}
+                    {formatMoney(contributions)} contributions + {formatMoney(returns)} returns
                   </p>
                 ) : null}
               </div>

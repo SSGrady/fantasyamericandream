@@ -164,6 +164,16 @@ function waterfallEntriesForTransaction(
     return [];
   }
 
+  if (tx.id.includes('-mortgage-piti')) {
+    const piti = tx.lines
+      .filter((line) => line.accountId === 'expense:mortgagePiti')
+      .reduce((sum, line) => sum + line.debitCents, 0);
+    if (piti > 0) {
+      return [{ label: 'Mortgage PITI', category: 'expense', amount: -piti }];
+    }
+    return [];
+  }
+
   if (tx.source === 'interest_expense') {
     const interest = tx.lines
       .filter((line) => line.accountId === 'expense:creditCardInterest')
@@ -242,6 +252,32 @@ export function buildMetricBreakdownSnapshot(input: {
   };
 }
 
+export function computeAccountInvestmentReturns(
+  transactions: LedgerTransaction[],
+): Partial<Record<'brokerage' | 'traditional401k' | 'rothIra', MoneyCents>> {
+  const returns: Partial<Record<'brokerage' | 'traditional401k' | 'rothIra', MoneyCents>> = {};
+  const accountIds = new Set(['brokerage', 'traditional401k', 'rothIra']);
+
+  for (const tx of transactions) {
+    if (tx.source !== 'investment_return') {
+      continue;
+    }
+
+    const suffix = tx.id.split('-return-')[1];
+    if (!suffix || !accountIds.has(suffix)) {
+      continue;
+    }
+
+    const accountId = suffix as 'brokerage' | 'traditional401k' | 'rothIra';
+    const delta = tx.lines
+      .filter((line) => line.accountId === accountId)
+      .reduce((sum, line) => sum + line.debitCents - line.creditCents, 0);
+    returns[accountId] = (returns[accountId] ?? 0) + delta;
+  }
+
+  return returns;
+}
+
 export function buildContributionProgress(accounts: Accounts): Record<string, ContributionProgress> {
   const build = (contributedCents: MoneyCents, limitCents: MoneyCents): ContributionProgress => {
     const remainingCents = Math.max(0, limitCents - contributedCents);
@@ -314,6 +350,7 @@ export function buildAuditSnapshot(input: {
     savingsRate: computeSavingsRate(input.transactions),
     emergencyRunwayMonths: metricBreakdown.emergencyRunway.months,
     contributionProgress: buildContributionProgress(input.endAccounts),
+    accountInvestmentReturns: computeAccountInvestmentReturns(input.transactions),
     metricBreakdown,
   };
 }

@@ -84,12 +84,14 @@ export function AuditPageClient() {
       <section className="space-y-3">
         <h2 className="font-serif text-xl text-ink">Contribution progress</h2>
         <p className="text-sm text-muted">
-          Rings track tax-year contributions from ledger transactions. Roth IRA balance can include
-          prior savings and market returns not counted here.
+          Rings track tax-year contributions from ledger transactions. Roth balance breakdown
+          separates starting balance, new contributions, and market returns.
         </p>
         <ProgressRings
           progress={audit.contributionProgress}
           rothIra={session.gameState.accounts.rothIra}
+          startingRothBalance={session.startingRothBalance}
+          rothMarketReturnsCents={audit.accountInvestmentReturns?.rothIra ?? 0}
         />
       </section>
 

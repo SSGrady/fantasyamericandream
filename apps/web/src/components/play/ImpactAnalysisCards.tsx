@@ -138,6 +138,7 @@ interface ImpactAnalysisCardsProps {
   breakdown: MetricBreakdown;
   housingBurdenPct: number;
   rothIra?: TaxAdvantagedBucket;
+  startingRothBalance?: number;
   emphasizeSavingsRate?: boolean;
 }
 
@@ -146,6 +147,7 @@ export function ImpactAnalysisCards({
   breakdown,
   housingBurdenPct,
   rothIra,
+  startingRothBalance = 0,
   emphasizeSavingsRate = false,
 }: ImpactAnalysisCardsProps) {
   const cards = buildImpactCards(audit, breakdown, housingBurdenPct, emphasizeSavingsRate);
@@ -176,11 +178,15 @@ export function ImpactAnalysisCards({
           </p>
           <p className="mt-1 text-sm text-muted">
             Tax-year contributions from ledger transactions only. Limits use IRS 2026 calibration (
-            $24,500 401(k), $7,500 IRA). Account balance can include prior savings and market
-            returns.
+            $24,500 401(k), $7,500 IRA). Roth balance = starting + contributions + returns.
           </p>
           <div className="mt-4">
-            <ProgressRings progress={audit.contributionProgress} rothIra={rothIra} />
+            <ProgressRings
+              progress={audit.contributionProgress}
+              rothIra={rothIra}
+              startingRothBalance={startingRothBalance}
+              rothMarketReturnsCents={audit.accountInvestmentReturns?.rothIra ?? 0}
+            />
           </div>
         </div>
       ) : null}

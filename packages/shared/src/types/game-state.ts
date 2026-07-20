@@ -72,15 +72,19 @@ export interface CareerState {
   unemploymentWeeks: number;
 }
 
+export type HousingMode = 'rent' | 'own';
+
 export interface LocationState {
   stateCode: UsStateCode;
   metroId: string;
-  housingMode: 'rent';
+  housingMode: HousingMode;
   /** Full market rent before roommate or partner split. */
   marketRentMonthly: MoneyCents;
   /** Player's share posted to expense:rent each month. */
   rentPaymentMonthly: MoneyCents;
   housingArrangement?: V1HousingArrangement;
+  /** Stub home value when housingMode is own (20% down, PITI on monthly tick). */
+  homeValueCents?: MoneyCents;
 }
 
 export interface AccountBucket {
@@ -117,9 +121,21 @@ export interface TermDebt {
   minimumPayment: MoneyCents;
 }
 
+export interface MortgageDebt {
+  id: string;
+  principal: MoneyCents;
+  homeValue: MoneyCents;
+  apr: number;
+  termMonths: number;
+  /** Total monthly PITI stub posted to checking. */
+  monthlyPiti: MoneyCents;
+  pmiMonthly: MoneyCents;
+}
+
 export interface Debts {
   creditCards: CreditCardDebt[];
   studentLoans: TermDebt[];
+  mortgages: MortgageDebt[];
 }
 
 export type MacroRegime =
@@ -199,6 +215,10 @@ export interface AuditSnapshot {
   savingsRate: number;
   emergencyRunwayMonths: number;
   contributionProgress: Record<string, ContributionProgress>;
+  /** Investment return cents by account over the audit period (excludes contributions). */
+  accountInvestmentReturns?: Partial<
+    Record<'brokerage' | 'traditional401k' | 'rothIra', MoneyCents>
+  >;
   /** Ledger-derived metric breakdown for impact analysis UI. */
   metricBreakdown?: MetricBreakdownSnapshot;
 }
