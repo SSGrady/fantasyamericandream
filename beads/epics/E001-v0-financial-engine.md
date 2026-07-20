@@ -43,10 +43,10 @@ Prove monthly ledger + six-month audit loop with seeded replay before UI polish.
 | [T006](../tickets/T006-scenario-matrix-e2e.md) | Scenario matrix end-to-end | done |
 | [T007](../tickets/T007-event-definitions-literacy-stubs.md) | Event definitions + literacy stubs | done |
 
-## Follow-on Epics (planned)
+## Follow-on Epics
 
-| Epic | Scope |
-|------|-------|
-| E002 | V1 Playable Game (UI consequence pipeline) |
-| E003 | V2 Household Simulator |
-| E004 | V3 Platform |
+| Epic | Scope | Status |
+|------|-------|--------|
+| [E002](../epics/E002-v1-playable-game.md) | V1 Playable Game (UI consequence pipeline) | In progress |
+| E003 | V2 Household Simulator | Planned |
+| E004 | V3 Platform | Planned |
