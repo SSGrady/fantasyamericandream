@@ -1,7 +1,7 @@
 ---
 id: T018
 title: COL-tier stochastic rent ranges
-status: open
+status: done
 type: feature
 priority: P2
 epic: E002

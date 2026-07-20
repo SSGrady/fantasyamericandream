@@ -1,4 +1,4 @@
-import { buildV0ScenarioFixture } from '@fad/data';
+import { buildV0ScenarioFixture, sampleMarketRentMonthly } from '@fad/data';
 import type { MoneyCents, UsStateCode, V1CharacterDraft } from '@fad/shared';
 import { playerRentShare } from '@fad/shared';
 
@@ -37,7 +37,7 @@ const STREET_NAMES = [
   'Summit Place',
 ];
 
-/** COL tier anchors spread below/above metro market rent (seeded, not linear steps). */
+/** Listing spread factors around the COL-tier baseline (seeded, not linear steps). */
 const COL_TIER_FACTORS = [0.68, 0.76, 0.84, 0.92, 1.0, 1.08, 1.16, 1.24] as const;
 
 function seededUnit(seed: string, index: number): number {
@@ -67,13 +67,8 @@ function metroLabel(stateCode: UsStateCode): string {
 }
 
 function baselineMarketRent(draft: V1CharacterDraft): MoneyCents {
-  const fixture = buildV0ScenarioFixture({
-    id: `${draft.careerSector}_${draft.stateCode.toLowerCase()}`,
-    career: draft.careerSector,
-    stateCode: draft.stateCode,
-    randomSeed: `rental-${draft.scenarioId}`,
-  });
-  return fixture.location.marketRentMonthly;
+  const seed = `${draft.scenarioId}-${draft.stateCode}-${draft.careerSector}-${draft.name.trim() || 'anon'}`;
+  return sampleMarketRentMonthly(draft.stateCode, seed);
 }
 
 function marketRentForListing(baseline: MoneyCents, seed: string, index: number): MoneyCents {
@@ -122,4 +117,9 @@ export function playerShareForListing(
 
 export function rentalPickerSeed(draft: V1CharacterDraft): string {
   return `${draft.scenarioId}-${draft.stateCode}-${draft.careerSector}`;
+}
+
+/** Deterministic market rent for a draft (matches build-game-state when no listing picked). */
+export function draftMarketRentMonthly(draft: V1CharacterDraft): MoneyCents {
+  return baselineMarketRent(draft);
 }

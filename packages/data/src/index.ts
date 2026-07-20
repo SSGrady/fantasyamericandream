@@ -1,6 +1,14 @@
 export { IRS_LIMITS_2026, MORTGAGE_RATES_2026 } from './calibration-2026.js';
 export type { IrsLimits2026, MortgageRateBand } from './calibration-2026.js';
 export {
+  COL_TIER_RENT_BANDS,
+  STATE_COL_TIER,
+  colTierForState,
+  metroIdForState,
+  sampleMarketRentMonthly,
+} from './calibration/housing/col-tiers.js';
+export type { ColTier, ColTierRentBand } from './calibration/housing/col-tiers.js';
+export {
   V0_SCENARIO_CAREERS,
   V0_SCENARIO_MATRIX,
   V0_SCENARIO_STATES,

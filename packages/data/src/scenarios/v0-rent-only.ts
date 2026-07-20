@@ -7,6 +7,10 @@ import type {
   LocationState,
   UsStateCode,
 } from '@fad/shared';
+import {
+  metroIdForState,
+  sampleMarketRentMonthly,
+} from '../calibration/housing/col-tiers.js';
 
 /** Eight V0 states with distinct tax profiles (see feature-set L. State Tax). */
 export const V0_SCENARIO_STATES: readonly UsStateCode[] = [
@@ -46,19 +50,6 @@ const CAREER_PROFILES: Record<
   consulting: { title: 'Associate Consultant', baseSalaryAnnual: 95_000_00, deferral401kRate: 0.05 },
 };
 
-const STATE_METRO_RENT: Record<UsStateCode, { metroId: string; rentPaymentMonthly: number }> = {
-  CA: { metroId: 'los_angeles', rentPaymentMonthly: 250_000 },
-  FL: { metroId: 'miami', rentPaymentMonthly: 180_000 },
-  NY: { metroId: 'new_york_city', rentPaymentMonthly: 280_000 },
-  TX: { metroId: 'austin', rentPaymentMonthly: 150_000 },
-  WA: { metroId: 'seattle', rentPaymentMonthly: 220_000 },
-  NC: { metroId: 'charlotte', rentPaymentMonthly: 140_000 },
-  TN: { metroId: 'nashville', rentPaymentMonthly: 130_000 },
-  IL: { metroId: 'chicago', rentPaymentMonthly: 190_000 },
-  GA: { metroId: 'atlanta', rentPaymentMonthly: 160_000 },
-  SC: { metroId: 'charleston', rentPaymentMonthly: 135_000 },
-};
-
 const DEFAULT_START_DATE: IsoDate = '2026-01-01';
 
 function defaultAccounts(): Accounts {
@@ -90,6 +81,7 @@ function defaultDebts(): Debts {
         minimumPayment: 28_000,
       },
     ],
+    mortgages: [],
   };
 }
 
@@ -119,9 +111,13 @@ export interface V0ScenarioFixture {
   deferral401kRate: number;
 }
 
+/**
+ * Builds a rent-only scenario fixture. Market rent is sampled once from the
+ * state COL tier band (seeded). Career salary bands are independent of rent draw.
+ */
 export function buildV0ScenarioFixture(config: V0ScenarioConfig): V0ScenarioFixture {
   const profile = CAREER_PROFILES[config.career];
-  const locationMeta = STATE_METRO_RENT[config.stateCode];
+  const marketRentMonthly = sampleMarketRentMonthly(config.stateCode, config.randomSeed);
 
   return {
     config,
@@ -139,10 +135,10 @@ export function buildV0ScenarioFixture(config: V0ScenarioConfig): V0ScenarioFixt
     },
     location: {
       stateCode: config.stateCode,
-      metroId: locationMeta.metroId,
+      metroId: metroIdForState(config.stateCode),
       housingMode: 'rent',
-      marketRentMonthly: locationMeta.rentPaymentMonthly,
-      rentPaymentMonthly: locationMeta.rentPaymentMonthly,
+      marketRentMonthly,
+      rentPaymentMonthly: marketRentMonthly,
     },
     deferral401kRate: profile.deferral401kRate,
   };
