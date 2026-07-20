@@ -158,8 +158,12 @@ type: subject here
 
 ## Running Locally
 
+Project [`.npmrc`](./.npmrc) pins `registry=https://registry.npmjs.org/` so installs do not use a corporate `~/.npmrc` Artifactory default. No `@adsk` scoped packages are used in this monorepo.
+
+If `pnpm install` hits `ERR_SOCKET_TIMEOUT` against `registry.npmjs.org`, the effective registry is already public npm; check VPN or network paths to npmjs.org (Artifactory may still work while npmjs.org is blocked). To skip user-level npm config:
+
 ```bash
-pnpm install
+NPM_CONFIG_USERCONFIG=/dev/null pnpm install
 pnpm typecheck
 pnpm test
 pnpm dev          # starts apps/web (when UI exists)

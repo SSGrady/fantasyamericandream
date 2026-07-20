@@ -6,6 +6,14 @@ A personal-finance life-path simulator inspired by [fantasypresidentcareer.com](
 
 ## Quick Start
 
+This repo pins the [public npm registry](https://registry.npmjs.org/) in [`.npmrc`](./.npmrc). If your user `~/.npmrc` points at Autodesk Artifactory (common on work laptops), installs here still use npmjs.org.
+
+On a corporate VPN, direct access to `registry.npmjs.org` may time out. Disconnect the VPN, use split tunneling, or run installs from a personal network. To ignore user-level npm config entirely:
+
+```bash
+NPM_CONFIG_USERCONFIG=/dev/null pnpm install
+```
+
 ```bash
 pnpm install
 pnpm typecheck
