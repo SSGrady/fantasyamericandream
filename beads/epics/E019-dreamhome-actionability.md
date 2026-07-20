@@ -1,7 +1,7 @@
 ---
 id: E019
 title: DreamHome Actionability
-status: open
+status: done
 priority: P2
 sprints:
   - S022

@@ -1,7 +1,7 @@
 'use client';
 
 import type { ListingAffordability } from '../../lib/dream-home';
-import { DREAM_HOME_BUCKET_LABELS } from '../../lib/dream-home';
+import { DREAM_HOME_BUCKET_LABELS, affordabilityProbability, primaryBlockerForListing } from '../../lib/dream-home';
 import { formatMoney } from '../../lib/format-money';
 
 interface ListingCardProps {
@@ -13,6 +13,8 @@ interface ListingCardProps {
 export function ListingCard({ affordability, selected, onSelect }: ListingCardProps) {
   const { listing, cashToCloseCents, pitiMonthlyCents, passCount, blockedInGuardrails } =
     affordability;
+  const blocker = primaryBlockerForListing(affordability);
+  const probability = affordabilityProbability(affordability);
 
   return (
     <button
@@ -51,11 +53,19 @@ export function ListingCard({ affordability, selected, onSelect }: ListingCardPr
               : 'Dream tier: long horizon'}
       </p>
       <p className="mt-2 text-xs font-medium text-ink">
-        {passCount}/5 gates pass
-        {blockedInGuardrails
-          ? ' · Raising down payment fund by $750/mo can improve purchase probability'
-          : ''}
+        {passCount}/5 gates pass · {probability}% affordability (model est.)
       </p>
+      {blocker ? (
+        <p className="mt-1 text-xs text-warning">
+          Primary blocker: {blocker.label}
+          {blocker.gapCents ? ` · gap ${formatMoney(blocker.gapCents)}` : ''}
+        </p>
+      ) : (
+        <p className="mt-1 text-xs text-positive">All critical gates pass</p>
+      )}
+      {blockedInGuardrails ? (
+        <p className="mt-1 text-xs text-muted">Guardrails mode blocks purchase until resolved.</p>
+      ) : null}
     </button>
   );
 }

@@ -282,6 +282,63 @@ function formatCents(cents: MoneyCents): string {
   return `$${(cents / 100).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 }
 
+export interface PrimaryBlocker {
+  id: string;
+  label: string;
+  detail: string;
+  gapCents?: MoneyCents;
+}
+
+export function primaryBlockerForListing(affordability: ListingAffordability): PrimaryBlocker | null {
+  const failed = affordability.gates.filter((gate) => !gate.passed);
+  if (failed.length === 0) return null;
+
+  const priority = ['cash_to_close', 'monthly_affordability', 'liquidity_remaining', 'stress_test', 'life_fit'];
+  const sorted = [...failed].sort(
+    (a, b) => priority.indexOf(a.id) - priority.indexOf(b.id),
+  );
+  const primary = sorted[0]!;
+
+  if (primary.id === 'cash_to_close') {
+    const liquid = affordability.listing.priceCents * 0.1 + affordability.closingCostsCents;
+    const gap = Math.max(0, affordability.cashToCloseCents - liquid);
+    return {
+      id: primary.id,
+      label: 'Down payment & closing cash',
+      detail: primary.detail,
+      gapCents: gap > 0 ? gap : undefined,
+    };
+  }
+  if (primary.id === 'monthly_affordability') {
+    return {
+      id: primary.id,
+      label: 'Monthly payment (DTI / 28%)',
+      detail: primary.detail,
+    };
+  }
+  if (primary.id === 'liquidity_remaining') {
+    return {
+      id: primary.id,
+      label: 'Cash reserve after close',
+      detail: primary.detail,
+    };
+  }
+
+  return { id: primary.id, label: primary.label, detail: primary.detail };
+}
+
+/** Deterministic 0-100 score from gate pass rate and bucket tier. */
+export function affordabilityProbability(affordability: ListingAffordability): number {
+  const base = (affordability.passCount / affordability.gates.length) * 100;
+  const bucketPenalty: Record<DreamHomeBucket, number> = {
+    plausible_now: 0,
+    one_to_three_yr: 12,
+    stretch: 28,
+    dream: 45,
+  };
+  return Math.max(5, Math.min(95, Math.round(base - bucketPenalty[affordability.listing.bucket])));
+}
+
 export function knowledgeModeFromHints(hintsEnabled: boolean): DreamHomeKnowledgeMode {
   return hintsEnabled ? 'guardrails' : 'sandbox';
 }

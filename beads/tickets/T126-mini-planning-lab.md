@@ -1,7 +1,7 @@
 ---
 id: T126
 title: Mini planning lab
-status: open
+status: done
 type: feature
 priority: P2
 epic: E019

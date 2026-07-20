@@ -1,7 +1,7 @@
 ---
 id: T127
 title: Listing illustrations goal date
-status: open
+status: done
 type: feature
 priority: P2
 epic: E019

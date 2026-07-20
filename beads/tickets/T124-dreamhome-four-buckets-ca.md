@@ -1,7 +1,7 @@
 ---
 id: T124
 title: DreamHome four buckets CA
-status: open
+status: done
 type: feature
 priority: P2
 epic: E019

@@ -2,6 +2,15 @@
 
 Aggregated progress log. Append dated entries when closing tickets.
 
+## 2026-07-20 (S017-S022 continuity pass)
+
+- **S017 / E014** - Interactive planning (T094-T099): money/time policy sliders, debounced directional preview, commit plan CTA.
+- **S018 / E015** - Live timeline (T100-T105): LiveMonthRail animation, interrupt overlay, monthsCompleted, directional previews.
+- **S019 / E016** - Visual semantics (T106-T112): 72rem shell, semantic card tokens, reduced motion, accent de-orange.
+- **S020 / E017** - Life priorities (T113-T117): priority delta badges, contextual RTO quiz, lifePriorities on RunState.
+- **S021 / E018** - Onboarding (T118-T123): 4-step wizard, preview rail, job offer tradeoff matrix.
+- **S022 / E019** - DreamHome (T124-T128): primary blocker messaging, affordability probability on listings.
+
 ## 2026-07-20 (S016 chapter shell)
 
 - **S016 / E013 / E020** - Chapter shell (T088-T093): DecisionRecord log, four-stage XState machine, persistent `/play/[runId]/chapter/[n]` route, LifeRail, tabbed Chapter Close, legacy redirects.

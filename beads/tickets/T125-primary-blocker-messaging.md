@@ -1,7 +1,7 @@
 ---
 id: T125
 title: Primary blocker messaging
-status: open
+status: done
 type: bug
 priority: P2
 epic: E019
