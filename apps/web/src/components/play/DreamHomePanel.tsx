@@ -17,10 +17,10 @@ export function ListingCard({ affordability, selected, onSelect }: ListingCardPr
     <button
       type="button"
       onClick={onSelect}
-      className={`w-full rounded-lg border p-4 text-left shadow-sm transition ${
+      className={`w-full rounded-xl p-4 text-left transition ${
         selected
-          ? 'border-accent bg-accent/5'
-          : 'border-border bg-card hover:border-accent/40'
+          ? 'bg-accent/5 ring-2 ring-accent/40'
+          : 'bg-card ring-1 ring-border/60 hover:ring-accent/30'
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -52,30 +52,42 @@ interface AffordabilityGatesProps {
 
 export function AffordabilityGates({ affordability, knowledgeMode }: AffordabilityGatesProps) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <p className="text-xs font-medium uppercase tracking-wide text-muted">
         Affordability gates · {knowledgeMode} mode
       </p>
-      {affordability.gates.map((gate) => (
-        <div
-          key={gate.id}
-          className={`rounded-md border px-3 py-2 ${
-            gate.passed ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'
-          }`}
-        >
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-medium text-ink">{gate.label}</p>
+      <ul className="space-y-2">
+        {affordability.gates.map((gate) => (
+          <li
+            key={gate.id}
+            className={`flex items-start gap-3 rounded-lg px-3 py-2 ${
+              gate.passed ? 'bg-emerald-50/80' : 'bg-amber-50/80'
+            }`}
+          >
             <span
-              className={`text-xs font-semibold ${
-                gate.passed ? 'text-emerald-700' : 'text-amber-700'
+              className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                gate.passed ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'
               }`}
+              aria-hidden
             >
-              {gate.passed ? 'Pass' : 'Fail'}
+              {gate.passed ? '✓' : '!'}
             </span>
-          </div>
-          <p className="mt-1 text-xs text-muted">{gate.detail}</p>
-        </div>
-      ))}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-medium text-ink">{gate.label}</p>
+                <span
+                  className={`shrink-0 text-xs font-semibold ${
+                    gate.passed ? 'text-emerald-700' : 'text-amber-700'
+                  }`}
+                >
+                  {gate.passed ? 'Pass' : 'Fail'}
+                </span>
+              </div>
+              <p className="mt-0.5 text-xs text-muted">{gate.detail}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   generateDreamHomeListings,
   knowledgeModeFromHints,
 } from '../../../lib/dream-home';
+import { formatMoney } from '../../../lib/format-money';
 import { computeRibbonMetrics, savePlaySession } from '../../../lib/play-session';
 import { loadOrCreateRunConfig } from '../../../lib/run-config';
 import { usePlaySession } from '../../../lib/use-play-session';
@@ -47,7 +48,7 @@ export function DreamHomePageClient() {
 
   if (!ready || !session?.currentAudit) {
     return (
-      <div className="rounded-lg border border-border bg-card p-6 text-muted shadow-sm">
+      <div className="rounded-xl bg-card p-6 text-muted ring-1 ring-border/60">
         Loading DreamHome window…
       </div>
     );
@@ -79,10 +80,10 @@ export function DreamHomePageClient() {
     <div className="space-y-6">
       <MetricsRibbon metrics={metrics} />
 
-      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+      <div className="rounded-xl bg-card p-6 ring-1 ring-border/60">
         <p className="text-sm font-medium text-accent">DreamHome window</p>
         <h2 className="mt-1 font-serif text-2xl text-ink">Ten synthetic listings near you</h2>
-        <p className="mt-3 text-muted">
+        <p className="mt-3 text-sm text-muted">
           Calibrated from your {session.gameState.location.stateCode} preference and income. Review
           PITI, cash to close, and five affordability gates before any offer.
         </p>
@@ -101,30 +102,33 @@ export function DreamHomePageClient() {
         </div>
 
         {selected ? (
-          <div className="space-y-4 rounded-lg border border-border bg-card p-4 shadow-sm">
+          <div className="space-y-4 rounded-xl bg-card p-5 ring-1 ring-border/60 lg:sticky lg:top-6 lg:self-start">
             <div>
-              <p className="text-sm font-semibold text-ink">{selected.listing.address}</p>
-              <p className="text-xs text-muted">
-                List {formatListingPrice(selected.listing.priceCents)} · PITI{' '}
-                {formatListingPrice(selected.pitiMonthlyCents)}/mo · Cash to close{' '}
-                {formatListingPrice(selected.cashToCloseCents)}
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">Selected home</p>
+              <p className="mt-1 text-lg font-semibold text-ink">{selected.listing.address}</p>
+              <p className="text-sm text-muted">
+                List {formatMoney(selected.listing.priceCents)} · PITI{' '}
+                {formatMoney(selected.pitiMonthlyCents)}/mo · Cash to close{' '}
+                {formatMoney(selected.cashToCloseCents)}
               </p>
             </div>
             <AffordabilityGates affordability={selected} knowledgeMode={knowledgeMode} />
             {selected.blockedInGuardrails ? (
-              <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
                 Guardrails mode blocks this purchase. Critical gates failed. Keep renting or pick a
                 lower list price.
               </p>
             ) : null}
             {savedChoice === selected.listing.id ? (
-              <p className="text-sm text-emerald-700">Saved as your browse choice (no ledger change in V1 lite).</p>
+              <p className="text-sm text-emerald-700">
+                Saved as your browse choice (no ledger change in V1 lite).
+              </p>
             ) : null}
           </div>
         ) : null}
       </div>
 
-      <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
+      <div className="flex flex-col-reverse gap-3 border-t border-border/60 pt-6 sm:flex-row sm:justify-between">
         <button
           type="button"
           onClick={() => router.push('/play/audit')}
@@ -152,8 +156,4 @@ export function DreamHomePageClient() {
       </div>
     </div>
   );
-}
-
-function formatListingPrice(cents: number): string {
-  return `$${(cents / 100).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 }
