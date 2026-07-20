@@ -6,7 +6,7 @@ describe('resolvePlanningMode', () => {
     expect(
       resolvePlanningMode({
         periodIndex: 3,
-        selectedJobOfferId: 'offer-sf-mid',
+        acceptedOfferId: 'offer-sf-mid',
         activeInterrupt: {
           id: 'interrupt-offer',
           type: 'competing_offer',
@@ -22,7 +22,7 @@ describe('resolvePlanningMode', () => {
     expect(
       resolvePlanningMode({
         periodIndex: 1,
-        selectedJobOfferId: null,
+        acceptedOfferId: null,
         activeInterrupt: null,
       }),
     ).toBe('initialPlan');
@@ -32,7 +32,7 @@ describe('resolvePlanningMode', () => {
     expect(
       resolvePlanningMode({
         periodIndex: 2,
-        selectedJobOfferId: null,
+        acceptedOfferId: null,
         activeInterrupt: null,
       }),
     ).toBe('recurringPlan');
@@ -42,7 +42,7 @@ describe('resolvePlanningMode', () => {
     expect(
       resolvePlanningMode({
         periodIndex: 1,
-        selectedJobOfferId: 'offer-sf-mid',
+        acceptedOfferId: 'offer-sf-mid',
         activeInterrupt: null,
       }),
     ).toBe('recurringPlan');
@@ -52,7 +52,7 @@ describe('resolvePlanningMode', () => {
     expect(
       resolvePlanningMode({
         periodIndex: 2,
-        selectedJobOfferId: 'offer-sf-mid',
+        acceptedOfferId: 'offer-sf-mid',
         activeInterrupt: {
           id: 'interrupt-rto',
           type: 'return_to_office',

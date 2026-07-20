@@ -1,7 +1,7 @@
 ---
 id: T087
 title: Selector layer
-status: open
+status: done
 type: feature
 priority: P1
 epic: E020

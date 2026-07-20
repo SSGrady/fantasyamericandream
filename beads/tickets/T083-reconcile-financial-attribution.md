@@ -1,7 +1,7 @@
 ---
 id: T083
 title: Reconcile financial attribution
-status: open
+status: done
 type: bug
 priority: P0
 epic: E012

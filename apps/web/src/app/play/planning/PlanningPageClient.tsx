@@ -2,7 +2,9 @@
 
 import {
   CA_ENGINEER_2026,
+  canAccessPlanning,
   deferralRateFromOffer,
+  formatSimWindowRange,
   resolveJobOffer,
 } from '@fad/domain';
 import { useRouter } from 'next/navigation';
@@ -11,11 +13,9 @@ import { JobOfferPicker } from '../../../components/create/JobOfferPicker';
 import { CommandCenter } from '../../../components/play/CommandCenter';
 import { formatMoney } from '../../../lib/format-money';
 import {
-  applyJobOfferToSession,
+  acceptJobOffer,
   commitCommandDraft,
-  formatCalendarRange,
   resolveSessionPlanningMode,
-  savePlaySession,
 } from '../../../lib/play-session';
 import { usePlaySession } from '../../../lib/use-play-session';
 
@@ -29,10 +29,16 @@ export function PlanningPageClient() {
 
   const planningMode = session ? resolveSessionPlanningMode(session) : 'recurringPlan';
 
+  useEffect(() => {
+    if (!ready || !session) return;
+    if (session.currentAudit || !canAccessPlanning(session.chapterPeriod.status)) {
+      router.replace(session.currentAudit ? '/play/audit' : '/play/briefing');
+    }
+  }, [ready, session, router]);
+
   const currentOffer = useMemo(() => {
     if (!session) return null;
-    const offerId = session.selectedJobOfferId ?? chapter.defaultOfferId;
-    return resolveJobOffer(chapter, offerId);
+    return resolveJobOffer(chapter, session.acceptedOfferId ?? chapter.defaultOfferId);
   }, [session, chapter]);
 
   useEffect(() => {
@@ -42,7 +48,7 @@ export function PlanningPageClient() {
       return;
     }
     if (planningMode === 'initialPlan') {
-      setSelectedOfferId(session.selectedJobOfferId ?? chapter.defaultOfferId);
+      setSelectedOfferId(session.acceptedOfferId ?? chapter.defaultOfferId);
     }
   }, [session, planningMode, chapter]);
 
@@ -51,17 +57,18 @@ export function PlanningPageClient() {
       ? resolveJobOffer(chapter, selectedOfferId ?? chapter.defaultOfferId)
       : currentOffer;
 
-  const effectiveMonthKey = session?.gameState.run.currentDate.slice(0, 7) ?? '2026-01';
-  const planLabel = session?.currentAudit
-    ? `Plan ${formatCalendarRange(session.currentAudit.asOf)}`
+  const planLabel = session
+    ? `Plan ${formatSimWindowRange(session.chapterPeriod)}`
     : 'Plan next six months';
+
+  const effectiveMonthKey = session?.chapterPeriod.openingDate.slice(0, 7) ?? '2026-01';
 
   const handleContinue = () => {
     if (!session) return;
 
     if (planningMode === 'interruptJobOffer' || planningMode === 'initialPlan') {
       if (!selectedOfferId) return;
-      const withOffer = applyJobOfferToSession(session, selectedOfferId);
+      const withOffer = acceptJobOffer(session, selectedOfferId);
       const committed = commitCommandDraft(withOffer);
       setSession(committed);
       router.push('/play/decide');
@@ -77,7 +84,7 @@ export function PlanningPageClient() {
     router.push('/play/decide');
   };
 
-  if (!ready || !session?.currentAudit) {
+  if (!ready || !session) {
     return (
       <div className="rounded-lg border border-border bg-card p-6 text-muted shadow-sm">
         Loading chapter planning…
@@ -128,47 +135,35 @@ export function PlanningPageClient() {
     <div className="space-y-6">
       <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <p className="text-sm font-medium text-accent">{planLabel}</p>
-        <h2 className="mt-1 font-serif text-2xl text-ink">Set six-month policies</h2>
+        <h2 className="mt-1 font-serif text-2xl text-ink">Set chapter commands</h2>
         <p className="mt-3 text-muted">
-          Adjust persistent commands for the next chapter. Your current role stays fixed unless a
-          job-offer interrupt fires mid-cycle.
+          {selectedOffer
+            ? `${selectedOffer.employer} · ${formatMoney(selectedOffer.baseSalaryAnnual)}/yr · ${Math.round(deferralRateFromOffer(selectedOffer) * 100)}% deferral`
+            : 'Configure persistent actions before decision day.'}
         </p>
       </div>
-
-      {currentOffer ? (
-        <div className="rounded-lg border border-border bg-surface p-4 text-sm shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted">Current role</p>
-          <p className="mt-1 font-semibold text-ink">
-            {currentOffer.title} · {currentOffer.employer}
-          </p>
-          <p className="mt-1 text-muted">
-            {formatMoney(currentOffer.baseSalaryAnnual)}/yr ·{' '}
-            {currentOffer.remoteDaysPerWeek >= 5
-              ? 'Remote'
-              : `${currentOffer.remoteDaysPerWeek} WFH days · ${currentOffer.commuteMinutes} min commute`}{' '}
-            · 401(k) deferral {(deferralRateFromOffer(currentOffer) * 100).toFixed(0)}%
-          </p>
-          {session.gameState.location.rentPaymentMonthly > 0 ? (
-            <p className="mt-2 text-muted">
-              Housing share: {formatMoney(session.gameState.location.rentPaymentMonthly)}/mo in{' '}
-              {session.gameState.location.stateCode}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
 
       <CommandCenter
         effectiveMonthKey={effectiveMonthKey}
         commands={session.commandDraft}
         capacityError={session.commandCapacityError}
-        onChange={(commandDraft) => {
-          const next = { ...session, commandDraft, commandCapacityError: null };
-          savePlaySession(next);
-          setSession(next);
-        }}
+        onChange={(commands) =>
+          setSession({
+            ...session,
+            commandDraft: commands,
+            commandCapacityError: null,
+          })
+        }
       />
 
-      <div className="flex justify-end border-t border-border pt-6">
+      <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
+        <button
+          type="button"
+          onClick={() => router.push('/play/briefing')}
+          className="inline-flex items-center justify-center rounded-md border border-border bg-card px-5 py-2.5 text-sm font-medium text-ink hover:border-accent/40 hover:text-accent"
+        >
+          Back to briefing
+        </button>
         <button
           type="button"
           onClick={handleContinue}

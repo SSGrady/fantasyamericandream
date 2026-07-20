@@ -1,7 +1,7 @@
 ---
 id: T085
 title: Cross-page value consistency
-status: open
+status: done
 type: bug
 priority: P0
 epic: E012

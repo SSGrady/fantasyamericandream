@@ -1,6 +1,7 @@
 import { tickSixMonthsWithSimulation } from '@fad/sim-engine';
 import type {
   Accounts,
+  ActionCommand,
   AuditSnapshot,
   CareerState,
   Debts,
@@ -30,6 +31,8 @@ interface ImpactRequestBody {
   chosenDeferral401kRate: number;
   difficulty?: Difficulty;
   enabledModules?: string[];
+  activeCommands?: ActionCommand[];
+  baselineCommands?: ActionCommand[];
 }
 
 const impactCache = new Map<string, ImpactPreviewResponse>();
@@ -41,6 +44,11 @@ function isIsoDate(value: unknown): value is IsoDate {
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+function parseCommands(value: unknown): ActionCommand[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value as ActionCommand[];
 }
 
 function parseImpactRequest(body: unknown): ImpactRequestBody | null {
@@ -75,6 +83,8 @@ function parseImpactRequest(body: unknown): ImpactRequestBody | null {
     enabledModules: Array.isArray(body.enabledModules)
       ? body.enabledModules.filter((id): id is string => typeof id === 'string')
       : undefined,
+    activeCommands: parseCommands(body.activeCommands),
+    baselineCommands: parseCommands(body.baselineCommands),
   };
 }
 
@@ -84,6 +94,16 @@ export interface ImpactPreviewResponse {
   deltaNetWorth: number;
   deltaRunwayMonths: number;
   deltaSavingsRate: number;
+  isFlatPreview: boolean;
+  flatPreviewReason?: string;
+}
+
+function commandSignature(commands: ActionCommand[] | undefined): string {
+  if (!commands || commands.length === 0) return '';
+  return commands
+    .map((command) => JSON.stringify(command))
+    .sort()
+    .join('|');
 }
 
 function impactCacheKey(input: ImpactRequestBody): string {
@@ -94,6 +114,8 @@ function impactCacheKey(input: ImpactRequestBody): string {
     chosenDeferral401kRate: input.chosenDeferral401kRate,
     difficulty: input.difficulty,
     enabledModules: input.enabledModules,
+    activeCommands: commandSignature(input.activeCommands),
+    baselineCommands: commandSignature(input.baselineCommands),
     accounts: input.accounts,
     debts: input.debts,
     career: input.career,
@@ -108,13 +130,25 @@ function impactCacheKey(input: ImpactRequestBody): string {
 function buildImpactResponse(
   baselineAudit: AuditSnapshot,
   chosenAudit: AuditSnapshot,
+  options?: { flatPreviewReason?: string },
 ): ImpactPreviewResponse {
+  const deltaNetWorth = chosenAudit.netWorth - baselineAudit.netWorth;
+  const deltaRunwayMonths = chosenAudit.emergencyRunwayMonths - baselineAudit.emergencyRunwayMonths;
+  const deltaSavingsRate = chosenAudit.savingsRate - baselineAudit.savingsRate;
+  const isFlatPreview =
+    deltaNetWorth === 0 && deltaRunwayMonths === 0 && Math.abs(deltaSavingsRate) < 0.0001;
+
   return {
     baselineAudit,
     chosenAudit,
-    deltaNetWorth: chosenAudit.netWorth - baselineAudit.netWorth,
-    deltaRunwayMonths: chosenAudit.emergencyRunwayMonths - baselineAudit.emergencyRunwayMonths,
-    deltaSavingsRate: chosenAudit.savingsRate - baselineAudit.savingsRate,
+    deltaNetWorth,
+    deltaRunwayMonths,
+    deltaSavingsRate,
+    isFlatPreview,
+    flatPreviewReason: isFlatPreview
+      ? options?.flatPreviewReason ??
+        'Chosen commands match baseline on this seed. Adjust deferrals or commands to see a delta.'
+      : undefined,
   };
 }
 
@@ -158,14 +192,23 @@ export async function POST(request: Request) {
       macro: input.macro,
       difficulty: input.difficulty,
       enabledModules: input.enabledModules,
+      activeCommands: input.activeCommands,
     };
 
-    if (input.baselineDeferral401kRate === input.chosenDeferral401kRate) {
+    const deferralsMatch =
+      Math.abs(input.baselineDeferral401kRate - input.chosenDeferral401kRate) < 0.0001;
+    const commandsMatch =
+      commandSignature(input.activeCommands) === commandSignature(input.baselineCommands);
+
+    if (deferralsMatch && commandsMatch) {
       const single = tickSixMonthsWithSimulation({
         ...shared,
         deferral401kRate: input.baselineDeferral401kRate,
       });
-      const response = buildImpactResponse(single.audit, single.audit);
+      const response = buildImpactResponse(single.audit, single.audit, {
+        flatPreviewReason:
+          'Baseline and chosen deferrals plus commands are identical for this preview window.',
+      });
       rememberImpact(cacheKey, response);
       return NextResponse.json(response);
     }
@@ -173,10 +216,12 @@ export async function POST(request: Request) {
     const baseline = tickSixMonthsWithSimulation({
       ...shared,
       deferral401kRate: input.baselineDeferral401kRate,
+      activeCommands: input.baselineCommands,
     });
     const chosen = tickSixMonthsWithSimulation({
       ...shared,
       deferral401kRate: input.chosenDeferral401kRate,
+      activeCommands: input.activeCommands,
     });
 
     const response = buildImpactResponse(baseline.audit, chosen.audit);

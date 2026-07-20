@@ -2,7 +2,7 @@
 
 import { renderStakeholderReactions } from '@fad/narrative';
 import { useRouter } from 'next/navigation';
-import { computeRibbonMetrics } from '../../../lib/play-session';
+import { selectRibbonMetrics } from '@fad/domain';
 import { usePlaySession } from '../../../lib/use-play-session';
 
 export function ReactionsPageClient() {
@@ -18,7 +18,7 @@ export function ReactionsPageClient() {
   }
 
   const audit = session.currentAudit;
-  const metrics = computeRibbonMetrics(audit, session.gameState);
+  const metrics = selectRibbonMetrics(session);
   const reactions = renderStakeholderReactions(audit, {
     housingBurdenPct: metrics.housingBurdenPct,
     playerName: session.gameState.player.name,

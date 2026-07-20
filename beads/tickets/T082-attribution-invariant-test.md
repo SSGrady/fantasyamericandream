@@ -1,7 +1,7 @@
 ---
 id: T082
 title: Attribution invariant test
-status: open
+status: done
 type: test
 priority: P0
 epic: E012

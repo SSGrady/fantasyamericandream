@@ -8,15 +8,15 @@ import { MetricsRibbon } from '../../../components/play/MetricsRibbon';
 import { SkillTreeStub } from '../../../components/play/SkillTreeStub';
 import { TimelineHistory } from '../../../components/play/TimelineHistory';
 import {
+  beginNextChapterPeriod,
   buildSkillTreeProgress,
   clearPlaySession,
-  computeRibbonMetrics,
   endSimulation,
   formatChapterLabel,
   isSimulationComplete,
   isSimulationEnded,
-  savePlaySession,
 } from '../../../lib/play-session';
+import { selectRibbonMetrics } from '@fad/domain';
 import { usePlaySession } from '../../../lib/use-play-session';
 
 export function DashboardPageClient() {
@@ -32,7 +32,7 @@ export function DashboardPageClient() {
   }
 
   const audit = session.currentAudit;
-  const metrics = computeRibbonMetrics(audit, session.gameState);
+  const metrics = selectRibbonMetrics(session);
   const skills = buildSkillTreeProgress(session);
   const compass = buildLifeCompassDimensions(audit, metrics.housingBurdenPct);
   const ended = isSimulationEnded(session);
@@ -49,12 +49,8 @@ export function DashboardPageClient() {
   };
 
   const handleContinuePlaying = () => {
-    savePlaySession({
-      ...session,
-      currentAudit: null,
-      pendingDecisions: [],
-      playerAction: '',
-    });
+    const next = beginNextChapterPeriod(session);
+    setSession(next);
     router.push('/play/briefing');
   };
 

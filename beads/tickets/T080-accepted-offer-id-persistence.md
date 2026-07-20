@@ -1,7 +1,7 @@
 ---
 id: T080
 title: acceptedOfferId persistence
-status: open
+status: done
 type: bug
 priority: P0
 epic: E012

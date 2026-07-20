@@ -2,10 +2,12 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { parseDeferral401kRateFromAction } from '../../../lib/parse-player-action';
 import {
+  applyTickToSession,
   computeImpactCacheKey,
+  getDeferralFromCommands,
   runImpactPreview,
+  runSimTick,
   savePlaySession,
 } from '../../../lib/play-session';
 import { usePlaySession } from '../../../lib/use-play-session';
@@ -15,90 +17,106 @@ export function ProcessingPageClient() {
   const { session, ready, setSession } = usePlaySession();
   const [error, setError] = useState<string | null>(null);
   const inFlightRef = useRef(false);
-  const sessionRef = useRef(session);
-  sessionRef.current = session;
 
   useEffect(() => {
-    if (!ready || !session?.currentAudit) return;
-
-    const current = sessionRef.current;
-    if (!current) return;
-
-    const chosenDeferral401kRate = parseDeferral401kRateFromAction(
-      current.playerAction,
-      current.deferral401kRate,
-    );
-    const cacheKey = computeImpactCacheKey(current, chosenDeferral401kRate);
-
-    if (current.impactPreview && current.impactPreviewCacheKey === cacheKey) {
+    if (!ready || !session) return;
+    if (session.currentAudit) {
       router.replace('/play/analysis');
       return;
     }
-
     if (inFlightRef.current) return;
     inFlightRef.current = true;
 
     const abortController = new AbortController();
+    const snapshot = session;
+    const chosenDeferral401kRate = getDeferralFromCommands(snapshot);
+    const cacheKey = computeImpactCacheKey(snapshot, chosenDeferral401kRate);
 
-    async function previewImpact() {
+    async function runChapterSim() {
       try {
         const impactPreview = await runImpactPreview(
           {
-            startDate: current!.gameState.run.currentDate,
-            randomSeed: current!.gameState.run.randomSeed,
-            accounts: current!.gameState.accounts,
-            debts: current!.gameState.debts,
-            career: current!.gameState.career,
-            location: current!.gameState.location,
-            household: current!.gameState.household,
+            startDate: snapshot.gameState.run.currentDate,
+            randomSeed: snapshot.gameState.run.randomSeed,
+            accounts: snapshot.gameState.accounts,
+            debts: snapshot.gameState.debts,
+            career: snapshot.gameState.career,
+            location: snapshot.gameState.location,
+            household: snapshot.gameState.household,
             player: {
-              habits: current!.gameState.player.habits,
-              includeEmployerHealthPlan: current!.gameState.player.includeEmployerHealthPlan,
-              ageYears: current!.gameState.player.ageYears,
+              habits: snapshot.gameState.player.habits,
+              includeEmployerHealthPlan: snapshot.gameState.player.includeEmployerHealthPlan,
+              ageYears: snapshot.gameState.player.ageYears,
             },
-            macro: current!.gameState.macro,
-            deferral401kRate: current!.deferral401kRate,
-            difficulty: current!.gameState.run.difficulty,
-            enabledModules: current!.gameState.run.enabledModules,
-            baselineDeferral401kRate: current!.deferral401kRate,
+            macro: snapshot.gameState.macro,
+            deferral401kRate: snapshot.deferral401kRate,
+            difficulty: snapshot.gameState.run.difficulty,
+            enabledModules: snapshot.gameState.run.enabledModules,
+            baselineDeferral401kRate: snapshot.deferral401kRate,
             chosenDeferral401kRate,
+            activeCommands: snapshot.commandDraft,
+            baselineCommands: snapshot.gameState.commandState?.activeCommands,
           },
           abortController.signal,
         );
 
         if (abortController.signal.aborted) return;
 
-        const next = {
-          ...current!,
+        const tick = await runSimTick({
+          startDate: snapshot.gameState.run.currentDate,
+          randomSeed: snapshot.gameState.run.randomSeed,
+          accounts: snapshot.gameState.accounts,
+          debts: snapshot.gameState.debts,
+          career: snapshot.gameState.career,
+          location: snapshot.gameState.location,
+          household: snapshot.gameState.household,
+          player: {
+            habits: snapshot.gameState.player.habits,
+            includeEmployerHealthPlan: snapshot.gameState.player.includeEmployerHealthPlan,
+            ageYears: snapshot.gameState.player.ageYears,
+          },
+          macro: snapshot.gameState.macro,
+          deferral401kRate: chosenDeferral401kRate,
+          difficulty: snapshot.gameState.run.difficulty,
+          enabledModules: snapshot.gameState.run.enabledModules,
+          activeCommands: snapshot.commandDraft,
+          weeklyCapacityHours: snapshot.gameState.commandState?.weeklyCapacityHours,
+        });
+
+        if (abortController.signal.aborted) return;
+
+        const withPreview = {
+          ...snapshot,
           impactPreview,
           impactPreviewCacheKey: cacheKey,
         };
-        savePlaySession(next);
-        setSession(next);
+        savePlaySession(withPreview);
+        const updated = applyTickToSession(withPreview, tick);
+        setSession(updated);
         router.replace('/play/analysis');
       } catch (previewError) {
         if (abortController.signal.aborted) return;
-        setError(previewError instanceof Error ? previewError.message : 'Impact preview failed');
+        setError(previewError instanceof Error ? previewError.message : 'Chapter simulation failed');
       } finally {
         inFlightRef.current = false;
       }
     }
 
-    void previewImpact();
+    void runChapterSim();
 
     return () => {
       abortController.abort();
       inFlightRef.current = false;
     };
-  }, [ready, router, setSession]);
+  }, [ready, router, session, setSession]);
 
   return (
     <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-card px-6 py-16 text-center shadow-sm">
       <div className="h-10 w-10 animate-spin rounded-full border-2 border-border border-t-accent" />
-      <p className="mt-4 font-serif text-xl text-ink">Analyzing impact…</p>
+      <p className="mt-4 font-serif text-xl text-ink">Running chapter simulation…</p>
       <p className="mt-2 text-sm text-muted">
         {error ??
-          'Running baseline vs chosen counterfactual for your submitted action (same seed, six-month horizon).'}
+          'Computing impact preview and simulating six months with your submitted commands (same seed).'}
       </p>
     </div>
   );

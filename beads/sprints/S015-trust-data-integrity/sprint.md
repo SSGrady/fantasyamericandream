@@ -1,7 +1,7 @@
 ---
 id: S015
 title: Trust and Data Integrity
-status: open
+status: done
 priority: P0
 epic: E012
 start_date: null

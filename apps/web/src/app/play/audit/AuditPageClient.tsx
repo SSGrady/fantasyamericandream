@@ -7,9 +7,9 @@ import { MetricsRibbon } from '../../../components/play/MetricsRibbon';
 import { ProgressRings } from '../../../components/play/ProgressRings';
 import { WaterfallList } from '../../../components/play/WaterfallList';
 import { formatMoney } from '../../../lib/format-money';
+import { selectContributionProgress, selectRibbonMetrics } from '@fad/domain';
 import {
   applyChapterLessonUnlock,
-  computeRibbonMetrics,
   detectAutomaticEndReason,
   endSimulation,
   isSimulationComplete,
@@ -38,7 +38,8 @@ export function AuditPageClient() {
   }
 
   const audit = session.currentAudit;
-  const metrics = computeRibbonMetrics(audit, session.gameState);
+  const metrics = selectRibbonMetrics(session);
+  const contributionProgress = selectContributionProgress(session);
   const complete = isSimulationComplete(session);
   const autoEnd = detectAutomaticEndReason(session);
   const lessonUnlock = session.chapterLessonUnlock;
@@ -138,7 +139,7 @@ export function AuditPageClient() {
           separates starting balance, new contributions, and market returns.
         </p>
         <ProgressRings
-          progress={audit.contributionProgress}
+          progress={contributionProgress}
           rothIra={session.gameState.accounts.rothIra}
           startingRothBalance={session.startingRothBalance}
           rothMarketReturnsCents={audit.accountInvestmentReturns?.rothIra ?? 0}

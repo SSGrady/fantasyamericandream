@@ -1,7 +1,7 @@
 ---
 id: T086
 title: RunState authoritative model
-status: open
+status: done
 type: feature
 priority: P1
 epic: E020

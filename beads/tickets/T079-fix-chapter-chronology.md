@@ -1,7 +1,7 @@
 ---
 id: T079
 title: Fix chapter chronology
-status: open
+status: done
 type: bug
 priority: P0
 epic: E012

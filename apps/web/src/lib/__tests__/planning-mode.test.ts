@@ -6,7 +6,7 @@ describe('chapter planning mode', () => {
     expect(
       resolvePlanningMode({
         periodIndex: 2,
-        selectedJobOfferId: 'offer-sf-mid',
+        acceptedOfferId: 'offer-sf-mid',
         activeInterrupt: null,
       }),
     ).toBe('recurringPlan');
@@ -16,7 +16,7 @@ describe('chapter planning mode', () => {
     expect(
       resolvePlanningMode({
         periodIndex: 1,
-        selectedJobOfferId: 'offer-sf-mid',
+        acceptedOfferId: 'offer-sf-mid',
         activeInterrupt: null,
       }),
     ).toBe('recurringPlan');

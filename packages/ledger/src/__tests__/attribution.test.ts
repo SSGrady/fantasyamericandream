@@ -8,23 +8,22 @@ import type { SixMonthTickInput } from '../audit.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 describe('net worth attribution', () => {
-  it('reconciles attribution to net worth delta within rounding', () => {
+  it('reconciles choice + luck - lifestyle + residual to net worth delta (1 cent tolerance)', () => {
     const fixture = JSON.parse(
       readFileSync(join(__dirname, 'fixtures/six-month-audit-jan-jun.json'), 'utf8'),
     ) as { input: SixMonthTickInput };
 
     const result = tickSixMonths(fixture.input);
     const attribution = result.audit.attribution!;
-
-    expect(attribution.contributionCents).toBeGreaterThan(0);
-    const attributed =
+    const endingMinusStarting = result.audit.netWorthDelta;
+    const reconstructed =
       attribution.choiceCents +
-      attribution.luckCents -
+      attribution.returnCents -
       attribution.lifestyleLeakageCents +
       attribution.residualCents;
-    expect(Math.abs(attributed - result.audit.netWorthDelta)).toBeLessThanOrEqual(
-      Math.abs(attribution.residualCents) + 100,
-    );
+
+    expect(Math.abs(reconstructed - endingMinusStarting)).toBeLessThanOrEqual(1);
+    expect(attribution.contributionCents).toBeGreaterThan(0);
   });
 
   it('buildNetWorthAttribution matches audit snapshot field', () => {

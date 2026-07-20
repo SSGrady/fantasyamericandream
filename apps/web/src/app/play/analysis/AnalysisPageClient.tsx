@@ -6,9 +6,9 @@ import { ConsequenceCard } from '../../../components/play/ConsequenceCard';
 import { MetricsRibbon } from '../../../components/play/MetricsRibbon';
 import { renderConsequenceSummary } from '@fad/narrative';
 import { formatMoney, formatPercent } from '../../../lib/format-money';
+import { selectRibbonMetrics } from '@fad/domain';
 import {
   computeMetricBreakdown,
-  computeRibbonMetrics,
   hasUnlockedSkill,
 } from '../../../lib/play-session';
 import { usePlaySession } from '../../../lib/use-play-session';
@@ -27,8 +27,8 @@ export function AnalysisPageClient() {
 
   const preview = session.impactPreview;
   const audit = preview?.chosenAudit ?? session.currentAudit;
-  const metrics = computeRibbonMetrics(audit, session.gameState);
   const breakdown = computeMetricBreakdown(audit, session.gameState);
+  const metrics = selectRibbonMetrics(session);
   const emphasizeSavingsRate = hasUnlockedSkill(session, 'investing_i');
 
   return (

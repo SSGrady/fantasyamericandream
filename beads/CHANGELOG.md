@@ -2,6 +2,10 @@
 
 Aggregated progress log. Append dated entries when closing tickets.
 
+## 2026-07-20 (S015 trust pass)
+
+- **S015 / E012 / E020** - P0 trust and data integrity (T079-T087): chapter chronology fix, RunState model, selector layer, acceptedOfferId persistence, zero-preview gate, attribution invariant test, cross-page metric parity. ADR-014 chapter shell and chronology.
+
 ## 2026-07-20 (continuity pass planning)
 
 - **Planning** - V1.6 Continuity Pass beads: epics E012-E020, sprints S015-S022, tickets T079-T128 (grill-with-me). ADR-014 proposed. PLAN.md V1.6 section. Cross-links from E004, E008.

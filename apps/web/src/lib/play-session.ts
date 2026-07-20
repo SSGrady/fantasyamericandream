@@ -26,7 +26,24 @@ import type {
 } from '@fad/ledger';
 import type { TickSixMonthsResult } from '@fad/sim-engine';
 import type { ChapterId, ChapterInterrupt, ChapterPhase } from '@fad/domain';
-import { CA_ENGINEER_2026, evaluateChapterLessonUnlock, rollChapterInterrupt, applyInterruptCapacityDelta, deferralRateFromOffer, resolveJobOffer, resolvePlanningMode, type PlanningMode } from '@fad/domain';
+import {
+  buildChapterPeriod,
+  CA_ENGINEER_2026,
+  evaluateChapterLessonUnlock,
+  rollChapterInterrupt,
+  applyInterruptCapacityDelta,
+  deferralRateFromOffer,
+  resolveJobOffer,
+  resolvePlanningMode,
+  selectRibbonMetrics,
+  type ImpactPreview,
+  type PendingDecision,
+  type PeriodHistoryEntry,
+  type RibbonMetrics,
+  type RunState,
+  RUN_STATE_SCHEMA_VERSION,
+  type PlanningMode,
+} from '@fad/domain';
 import { buildInitialGameState } from './build-game-state';
 import { loadCharacterDraft } from './character-draft';
 import { loadRunConfig } from './run-config';
@@ -34,25 +51,8 @@ import { loadRunConfig } from './run-config';
 const STORAGE_KEY = 'fad:play-session';
 const MAX_PERIODS = 4;
 
-export type PendingDecisionKind = 'required' | 'opportunity';
-
-export interface PendingDecision {
-  id: string;
-  kind: PendingDecisionKind;
-  title: string;
-  description: string;
-}
-
-export interface PeriodHistoryEntry {
-  periodIndex: number;
-  asOf: AuditSnapshot['asOf'];
-  startNetWorth: number;
-  netWorth: number;
-  netWorthDelta: number;
-  savingsRate: number;
-  emergencyRunwayMonths: number;
-  playerAction?: string;
-}
+export type { ImpactPreview, PendingDecision, PeriodHistoryEntry, RibbonMetrics };
+export type PlaySession = RunState;
 
 export interface SkillTreeEntry {
   id: LiteracySkillId;
@@ -62,62 +62,8 @@ export interface SkillTreeEntry {
   status: 'locked' | 'in_progress' | 'unlocked';
 }
 
-export interface PlaySession {
-  gameState: GameState;
-  deferral401kRate: number;
-  /** Ledger net worth at simulation start (before any ticks). */
-  startingNetWorth: number;
-  /** Roth IRA balance at simulation start (for contribution progress footnote). */
-  startingRothBalance: number;
-  currentAudit: AuditSnapshot | null;
-  /** Counterfactual impact preview from submitted player action. */
-  impactPreview: ImpactPreview | null;
-  /** Cache key for impactPreview; prevents duplicate fetches. */
-  impactPreviewCacheKey: string | null;
-  commandDraft: ActionCommand[];
-  commandCapacityError: string | null;
-  pendingDecisions: PendingDecision[];
-  playerAction: string;
-  periodIndex: number;
-  maxPeriods: number;
-  tickInProgress: boolean;
-  periodHistory: PeriodHistoryEntry[];
-  endReason: SimulationEndReason | null;
-  endedByDemoLimit: boolean;
-  literacyQuizAnswered: boolean;
-  literacyProgress: Record<LiteracySkillId, LiteracyProgress>;
-  periodEvents: SampledEventOccurrence[];
-  dreamHomeChoiceId: string | null;
-  dreamHomeBlocked: boolean;
-  chapterId: ChapterId;
-  chapterPhase: ChapterPhase;
-  /** Offer chosen at onboarding; persists across chapters. */
-  selectedJobOfferId: string | null;
-  activeInterrupt: ChapterInterrupt | null;
-  chapterLessonUnlock: LiteracySkillId | null;
-}
-
-export interface ImpactPreview {
-  baselineAudit: AuditSnapshot;
-  chosenAudit: AuditSnapshot;
-  deltaNetWorth: number;
-  deltaRunwayMonths: number;
-  deltaSavingsRate: number;
-  chosenDeferral401kRate: number;
-}
-
-export interface RibbonMetrics {
-  startNetWorth: number;
-  netWorth: number;
-  netWorthDelta: number;
-  takeHomePayMonthly: number;
-  deferral401kRate: number;
-  cashSurplusRate: number;
-  savingsRate: number;
-  emergencyRunwayMonths: number;
-  housingBurdenPct: number;
-  dti: number;
-}
+/** @deprecated Use RunState from @fad/domain */
+export type { RunState };
 
 export interface MetricBreakdown {
   savingsRate: SavingsRateBreakdown;
@@ -217,16 +163,28 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function normalizeSession(parsed: PlaySession): PlaySession {
+  const legacyOfferId =
+    (parsed as { selectedJobOfferId?: string | null }).selectedJobOfferId ?? parsed.acceptedOfferId;
   const startingNetWorth =
     parsed.startingNetWorth ??
     netWorth(parsed.gameState.accounts, parsed.gameState.debts);
   const startingRothBalance =
     parsed.startingRothBalance ?? parsed.gameState.accounts.rothIra.balance;
+  const chapterPeriod =
+    parsed.chapterPeriod ??
+    buildChapterPeriod(
+      parsed.gameState.run.currentDate,
+      parsed.currentAudit ? 'closed' : 'planned',
+    );
 
   return {
     ...parsed,
+    schemaVersion: RUN_STATE_SCHEMA_VERSION,
     startingNetWorth,
     startingRothBalance,
+    acceptedOfferId: legacyOfferId ?? CA_ENGINEER_2026.defaultOfferId,
+    offerAccepted: parsed.offerAccepted ?? legacyOfferId !== null,
+    chapterPeriod,
     gameState: {
       ...parsed.gameState,
       household: parsed.gameState.household ?? DEFAULT_HOUSEHOLD,
@@ -248,7 +206,6 @@ function normalizeSession(parsed: PlaySession): PlaySession {
     commandCapacityError: parsed.commandCapacityError ?? null,
     chapterId: parsed.chapterId ?? 'ca_engineer_2026',
     chapterPhase: parsed.chapterPhase ?? 'briefing',
-    selectedJobOfferId: parsed.selectedJobOfferId ?? null,
     activeInterrupt: parsed.activeInterrupt ?? null,
     chapterLessonUnlock: parsed.chapterLessonUnlock ?? null,
   };
@@ -286,13 +243,20 @@ export function initializePlaySession(
   draft: V1CharacterDraft,
   config: V1RunConfig,
 ): PlaySession {
-  const { gameState, deferral401kRate, startingRothBalance, selectedJobOfferId } = buildInitialGameState(draft, config);
+  const { gameState, deferral401kRate, startingRothBalance, acceptedOfferId } = buildInitialGameState(
+    draft,
+    config,
+  );
   const startingNetWorth = netWorth(gameState.accounts, gameState.debts);
   const session: PlaySession = {
+    schemaVersion: RUN_STATE_SCHEMA_VERSION,
     gameState,
     deferral401kRate,
     startingNetWorth,
     startingRothBalance,
+    acceptedOfferId,
+    offerAccepted: true,
+    chapterPeriod: buildChapterPeriod(gameState.run.currentDate, 'planned'),
     currentAudit: null,
     impactPreview: null,
     impactPreviewCacheKey: null,
@@ -313,7 +277,6 @@ export function initializePlaySession(
     dreamHomeBlocked: false,
     chapterId: 'ca_engineer_2026',
     chapterPhase: 'briefing',
-    selectedJobOfferId,
     activeInterrupt: null,
     chapterLessonUnlock: null,
   };
@@ -371,33 +334,41 @@ export function computeRibbonMetrics(
   gameState: GameState,
   periodMonths = 6,
 ): RibbonMetrics {
-  const periodNetPay = audit.periodNetPayCents;
-  const monthlyNetPay = periodNetPay > 0 ? periodNetPay / periodMonths : 0;
-
-  const rentLine = audit.waterfall.find((line) => line.label === 'Rent');
-  const periodRent = rentLine
-    ? Math.abs(rentLine.amount)
-    : gameState.location.rentPaymentMonthly * periodMonths;
-  const monthlyRentShare = periodRent / periodMonths;
-  const housingBurdenPct = monthlyNetPay > 0 ? monthlyRentShare / monthlyNetPay : 0;
-
-  const monthlyDebt =
-    gameState.debts.creditCards.reduce((sum, card) => sum + card.minimumPayment, 0) +
-    gameState.debts.studentLoans.reduce((sum, loan) => sum + loan.minimumPayment, 0);
-  const dti = monthlyNetPay > 0 ? monthlyDebt / monthlyNetPay : 0;
-
-  return {
-    startNetWorth: audit.startNetWorth,
-    netWorth: audit.netWorth,
-    netWorthDelta: audit.netWorthDelta,
-    takeHomePayMonthly: monthlyNetPay,
-    deferral401kRate: audit.deferral401kRate ?? 0,
-    cashSurplusRate: audit.cashSurplusRate ?? 0,
-    savingsRate: audit.savingsRate,
-    emergencyRunwayMonths: audit.emergencyRunwayMonths,
-    housingBurdenPct,
-    dti,
-  };
+  return selectRibbonMetrics(
+    {
+      schemaVersion: RUN_STATE_SCHEMA_VERSION,
+      gameState,
+      deferral401kRate: audit.deferral401kRate ?? 0,
+      startingNetWorth: audit.startNetWorth,
+      startingRothBalance: gameState.accounts.rothIra.balance,
+      acceptedOfferId: CA_ENGINEER_2026.defaultOfferId,
+      offerAccepted: true,
+      chapterPeriod: buildChapterPeriod(gameState.run.currentDate, 'closed'),
+      currentAudit: audit,
+      impactPreview: null,
+      impactPreviewCacheKey: null,
+      commandDraft: [],
+      commandCapacityError: null,
+      pendingDecisions: [],
+      playerAction: '',
+      periodIndex: 1,
+      maxPeriods: MAX_PERIODS,
+      tickInProgress: false,
+      periodHistory: [],
+      endReason: null,
+      endedByDemoLimit: false,
+      literacyQuizAnswered: false,
+      literacyProgress: createDefaultLiteracyProgress(),
+      periodEvents: [],
+      dreamHomeChoiceId: null,
+      dreamHomeBlocked: false,
+      chapterId: 'ca_engineer_2026',
+      chapterPhase: 'audit',
+      activeInterrupt: null,
+      chapterLessonUnlock: null,
+    },
+    periodMonths,
+  );
 }
 
 export interface SimTickRequest {
@@ -451,6 +422,10 @@ export function applyTickToSession(
       macro: tick.macro,
     },
     currentAudit: tick.audit,
+    chapterPeriod: {
+      ...session.chapterPeriod,
+      status: 'closed',
+    },
     pendingDecisions: buildPendingDecisions(tick.audit, {
       ...session.gameState,
       accounts: tick.accounts,
@@ -464,7 +439,7 @@ export function applyTickToSession(
     playerAction: '',
     impactPreview: null,
     impactPreviewCacheKey: null,
-    chapterPhase: 'planning',
+    chapterPhase: 'consequence',
     activeInterrupt:
       rollChapterInterrupt(
         CA_ENGINEER_2026,
@@ -616,20 +591,28 @@ export function applyChapterLessonUnlock(session: PlaySession): PlaySession {
 export function resolveSessionPlanningMode(session: PlaySession): PlanningMode {
   return resolvePlanningMode({
     periodIndex: session.periodIndex,
-    selectedJobOfferId: session.selectedJobOfferId,
+    acceptedOfferId: session.acceptedOfferId,
     activeInterrupt: session.activeInterrupt,
   });
 }
 
-export function applyJobOfferToSession(
-  session: PlaySession,
-  offerId: string,
-): PlaySession {
+export function acceptJobOffer(session: PlaySession, offerId: string): PlaySession {
   const chapter = CA_ENGINEER_2026;
+  const planningMode = resolveSessionPlanningMode(session);
+  const allowRewrite =
+    planningMode === 'initialPlan' ||
+    planningMode === 'interruptJobOffer' ||
+    !session.offerAccepted;
+
+  if (session.offerAccepted && !allowRewrite) {
+    return session;
+  }
+
   const offer = resolveJobOffer(chapter, offerId);
   const next: PlaySession = {
     ...session,
-    selectedJobOfferId: offer.id,
+    acceptedOfferId: offer.id,
+    offerAccepted: true,
     deferral401kRate: deferralRateFromOffer(offer),
     gameState: {
       ...session.gameState,
@@ -644,6 +627,11 @@ export function applyJobOfferToSession(
   };
   savePlaySession(next);
   return next;
+}
+
+/** @deprecated Use acceptJobOffer */
+export function applyJobOfferToSession(session: PlaySession, offerId: string): PlaySession {
+  return acceptJobOffer(session, offerId);
 }
 
 export function resolveChapterInterrupt(
@@ -666,6 +654,55 @@ export function resolveChapterInterrupt(
         weeklyCapacityHours,
       },
     },
+  };
+  savePlaySession(next);
+  return next;
+}
+
+export function getDeferralFromCommands(session: PlaySession): number {
+  const cmd = session.commandDraft.find((c) => c.type === 'set_401k_deferral_rate');
+  return cmd && cmd.type === 'set_401k_deferral_rate' ? cmd.rate : session.deferral401kRate;
+}
+
+export function validateCommandDraftEffect(session: PlaySession): {
+  hasEffect: boolean;
+  reason?: string;
+} {
+  const chosenDeferral = getDeferralFromCommands(session);
+  if (Math.abs(chosenDeferral - session.deferral401kRate) > 0.0001) {
+    return { hasEffect: true };
+  }
+
+  const active = session.gameState.commandState?.activeCommands ?? [];
+  if (session.commandDraft.length !== active.length) {
+    return { hasEffect: true };
+  }
+
+  const draftTypes = session.commandDraft.map((command) => command.type).sort().join(',');
+  const activeTypes = active.map((command) => command.type).sort().join(',');
+  if (draftTypes !== activeTypes) {
+    return { hasEffect: true };
+  }
+
+  return {
+    hasEffect: false,
+    reason:
+      'Submitted commands match your current plan. Adjust deferrals or add a command to see a preview.',
+  };
+}
+
+export function beginNextChapterPeriod(session: PlaySession): PlaySession {
+  const next: PlaySession = {
+    ...session,
+    currentAudit: null,
+    impactPreview: null,
+    impactPreviewCacheKey: null,
+    pendingDecisions: [],
+    playerAction: '',
+    commandDraft: session.gameState.commandState?.activeCommands ?? [],
+    chapterPeriod: buildChapterPeriod(session.gameState.run.currentDate, 'planned'),
+    chapterPhase: 'briefing',
+    tickInProgress: false,
   };
   savePlaySession(next);
   return next;
@@ -744,6 +781,8 @@ export function formatChapterLabel(asOf: string, chapterIndex: number): string {
 export interface ImpactSimRequest extends SimTickRequest {
   baselineDeferral401kRate: number;
   chosenDeferral401kRate: number;
+  activeCommands?: ActionCommand[];
+  baselineCommands?: ActionCommand[];
 }
 
 export async function runImpactPreview(
@@ -763,7 +802,11 @@ export async function runImpactPreview(
   }
 
   const result = (await response.json()) as Omit<ImpactPreview, 'chosenDeferral401kRate'>;
-  return { ...result, chosenDeferral401kRate: input.chosenDeferral401kRate };
+  return {
+    ...result,
+    chosenDeferral401kRate: input.chosenDeferral401kRate,
+    isFlatPreview: result.isFlatPreview ?? false,
+  };
 }
 
 export function computeImpactCacheKey(
@@ -776,7 +819,11 @@ export function computeImpactCacheKey(
     baseline: session.deferral401kRate,
     chosen: chosenDeferral401kRate,
     action: session.playerAction,
-    commands: session.commandDraft.map((command) => command.type),
+    commands: session.commandDraft.map((command) => JSON.stringify(command)).sort().join('|'),
+    baselineCommands: (session.gameState.commandState?.activeCommands ?? [])
+      .map((command) => JSON.stringify(command))
+      .sort()
+      .join('|'),
   });
 }
 

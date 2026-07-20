@@ -91,6 +91,9 @@ importers:
 
   packages/domain:
     dependencies:
+      '@fad/ledger':
+        specifier: workspace:*
+        version: link:../ledger
       '@fad/shared':
         specifier: workspace:*
         version: link:../shared
@@ -98,6 +101,9 @@ importers:
         specifier: ^5.19.2
         version: 5.32.5
     devDependencies:
+      '@fad/data':
+        specifier: workspace:*
+        version: link:../data
       typescript:
         specifier: ^5.7.0
         version: 5.9.3

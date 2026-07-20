@@ -1,7 +1,7 @@
 ---
 id: T084
 title: Zero-preview validation gate
-status: open
+status: done
 type: bug
 priority: P0
 epic: E012

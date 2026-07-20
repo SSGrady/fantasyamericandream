@@ -47,7 +47,7 @@ export interface InitialPlaySetup {
   gameState: GameState;
   deferral401kRate: number;
   startingRothBalance: number;
-  selectedJobOfferId: string;
+  acceptedOfferId: string;
 }
 
 export function buildInitialGameState(
@@ -205,6 +205,6 @@ export function buildInitialGameState(
     gameState,
     deferral401kRate,
     startingRothBalance: draft.balanceSheet.rothIra,
-    selectedJobOfferId: jobOffer.id,
+    acceptedOfferId: jobOffer.id,
   };
 }

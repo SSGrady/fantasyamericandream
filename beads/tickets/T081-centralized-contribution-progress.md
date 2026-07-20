@@ -1,7 +1,7 @@
 ---
 id: T081
 title: Centralized contribution progress
-status: open
+status: done
 type: task
 priority: P0
 epic: E012

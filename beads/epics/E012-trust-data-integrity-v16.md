@@ -1,7 +1,7 @@
 ---
 id: E012
 title: Trust and Data Integrity (V1.6)
-status: open
+status: done
 priority: P0
 sprints:
   - S015

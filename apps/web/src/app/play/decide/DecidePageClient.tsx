@@ -1,5 +1,6 @@
 'use client';
 
+import { selectRibbonMetrics } from '@fad/domain';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { LiteracyQuizStub } from '../../../components/play/LiteracyQuizStub';
@@ -7,10 +8,12 @@ import { formatMoney } from '../../../lib/format-money';
 import {
   commitCommandDraft,
   computeImpactCacheKey,
+  getDeferralFromCommands,
   resolveChapterInterrupt,
   runImpactPreview,
   savePlaySession,
   unlockLiteracySkill,
+  validateCommandDraftEffect,
   type PendingDecision,
 } from '../../../lib/play-session';
 import { usePlaySession } from '../../../lib/use-play-session';
@@ -21,7 +24,15 @@ export function DecidePageClient() {
   const [action, setAction] = useState('');
   const [previewDelta, setPreviewDelta] = useState<number | null>(null);
   const [previewRunway, setPreviewRunway] = useState<number | null>(null);
+  const [previewReason, setPreviewReason] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+
+  useEffect(() => {
+    if (!ready || !session) return;
+    if (session.currentAudit) {
+      router.replace('/play/audit');
+    }
+  }, [ready, session, router]);
 
   useEffect(() => {
     if (session?.playerAction) {
@@ -29,21 +40,35 @@ export function DecidePageClient() {
     }
   }, [session?.playerAction]);
 
-  const deferralFromCommands = useMemo(() => {
-    const cmd = session?.commandDraft.find((c) => c.type === 'set_401k_deferral_rate');
-    return cmd && cmd.type === 'set_401k_deferral_rate' ? cmd.rate : session?.deferral401kRate ?? 0.1;
-  }, [session?.commandDraft, session?.deferral401kRate]);
+  const deferralFromCommands = useMemo(
+    () => (session ? getDeferralFromCommands(session) : 0.1),
+    [session],
+  );
+
+  const commandEffect = useMemo(
+    () => (session ? validateCommandDraftEffect(session) : { hasEffect: false }),
+    [session],
+  );
 
   useEffect(() => {
-    if (!session?.currentAudit) return;
+    if (!session || session.currentAudit) return;
 
     let cancelled = false;
 
     const timer = window.setTimeout(() => {
+      if (!commandEffect.hasEffect) {
+        setPreviewDelta(0);
+        setPreviewRunway(0);
+        setPreviewReason(commandEffect.reason ?? 'No change vs current plan.');
+        setPreviewLoading(false);
+        return;
+      }
+
       const cacheKey = computeImpactCacheKey(session, deferralFromCommands);
       if (session.impactPreview && session.impactPreviewCacheKey === cacheKey) {
         setPreviewDelta(session.impactPreview.deltaNetWorth);
         setPreviewRunway(session.impactPreview.deltaRunwayMonths);
+        setPreviewReason(session.impactPreview.flatPreviewReason ?? null);
         return;
       }
 
@@ -68,16 +93,20 @@ export function DecidePageClient() {
         enabledModules: session.gameState.run.enabledModules,
         baselineDeferral401kRate: session.deferral401kRate,
         chosenDeferral401kRate: deferralFromCommands,
+        activeCommands: session.commandDraft,
+        baselineCommands: session.gameState.commandState?.activeCommands,
       })
         .then((preview) => {
           if (cancelled) return;
           setPreviewDelta(preview.deltaNetWorth);
           setPreviewRunway(preview.deltaRunwayMonths);
+          setPreviewReason(preview.flatPreviewReason ?? null);
         })
         .catch(() => {
           if (cancelled) return;
           setPreviewDelta(null);
           setPreviewRunway(null);
+          setPreviewReason(null);
         })
         .finally(() => {
           if (!cancelled) setPreviewLoading(false);
@@ -88,9 +117,9 @@ export function DecidePageClient() {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [session, deferralFromCommands]);
+  }, [session, deferralFromCommands, commandEffect]);
 
-  if (!ready || !session?.currentAudit) {
+  if (!ready || !session) {
     return (
       <div className="rounded-lg border border-border bg-card p-6 text-muted shadow-sm">
         Loading decision day…
@@ -98,11 +127,15 @@ export function DecidePageClient() {
     );
   }
 
+  const canSubmit = commandEffect.hasEffect && !previewLoading;
+
   const handleContinue = () => {
+    if (!canSubmit) return;
+
     const withAction = {
       ...session,
       playerAction: action.trim(),
-      commandDraft: session.commandDraft,
+      chapterPeriod: { ...session.chapterPeriod, status: 'in_progress' as const },
       impactPreview: null,
       impactPreviewCacheKey: null,
     };
@@ -151,9 +184,7 @@ export function DecidePageClient() {
                 </button>
                 <button
                   type="button"
-                  onClick={() =>
-                    setSession(resolveChapterInterrupt(session, 'negotiate-hybrid'))
-                  }
+                  onClick={() => setSession(resolveChapterInterrupt(session, 'negotiate-hybrid'))}
                   className="rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-ink hover:border-accent/40"
                 >
                   Negotiate hybrid (-2h/wk)
@@ -172,28 +203,24 @@ export function DecidePageClient() {
         </div>
       ) : null}
 
-      <LiteracyQuizStub
-        answered={session.literacyQuizAnswered ?? false}
-        onAnswer={handleQuizAnswer}
-      />
+      <LiteracyQuizStub answered={session.literacyQuizAnswered ?? false} onAnswer={handleQuizAnswer} />
 
       <div className="rounded-lg border border-dashed border-border bg-surface p-4 shadow-sm">
         <p className="text-xs font-medium uppercase tracking-wide text-muted">Consequence preview</p>
         <p className="mt-1 text-sm text-ink">
           {previewLoading
             ? 'Updating preview…'
-            : previewDelta === null
-              ? 'Adjust commands to see six-month deltas.'
-              : `Net worth ${formatMoney(previewDelta, { signed: true })} · Runway ${previewRunway !== null && previewRunway >= 0 ? '+' : ''}${previewRunway?.toFixed(1) ?? '0.0'} mo vs baseline`}
+            : previewReason
+              ? previewReason
+              : previewDelta === null
+                ? 'Adjust commands to see six-month deltas.'
+                : `Net worth ${formatMoney(previewDelta, { signed: true })} · Runway ${previewRunway !== null && previewRunway >= 0 ? '+' : ''}${previewRunway?.toFixed(1) ?? '0.0'} mo vs baseline`}
         </p>
       </div>
 
       <div className="space-y-4">
         {session.pendingDecisions.map((decision: PendingDecision) => (
-          <div
-            key={decision.id}
-            className="rounded-lg border border-border bg-card p-4 shadow-sm"
-          >
+          <div key={decision.id} className="rounded-lg border border-border bg-card p-4 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-muted">
@@ -232,7 +259,8 @@ export function DecidePageClient() {
         <button
           type="button"
           onClick={handleContinue}
-          className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90"
+          disabled={!canSubmit}
+          className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
         >
           Submit commands
         </button>

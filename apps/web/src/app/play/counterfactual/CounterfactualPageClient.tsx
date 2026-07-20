@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { comparePoliciesWithCrn } from '@fad/monte-carlo';
-import { CA_ENGINEER_2026 } from '@fad/domain';
+import { CA_ENGINEER_2026, resolveJobOffer } from '@fad/domain';
 import { formatMoney } from '../../../lib/format-money';
 import { usePlaySession } from '../../../lib/use-play-session';
 
@@ -12,12 +12,11 @@ export function CounterfactualPageClient() {
   const { session, ready } = usePlaySession();
 
   const chapter = CA_ENGINEER_2026;
-  const chosenOffer = useMemo(
-    () =>
-      chapter.jobOffers.find((o) => o.title === session?.gameState.career.title) ??
-      chapter.jobOffers[0],
-    [session, chapter.jobOffers],
-  );
+  const chosenOffer = useMemo(() => {
+    if (!session) return null;
+    return resolveJobOffer(chapter, session.acceptedOfferId);
+  }, [session, chapter]);
+
   const altOffer =
     chapter.jobOffers.find((o) => o.id === chapter.counterfactualOfferId) ?? chapter.jobOffers[2]!;
 
@@ -71,7 +70,8 @@ export function CounterfactualPageClient() {
         <p className="text-sm font-medium text-accent">Counterfactual</p>
         <h2 className="mt-1 font-serif text-2xl text-ink">What if you picked differently?</h2>
         <p className="mt-3 text-muted">
-          CRN branch comparison on the same macro seed: your chosen offer vs the alternate path.
+          CRN branch comparison on the same macro seed: your accepted offer ({session.acceptedOfferId})
+          vs the alternate path.
         </p>
       </div>
 

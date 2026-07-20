@@ -4,7 +4,7 @@ export type PlanningMode = 'initialPlan' | 'recurringPlan' | 'interruptJobOffer'
 
 export interface PlanningModeInput {
   periodIndex: number;
-  selectedJobOfferId: string | null;
+  acceptedOfferId: string | null;
   activeInterrupt: ChapterInterrupt | null;
 }
 
@@ -13,7 +13,7 @@ export function resolvePlanningMode(input: PlanningModeInput): PlanningMode {
   if (input.activeInterrupt?.type === 'competing_offer') {
     return 'interruptJobOffer';
   }
-  if (input.periodIndex <= 1 && !input.selectedJobOfferId) {
+  if (input.periodIndex <= 1 && !input.acceptedOfferId) {
     return 'initialPlan';
   }
   return 'recurringPlan';
