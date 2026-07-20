@@ -16,7 +16,7 @@ Prove monthly ledger + six-month audit loop with seeded replay before UI polish.
 ## Success Criteria
 
 - [ ] Monthly payroll, tax withholding, interest, investment returns post correctly
-- [ ] Six-month audit snapshot with net-worth waterfall
+- [x] Six-month audit snapshot with net-worth waterfall
 - [ ] 5 careers × 8 states rent-only scenarios run end-to-end
 - [ ] Layoff hazard + job-search stub affects career state
 - [ ] Macro regime affects correlated returns and layoff climate
@@ -36,7 +36,7 @@ Prove monthly ledger + six-month audit loop with seeded replay before UI polish.
 | [T001](../tickets/T001-repo-scaffold.md) | Repo scaffold | done |
 | [T002](../tickets/T002-shared-types-ledger-invariants.md) | Shared types + ledger invariants | done |
 | [T003](../tickets/T003-monthly-payroll-tax-postings.md) | Monthly payroll & tax postings | done |
-| [T004](../tickets/T004-six-month-audit-tick.md) | Six-month audit tick | open |
+| [T004](../tickets/T004-six-month-audit-tick.md) | Six-month audit tick | done |
 | [T005](../tickets/T005-layoff-macro-market-stub.md) | Layoff + macro + market stub | open |
 
 ## Follow-on Epics (planned)

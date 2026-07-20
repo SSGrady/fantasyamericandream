@@ -1,7 +1,7 @@
 ---
 id: T004
 title: Six-month audit tick
-status: open
+status: done
 type: feature
 priority: P1
 epic: E001
@@ -19,3 +19,10 @@ acceptance:
 ## Description
 
 Orchestrate six monthly ledger ticks and produce player-facing audit snapshot.
+
+## Completion (2026-07-19)
+
+- `tickSixMonths` in `packages/ledger/src/audit.ts` runs 6 `applyMonthlyTick` cycles.
+- `buildAuditSnapshot` produces net worth, delta, waterfall, savings rate, runway, contribution progress.
+- `exportAuditJson` for CLI inspection; golden fixture `six-month-audit-jan-jun.json`.
+- Re-exported from `@fad/sim-engine`.

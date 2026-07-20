@@ -7,7 +7,7 @@ Last updated: 2026-07-19
 - [x] **T001** - Repo scaffold (AGENTS.md, ADRs, beads, packages skeleton, vision/schema docs)
 - [x] **T002** - Shared types + ledger invariants
 - [x] **T003** - Monthly payroll & tax postings
-- [ ] **T004** - Six-month audit tick
+- [x] **T004** - Six-month audit tick
 - [ ] **T005** - Layoff + macro + market stub
 
 ## Notes
@@ -25,7 +25,14 @@ None.
 
 ## Velocity
 
-3/5 tickets done (60%).
+4/5 tickets done (80%).
+
+### 2026-07-19 (T004)
+
+- `tickSixMonths` orchestrates 6 monthly ledger ticks from a start date.
+- `AuditSnapshot` with net worth, delta, waterfall, savings rate, emergency runway.
+- Contribution progress for 401k and Roth IRA against IRS limits.
+- `exportAuditJson` and golden fixture `six-month-audit-jan-jun.json`.
 
 ### 2026-07-19 (T003)
 

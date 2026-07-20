@@ -21,7 +21,7 @@ Documentation, monorepo structure, shared types, ledger package skeleton, and fi
 | [T001](../../tickets/T001-repo-scaffold.md) | Repo scaffold | P1 | done |
 | [T002](../../tickets/T002-shared-types-ledger-invariants.md) | Shared types + ledger invariants | P1 | open |
 | [T003](../../tickets/T003-monthly-payroll-tax-postings.md) | Monthly payroll & tax postings | P1 | done |
-| [T004](../../tickets/T004-six-month-audit-tick.md) | Six-month audit tick | P1 | open |
+| [T004](../../tickets/T004-six-month-audit-tick.md) | Six-month audit tick | P1 | done |
 | [T005](../../tickets/T005-layoff-macro-market-stub.md) | Layoff + macro + market stub | P2 | open |
 
 ## Progress

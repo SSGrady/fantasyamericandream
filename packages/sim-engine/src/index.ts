@@ -1,10 +1,8 @@
 export { createRng } from './rng.js';
+export { tickSixMonths, exportAuditJson } from '@fad/ledger';
+export type { SixMonthTickInput, SixMonthTickResult } from '@fad/ledger';
 
-// Stubs - T004/T005
+// Stub - T005
 export function tickMonth(): void {
-  throw new Error('tickMonth not implemented - see beads T004/T005');
-}
-
-export function tickSixMonths(): void {
-  throw new Error('tickSixMonths not implemented - see beads T004');
+  throw new Error('tickMonth not implemented - see beads T005');
 }

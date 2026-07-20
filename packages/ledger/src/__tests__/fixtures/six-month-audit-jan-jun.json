@@ -1,0 +1,134 @@
+{
+  "description": "Six months from Jan 2026: payroll, rent, CC interest, student loan",
+  "input": {
+    "startDate": "2026-01-01",
+    "accounts": {
+      "checking": {
+        "id": "checking",
+        "balance": 500000
+      },
+      "hysa": {
+        "id": "hysa",
+        "balance": 1000000
+      },
+      "brokerage": {
+        "id": "brokerage",
+        "balance": 0
+      },
+      "rothIra": {
+        "id": "roth",
+        "balance": 0,
+        "taxYearContributions": 0
+      },
+      "traditional401k": {
+        "id": "401k",
+        "balance": 0,
+        "taxYearContributions": 0
+      }
+    },
+    "debts": {
+      "creditCards": [
+        {
+          "id": "cc1",
+          "balance": 50000,
+          "limit": 500000,
+          "apr": 0.2199,
+          "minimumPayment": 2500
+        }
+      ],
+      "studentLoans": [
+        {
+          "id": "sl1",
+          "principal": 2500000,
+          "apr": 0.055,
+          "minimumPayment": 28000
+        }
+      ]
+    },
+    "career": {
+      "employmentType": "w2",
+      "baseSalaryAnnual": 7500000
+    },
+    "location": {
+      "rentPaymentMonthly": 150000
+    },
+    "deferral401kRate": 0.06
+  },
+  "expected": {
+    "endDate": "2026-07-01",
+    "transactionCount": 24,
+    "startNetWorth": -1050000,
+    "audit": {
+      "asOf": "2026-07-01",
+      "netWorth": 877261,
+      "netWorthDelta": 1927261,
+      "waterfall": [
+        {
+          "label": "W2 payroll (net + deferrals)",
+          "category": "income",
+          "amount": 2900622
+        },
+        {
+          "label": "Credit card interest",
+          "category": "expense",
+          "amount": -5755
+        },
+        {
+          "label": "Rent",
+          "category": "expense",
+          "amount": -900000
+        },
+        {
+          "label": "Student loan interest",
+          "category": "expense",
+          "amount": -67606
+        }
+      ],
+      "savingsRate": 0.5139362666666667,
+      "emergencyRunwayMonths": 6.5755888958277975,
+      "contributionProgress": {
+        "traditional401k": {
+          "contributedCents": 225000,
+          "limitCents": 2450000,
+          "remainingCents": 2225000,
+          "pctOfLimit": 0.09183673469387756
+        },
+        "rothIra": {
+          "contributedCents": 0,
+          "limitCents": 750000,
+          "remainingCents": 750000,
+          "pctOfLimit": 0
+        }
+      }
+    },
+    "accounts": {
+      "checking": {
+        "balance": 2107622
+      },
+      "traditional401k": {
+        "balance": 225000,
+        "taxYearContributions": 225000
+      }
+    },
+    "debts": {
+      "creditCards": [
+        {
+          "id": "cc1",
+          "balance": 55755,
+          "limit": 500000,
+          "apr": 0.2199,
+          "minimumPayment": 2500
+        }
+      ],
+      "studentLoans": [
+        {
+          "id": "sl1",
+          "principal": 2399606,
+          "apr": 0.055,
+          "minimumPayment": 28000
+        }
+      ]
+    },
+    "netWorth": 877261
+  }
+}

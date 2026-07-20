@@ -132,6 +132,13 @@ export interface NetWorthWaterfallLine {
   category: 'income' | 'expense' | 'growth' | 'debt' | 'other';
 }
 
+export interface ContributionProgress {
+  contributedCents: MoneyCents;
+  limitCents: MoneyCents;
+  remainingCents: MoneyCents;
+  pctOfLimit: number;
+}
+
 export interface AuditSnapshot {
   asOf: IsoDate;
   netWorth: MoneyCents;
@@ -139,6 +146,7 @@ export interface AuditSnapshot {
   waterfall: NetWorthWaterfallLine[];
   savingsRate: number;
   emergencyRunwayMonths: number;
+  contributionProgress: Record<string, ContributionProgress>;
 }
 
 export interface GameState {

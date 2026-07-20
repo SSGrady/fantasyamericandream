@@ -22,3 +22,16 @@ export {
   splitStudentLoanPayment,
 } from './monthly-tick.js';
 export type { MonthlyTickInput, MonthlyTickResult, StudentLoanPaymentSplit } from './monthly-tick.js';
+export {
+  tickSixMonths,
+  buildAuditSnapshot,
+  buildWaterfallFromTransactions,
+  buildContributionProgress,
+  exportAuditJson,
+  waterfallReconciles,
+  replayTransactionsNetWorthDelta,
+  monthKeyFromIsoDate,
+  addMonthsToIsoDate,
+  monthKeyAdd,
+} from './audit.js';
+export type { SixMonthTickInput, SixMonthTickResult } from './audit.js';
