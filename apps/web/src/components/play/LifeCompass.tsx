@@ -8,6 +8,7 @@ export interface LifeCompassDimension {
   label: string;
   score: number;
   hint: string;
+  delta?: number;
 }
 
 export function buildLifeCompassDimensions(
@@ -39,7 +40,17 @@ export function LifeCompass({ dimensions }: LifeCompassProps) {
       {dimensions.map((dim) => (
         <div key={dim.id} className="rounded-xl border border-border bg-card p-4 shadow-sm phase-enter">
           <p className="text-xs font-medium uppercase tracking-wide text-muted">{dim.label}</p>
-          <p className="mt-2 text-2xl font-semibold text-ink">{dim.score}</p>
+          <p className="mt-2 text-2xl font-semibold text-ink">
+            {dim.score}
+            {dim.delta !== undefined && dim.delta !== 0 ? (
+              <span
+                className={`ml-2 text-sm font-medium ${dim.delta > 0 ? 'text-positive' : 'text-negative'}`}
+              >
+                {dim.delta > 0 ? '+' : ''}
+                {dim.delta}
+              </span>
+            ) : null}
+          </p>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
             <div className="h-full rounded-full bg-accent" style={{ width: `${dim.score}%` }} />
           </div>

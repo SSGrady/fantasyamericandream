@@ -1,7 +1,7 @@
 ---
 id: T117
 title: Priorities persist affect previews
-status: open
+status: done
 type: feature
 priority: P3
 epic: E017

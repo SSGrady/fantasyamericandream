@@ -1,7 +1,7 @@
 ---
 id: T113
 title: Life priority deltas on choices
-status: open
+status: done
 type: feature
 priority: P3
 epic: E017

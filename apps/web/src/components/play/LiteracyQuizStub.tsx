@@ -5,41 +5,58 @@ import { useState } from 'react';
 interface LiteracyQuizStubProps {
   answered: boolean;
   onAnswer: (correct: boolean) => void;
+  eventContext?: string;
 }
 
-const OPTIONS = [
+const DEFAULT_OPTIONS = [
   { id: 'savings', label: 'Savings rate (how much you keep each month)' },
   { id: 'returns', label: 'Investment returns (market performance)' },
   { id: 'salary', label: 'Starting salary alone' },
 ];
 
-export function LiteracyQuizStub({ answered, onAnswer }: LiteracyQuizStubProps) {
+const RTO_OPTIONS = [
+  { id: 'commute', label: 'Commute time replaces paid work or rest hours' },
+  { id: 'salary', label: 'Salary always rises with office days' },
+  { id: 'rent', label: 'Rent drops when you commute more' },
+];
+
+export function LiteracyQuizStub({ answered, onAnswer, eventContext }: LiteracyQuizStubProps) {
+  const isRto = eventContext === 'return_to_office';
+  const options = isRto ? RTO_OPTIONS : DEFAULT_OPTIONS;
+  const correctId = isRto ? 'commute' : 'savings';
+
   const [selected, setSelected] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(answered);
 
   const handleSubmit = () => {
     if (!selected) return;
     setRevealed(true);
-    onAnswer(selected === 'savings');
+    onAnswer(selected === correctId);
   };
 
   return (
     <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted">Literacy quiz</p>
-      <h3 className="mt-1 text-sm font-semibold text-ink">The First $100K</h3>
+      <p className="text-xs font-medium uppercase tracking-wide text-muted">
+        {isRto ? 'Event quiz · RTO' : 'Literacy quiz'}
+      </p>
+      <h3 className="mt-1 text-sm font-semibold text-ink">
+        {isRto ? 'What does RTO cost besides gas?' : 'The First $100K'}
+      </h3>
       <p className="mt-2 text-sm text-muted">
-        What matters most for reaching your first $100K of net worth in your twenties?
+        {isRto
+          ? 'Return-to-office mandates often eat weekly capacity through commute and prep time.'
+          : 'What matters most for reaching your first $100K of net worth in your twenties?'}
       </p>
 
       <div className="mt-3 space-y-2">
-        {OPTIONS.map((option) => (
+        {options.map((option) => (
           <label
             key={option.id}
             className="flex cursor-pointer items-start gap-2 rounded-md border border-border px-3 py-2 text-sm hover:border-accent/40"
           >
             <input
               type="radio"
-              name="first-100k-quiz"
+              name={`quiz-${eventContext ?? 'default'}`}
               value={option.id}
               checked={selected === option.id}
               disabled={revealed}
@@ -53,8 +70,9 @@ export function LiteracyQuizStub({ answered, onAnswer }: LiteracyQuizStubProps) 
 
       {revealed ? (
         <p className="mt-3 rounded-md bg-surface px-3 py-2 text-sm text-muted">
-          Savings rate drives the first $100K for most earners. Unlocks Investing I and savings-rate
-          emphasis in analysis (no luck modifiers).
+          {isRto
+            ? 'Commute and office prep consume weekly capacity. That trade shows up in side-gig and upskill hours, not just dollars.'
+            : 'Savings rate drives the first $100K for most earners. Unlocks Investing I and savings-rate emphasis in analysis.'}
         </p>
       ) : (
         <button

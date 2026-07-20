@@ -1,7 +1,7 @@
 ---
 id: T116
 title: Stakeholder reactions tied to actions
-status: open
+status: done
 type: feature
 priority: P3
 epic: E017

@@ -1,7 +1,7 @@
 ---
 id: E017
 title: Life Priorities and Compass
-status: open
+status: done
 priority: P5
 sprints:
   - S020

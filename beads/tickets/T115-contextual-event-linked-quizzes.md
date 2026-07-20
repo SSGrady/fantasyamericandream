@@ -1,7 +1,7 @@
 ---
 id: T115
 title: Contextual event-linked quizzes
-status: open
+status: done
 type: feature
 priority: P3
 epic: E017

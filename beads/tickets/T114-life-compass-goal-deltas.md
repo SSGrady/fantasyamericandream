@@ -1,7 +1,7 @@
 ---
 id: T114
 title: Life Compass goal deltas
-status: open
+status: done
 type: feature
 priority: P3
 epic: E017
