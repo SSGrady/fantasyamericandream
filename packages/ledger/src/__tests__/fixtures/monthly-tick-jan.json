@@ -1,0 +1,97 @@
+{
+  "description": "January monthly tick: W2 payroll, CC interest, rent, student loan payment",
+  "input": {
+    "monthKey": "2026-01",
+    "accounts": {
+      "checking": {
+        "id": "checking",
+        "balance": 500000
+      },
+      "hysa": {
+        "id": "hysa",
+        "balance": 1000000
+      },
+      "brokerage": {
+        "id": "brokerage",
+        "balance": 0
+      },
+      "rothIra": {
+        "id": "roth",
+        "balance": 0,
+        "taxYearContributions": 0
+      },
+      "traditional401k": {
+        "id": "401k",
+        "balance": 0,
+        "taxYearContributions": 0
+      }
+    },
+    "debts": {
+      "creditCards": [
+        {
+          "id": "cc1",
+          "balance": 50000,
+          "limit": 500000,
+          "apr": 0.2199,
+          "minimumPayment": 2500
+        }
+      ],
+      "studentLoans": [
+        {
+          "id": "sl1",
+          "principal": 2500000,
+          "apr": 0.055,
+          "minimumPayment": 28000
+        }
+      ]
+    },
+    "career": {
+      "employmentType": "w2",
+      "baseSalaryAnnual": 7500000
+    },
+    "location": {
+      "rentPaymentMonthly": 150000
+    },
+    "deferral401kRate": 0.06
+  },
+  "expected": {
+    "payroll": {
+      "grossMonthlyCents": 625000,
+      "federalWithholdingCents": 93750,
+      "ficaSocialSecurityCents": 38750,
+      "ficaMedicareCents": 9063,
+      "deferral401kCents": 37500,
+      "netPayCents": 445937
+    },
+    "creditCardInterestCents": 916,
+    "studentLoanPayment": {
+      "interestCents": 11458,
+      "principalCents": 16542,
+      "totalCents": 28000
+    },
+    "accounts": {
+      "checking": {
+        "balance": 767937
+      },
+      "traditional401k": {
+        "balance": 37500,
+        "taxYearContributions": 37500
+      }
+    },
+    "debts": {
+      "creditCards": [
+        {
+          "id": "cc1",
+          "balance": 50916
+        }
+      ],
+      "studentLoans": [
+        {
+          "id": "sl1",
+          "principal": 2483458
+        }
+      ]
+    },
+    "netWorth": -728937
+  }
+}

@@ -58,6 +58,9 @@ importers:
 
   packages/ledger:
     dependencies:
+      '@fad/data':
+        specifier: workspace:*
+        version: link:../data
       '@fad/shared':
         specifier: workspace:*
         version: link:../shared

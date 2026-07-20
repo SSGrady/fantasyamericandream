@@ -6,3 +6,4 @@ Aggregated progress log. Append dated entries when closing tickets.
 
 - **T001** - Initial repo scaffold: AGENTS.md, ADRs 001-008, beads hierarchy, package skeleton, vision/schema docs.
 - **T002** - Shared types, applyTransactions, validateInvariants, golden fixture, invariant tests 1-4.
+- **T003** - Monthly payroll, grossToNet stub, 401k deferral, rent/CC interest/student loan postings, golden fixture.

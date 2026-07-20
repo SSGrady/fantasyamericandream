@@ -6,7 +6,7 @@ Last updated: 2026-07-19
 
 - [x] **T001** - Repo scaffold (AGENTS.md, ADRs, beads, packages skeleton, vision/schema docs)
 - [x] **T002** - Shared types + ledger invariants
-- [ ] **T003** - Monthly payroll & tax postings
+- [x] **T003** - Monthly payroll & tax postings
 - [ ] **T004** - Six-month audit tick
 - [ ] **T005** - Layoff + macro + market stub
 
@@ -25,7 +25,14 @@ None.
 
 ## Velocity
 
-2/5 tickets done (40%).
+3/5 tickets done (60%).
+
+### 2026-07-19 (T003)
+
+- `grossToNet` payroll stub with federal withholding and FICA.
+- 401k deferral posts to traditional401k with IRS limit tracking.
+- Monthly tick: rent, CC interest accrual, student loan payment (interest first).
+- Golden fixture `monthly-tick-jan.json` and Vitest coverage.
 
 ### 2026-07-19 (T002)
 

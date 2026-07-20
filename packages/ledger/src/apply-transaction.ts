@@ -21,13 +21,22 @@ function isAssetAccountId(id: LedgerAccountId): id is AssetAccountId {
   return (ASSET_IDS as string[]).includes(id);
 }
 
-function applyAssetDelta(accounts: Accounts, id: AssetAccountId, delta: MoneyCents): void {
+function applyAssetDelta(
+  accounts: Accounts,
+  id: AssetAccountId,
+  delta: MoneyCents,
+  source?: LedgerTransaction['source'],
+): void {
   const bucket = accounts[id];
   const next = bucket.balance + delta;
   if (next < 0) {
     throw new Error(`Insufficient balance in ${id}: ${bucket.balance} + ${delta}`);
   }
   bucket.balance = next;
+
+  if (id === 'traditional401k' && delta > 0 && source === 'income') {
+    accounts.traditional401k.taxYearContributions += delta;
+  }
 }
 
 function applyLiabilityDelta(debts: Debts, accountId: LedgerAccountId, delta: MoneyCents): void {
@@ -67,7 +76,12 @@ function lineDeltaLiability(line: LedgerLine): MoneyCents {
   return line.creditCents - line.debitCents;
 }
 
-function applyLine(accounts: Accounts, debts: Debts, line: LedgerLine): void {
+function applyLine(
+  accounts: Accounts,
+  debts: Debts,
+  line: LedgerLine,
+  source: LedgerTransaction['source'],
+): void {
   const { accountId } = line;
 
   if (accountId.startsWith('income:') || accountId.startsWith('expense:')) {
@@ -75,7 +89,7 @@ function applyLine(accounts: Accounts, debts: Debts, line: LedgerLine): void {
   }
 
   if (isAssetAccountId(accountId)) {
-    applyAssetDelta(accounts, accountId, lineDeltaAsset(line));
+    applyAssetDelta(accounts, accountId, lineDeltaAsset(line), source);
     return;
   }
 
@@ -88,7 +102,7 @@ export function applySingleTransaction(
   transaction: LedgerTransaction,
 ): void {
   for (const line of transaction.lines) {
-    applyLine(accounts, debts, line);
+    applyLine(accounts, debts, line, transaction.source);
   }
 }
 

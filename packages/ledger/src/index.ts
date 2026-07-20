@@ -3,8 +3,22 @@ export { applyTransactions, applySingleTransaction } from './apply-transaction.j
 export type { ApplyTransactionsResult } from './apply-transaction.js';
 export { validateInvariants, assertInvariants } from './validate-invariants.js';
 export type { InvariantViolation } from './validate-invariants.js';
-
-// V0 stub: full monthly orchestration in T003
-export function applyMonthlyTick(): void {
-  throw new Error('applyMonthlyTick not implemented; see beads T003');
-}
+export {
+  grossToNet,
+  buildPayrollTransaction,
+  buildPayrollFromCareer,
+  monthlyGrossFromAnnual,
+  PAYROLL_STUB_2026,
+} from './payroll.js';
+export type { GrossToNetInput, GrossToNetResult, BuildPayrollTransactionInput } from './payroll.js';
+export {
+  applyMonthlyTick,
+  buildMonthlyTransactions,
+  buildCreditCardInterestTransactions,
+  buildRentTransaction,
+  buildStudentLoanPaymentTransaction,
+  buildStudentLoanPaymentTransactions,
+  monthlyInterestCents,
+  splitStudentLoanPayment,
+} from './monthly-tick.js';
+export type { MonthlyTickInput, MonthlyTickResult, StudentLoanPaymentSplit } from './monthly-tick.js';
