@@ -8,9 +8,19 @@ Last updated: 2026-07-19
 - [x] **T009** - Character creator
 - [x] **T010** - Module toggles
 - [x] **T011** - Core play loop screens
-- [ ] **T012** - V1 content and endings
+- [x] **T012** - V1 content and endings
 
 ## Notes
+
+### 2026-07-19 (T012)
+
+- Impact analysis: fiscal cards from AuditSnapshot with Show the Math expandables.
+- Reactions: four stakeholder personas driven by audit deltas in `@fad/narrative`.
+- Dashboard: period timeline, skill tree stub, voluntary end CTA.
+- Final report: `/play/end` with ending net worth, savings rate, periods, replay seed.
+- End stubs: demo limit (4 periods), voluntary exit, age 65, Coast FIRE, insolvency.
+- Metrics ribbon on briefing, audit, analysis, dashboard, and end screens.
+- Literacy quiz stub on decision day (First $100K, unlock note only).
 
 ### 2026-07-19 (T011)
 
@@ -45,4 +55,4 @@ None.
 
 ## Velocity
 
-4/5 tickets done (80%).
+5/5 tickets done (100%). Sprint complete.

@@ -1,4 +1,4 @@
-import type { AuditSnapshot, GameState } from '@fad/shared';
+import type { AuditSnapshot, GameState, SimulationEndReason } from '@fad/shared';
 import type { TickSixMonthsResult } from '@fad/sim-engine';
 import type { V1CharacterDraft, V1RunConfig } from '@fad/shared';
 import { buildInitialGameState } from './build-game-state';
@@ -17,6 +17,23 @@ export interface PendingDecision {
   description: string;
 }
 
+export interface PeriodHistoryEntry {
+  periodIndex: number;
+  asOf: AuditSnapshot['asOf'];
+  netWorth: number;
+  netWorthDelta: number;
+  savingsRate: number;
+  emergencyRunwayMonths: number;
+  playerAction?: string;
+}
+
+export interface SkillTreeEntry {
+  id: string;
+  title: string;
+  track: string;
+  status: 'locked' | 'in_progress' | 'unlocked';
+}
+
 export interface PlaySession {
   gameState: GameState;
   deferral401kRate: number;
@@ -26,6 +43,10 @@ export interface PlaySession {
   periodIndex: number;
   maxPeriods: number;
   tickInProgress: boolean;
+  periodHistory: PeriodHistoryEntry[];
+  endReason: SimulationEndReason | null;
+  endedByDemoLimit: boolean;
+  literacyQuizAnswered: boolean;
 }
 
 export interface RibbonMetrics {
@@ -42,6 +63,16 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
+function normalizeSession(parsed: PlaySession): PlaySession {
+  return {
+    ...parsed,
+    periodHistory: parsed.periodHistory ?? [],
+    endReason: parsed.endReason ?? null,
+    endedByDemoLimit: parsed.endedByDemoLimit ?? false,
+    literacyQuizAnswered: parsed.literacyQuizAnswered ?? false,
+  };
+}
+
 function loadRawSession(): PlaySession | null {
   if (typeof window === 'undefined') return null;
   const raw = sessionStorage.getItem(STORAGE_KEY);
@@ -50,7 +81,7 @@ function loadRawSession(): PlaySession | null {
   try {
     const parsed = JSON.parse(raw) as PlaySession;
     if (!isRecord(parsed) || !parsed.gameState?.run) return null;
-    return parsed;
+    return normalizeSession(parsed);
   } catch {
     return null;
   }
@@ -84,6 +115,10 @@ export function initializePlaySession(
     periodIndex: 0,
     maxPeriods: MAX_PERIODS,
     tickInProgress: false,
+    periodHistory: [],
+    endReason: null,
+    endedByDemoLimit: false,
+    literacyQuizAnswered: false,
   };
   savePlaySession(session);
   return session;
@@ -191,6 +226,7 @@ export function applyTickToSession(
   session: PlaySession,
   tick: TickSixMonthsResult,
 ): PlaySession {
+  const historyEntry = appendPeriodHistory(session, tick.audit, session.playerAction || undefined);
   const next: PlaySession = {
     ...session,
     gameState: {
@@ -213,9 +249,116 @@ export function applyTickToSession(
     }),
     periodIndex: session.periodIndex + 1,
     tickInProgress: false,
+    periodHistory: [...(session.periodHistory ?? []), historyEntry],
+    playerAction: '',
   };
   savePlaySession(next);
   return next;
+}
+
+export function appendPeriodHistory(
+  session: PlaySession,
+  audit: AuditSnapshot,
+  playerAction?: string,
+): PeriodHistoryEntry {
+  return {
+    periodIndex: session.periodIndex,
+    asOf: audit.asOf,
+    netWorth: audit.netWorth,
+    netWorthDelta: audit.netWorthDelta,
+    savingsRate: audit.savingsRate,
+    emergencyRunwayMonths: audit.emergencyRunwayMonths,
+    playerAction,
+  };
+}
+
+export function computePlayerAge(gameState: GameState): number {
+  const birth = new Date(`${gameState.player.birthDate}T00:00:00Z`);
+  const asOf = new Date(`${gameState.run.currentDate}T00:00:00Z`);
+  let age = asOf.getUTCFullYear() - birth.getUTCFullYear();
+  const monthDelta = asOf.getUTCMonth() - birth.getUTCMonth();
+  if (monthDelta < 0 || (monthDelta === 0 && asOf.getUTCDate() < birth.getUTCDate())) {
+    age -= 1;
+  }
+  return age;
+}
+
+export function estimateAnnualExpenses(audit: AuditSnapshot): number {
+  const expenseTotal = audit.waterfall
+    .filter((line) => line.category === 'expense' || line.category === 'debt')
+    .reduce((sum, line) => sum + Math.abs(line.amount), 0);
+  return expenseTotal > 0 ? (expenseTotal / 6) * 12 : 48_000_00;
+}
+
+export function isCoastFireStub(audit: AuditSnapshot, gameState: GameState): boolean {
+  const invested =
+    gameState.accounts.brokerage.balance +
+    gameState.accounts.traditional401k.balance +
+    gameState.accounts.rothIra.balance;
+  const annualExpenses = estimateAnnualExpenses(audit);
+  return invested >= annualExpenses * 25;
+}
+
+export function isInsolvencyStub(audit: AuditSnapshot): boolean {
+  return audit.netWorth < 0;
+}
+
+export function detectAutomaticEndReason(session: PlaySession): SimulationEndReason | null {
+  if (!session.currentAudit) return null;
+  const audit = session.currentAudit;
+
+  if (isInsolvencyStub(audit)) return 'insolvency';
+  if (computePlayerAge(session.gameState) >= 65) return 'age_65';
+  if (isCoastFireStub(audit, session.gameState)) return 'coast_fire';
+  if (session.periodIndex >= session.maxPeriods) return 'voluntary';
+
+  return null;
+}
+
+export function endSimulation(
+  session: PlaySession,
+  reason: SimulationEndReason,
+  options?: { demoLimit?: boolean },
+): PlaySession {
+  const next: PlaySession = {
+    ...session,
+    endReason: reason,
+    endedByDemoLimit: options?.demoLimit ?? session.endedByDemoLimit,
+    gameState: {
+      ...session.gameState,
+      run: {
+        ...session.gameState.run,
+        phase: 'ended',
+        endReason: reason,
+      },
+    },
+  };
+  savePlaySession(next);
+  return next;
+}
+
+export function isSimulationEnded(session: PlaySession): boolean {
+  return session.endReason !== null || session.gameState.run.phase === 'ended';
+}
+
+export function buildSkillTreeProgress(session: PlaySession): SkillTreeEntry[] {
+  const unlockedCount = Math.min(session.periodIndex, 4);
+  const tracks = [
+    { id: 'cash_flow_i', title: 'Cash Flow I', track: 'Cash Flow' },
+    { id: 'emergency_readiness', title: 'Emergency Readiness', track: 'Emergency' },
+    { id: 'investing_i', title: 'Investing I', track: 'Investing' },
+    { id: 'housing', title: 'Housing', track: 'Housing' },
+  ];
+
+  return tracks.map((skill, index) => ({
+    ...skill,
+    status:
+      index < unlockedCount
+        ? 'unlocked'
+        : index === unlockedCount
+          ? 'in_progress'
+          : 'locked',
+  }));
 }
 
 export function formatPeriodLabel(currentDate: string): string {
@@ -227,5 +370,5 @@ export function formatPeriodLabel(currentDate: string): string {
 }
 
 export function isSimulationComplete(session: PlaySession): boolean {
-  return session.periodIndex >= session.maxPeriods;
+  return session.periodIndex >= session.maxPeriods || isSimulationEnded(session);
 }

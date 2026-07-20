@@ -17,10 +17,10 @@ Shippable web experience with President-simulator-style UI and the full conseque
 
 From [PLAN.md](../../PLAN.md) V1:
 
-- [ ] Scenario picker, character creator, module toggles (onboarding)
-- [ ] Core loop: briefing, decision day, impact analysis, reactions, net-worth audit
+- [x] Scenario picker, character creator, module toggles (onboarding)
+- [x] Core loop: briefing, decision day, impact analysis, reactions, net-worth audit
 - [ ] 30-50 events, skill tree v1, DreamHome lite (10 listings)
-- [ ] Endings: Coast FIRE, age 65, insolvency, voluntary exit, final report
+- [x] Endings: Coast FIRE, age 65, insolvency, voluntary exit, final report
 
 Requires [ADR-007 UI interaction pattern](../../docs/adr/007-ui-consequence-pipeline.md).
 
@@ -28,17 +28,17 @@ Requires [ADR-007 UI interaction pattern](../../docs/adr/007-ui-consequence-pipe
 
 | Sprint | Goal | Status |
 |--------|------|--------|
-| [S003](../sprints/S003-v1-ui-shell/sprint.md) | UI shell and scenario select | In progress |
+| [S003](../sprints/S003-v1-ui-shell/sprint.md) | UI shell and scenario select | Done |
 
 ## Tickets
 
 | ID | Title | Status |
 |----|-------|--------|
 | [T008](../tickets/T008-v1-ui-shell-scenario-select.md) | UI shell + scenario select | done |
-| [T009](../tickets/T009-character-creator.md) | Character creator | open |
-| [T010](../tickets/T010-module-toggles.md) | Module toggles | open |
-| [T011](../tickets/T011-core-play-loop.md) | Core play loop screens | open |
-| [T012](../tickets/T012-v1-content-endings.md) | V1 content and endings | open |
+| [T009](../tickets/T009-character-creator.md) | Character creator | done |
+| [T010](../tickets/T010-module-toggles.md) | Module toggles | done |
+| [T011](../tickets/T011-core-play-loop.md) | Core play loop screens | done |
+| [T012](../tickets/T012-v1-content-endings.md) | V1 content and endings | done |
 
 ## Follow-on Epics (planned)
 

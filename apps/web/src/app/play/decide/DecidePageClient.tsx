@@ -2,12 +2,13 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { LiteracyQuizStub } from '../../../components/play/LiteracyQuizStub';
 import { savePlaySession, type PendingDecision } from '../../../lib/play-session';
 import { usePlaySession } from '../../../lib/use-play-session';
 
 export function DecidePageClient() {
   const router = useRouter();
-  const { session, ready } = usePlaySession();
+  const { session, ready, setSession } = usePlaySession();
   const [action, setAction] = useState('');
 
   useEffect(() => {
@@ -29,16 +30,27 @@ export function DecidePageClient() {
     router.push('/play/processing');
   };
 
+  const handleQuizAnswer = () => {
+    const next = { ...session, literacyQuizAnswered: true };
+    savePlaySession(next);
+    setSession(next);
+  };
+
   return (
     <div className="space-y-6">
       <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <p className="text-sm font-medium text-accent">Decision day</p>
         <h2 className="mt-1 font-serif text-2xl text-ink">What do you do next?</h2>
         <p className="mt-3 text-muted">
-          Required and optional prompts from your audit. T012 will wire structured modifiers; for
-          now, describe your plan in the open action field.
+          Required and optional prompts from your audit. Describe your plan in the open action
+          field.
         </p>
       </div>
+
+      <LiteracyQuizStub
+        answered={session.literacyQuizAnswered ?? false}
+        onAnswer={handleQuizAnswer}
+      />
 
       <div className="space-y-4">
         {session.pendingDecisions.map((decision: PendingDecision) => (

@@ -1,13 +1,9 @@
 'use client';
 
+import { renderStakeholderReactions } from '@fad/narrative';
 import { useRouter } from 'next/navigation';
+import { computeRibbonMetrics } from '../../../lib/play-session';
 import { usePlaySession } from '../../../lib/use-play-session';
-
-const STAKEHOLDERS = [
-  { name: 'Future You (35)', sentiment: 'Cautiously optimistic', note: 'Runway looks thin if rent keeps climbing.' },
-  { name: 'Recruiter', sentiment: 'Neutral', note: 'Your sector still has openings, but hiring cooled.' },
-  { name: 'Fee-only planner', sentiment: 'Mixed', note: 'Contribution room remains; cash buffer needs attention.' },
-];
 
 export function ReactionsPageClient() {
   const router = useRouter();
@@ -21,21 +17,28 @@ export function ReactionsPageClient() {
     );
   }
 
+  const audit = session.currentAudit;
+  const metrics = computeRibbonMetrics(audit, session.gameState);
+  const reactions = renderStakeholderReactions(audit, {
+    housingBurdenPct: metrics.housingBurdenPct,
+    playerName: session.gameState.player.name,
+  });
+
   return (
     <div className="space-y-6">
       <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-        <p className="text-sm font-medium text-accent">Stakeholder reactions (stub)</p>
+        <p className="text-sm font-medium text-accent">Stakeholder reactions</p>
         <h2 className="mt-1 font-serif text-2xl text-ink">Competing perspectives</h2>
         <p className="mt-3 text-muted">
-          T012 will add full persona cards and sentiment scoring. These placeholders keep the
-          pipeline moving.
+          Partner, future self, labor market, and planner voices react to this period&apos;s audit
+          deltas. Sentiment is template-driven, not random.
         </p>
       </div>
 
       <div className="space-y-3">
-        {STAKEHOLDERS.map((persona) => (
+        {reactions.map((persona) => (
           <div
-            key={persona.name}
+            key={persona.id}
             className="rounded-lg border border-border bg-card p-4 shadow-sm"
           >
             <div className="flex items-center justify-between gap-3">

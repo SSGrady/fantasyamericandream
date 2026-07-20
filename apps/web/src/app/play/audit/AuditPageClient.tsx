@@ -2,10 +2,14 @@
 
 import { useRouter } from 'next/navigation';
 import { BalanceSheetGrid } from '../../../components/play/BalanceSheetGrid';
+import { MetricsRibbon } from '../../../components/play/MetricsRibbon';
 import { ProgressRings } from '../../../components/play/ProgressRings';
 import { WaterfallList } from '../../../components/play/WaterfallList';
 import { formatMoney } from '../../../lib/format-money';
 import {
+  computeRibbonMetrics,
+  detectAutomaticEndReason,
+  endSimulation,
   isSimulationComplete,
   savePlaySession,
 } from '../../../lib/play-session';
@@ -13,7 +17,7 @@ import { usePlaySession } from '../../../lib/use-play-session';
 
 export function AuditPageClient() {
   const router = useRouter();
-  const { session, ready } = usePlaySession();
+  const { session, ready, setSession } = usePlaySession();
 
   if (!ready || !session?.currentAudit) {
     return (
@@ -24,9 +28,20 @@ export function AuditPageClient() {
   }
 
   const audit = session.currentAudit;
+  const metrics = computeRibbonMetrics(audit, session.gameState);
   const complete = isSimulationComplete(session);
+  const autoEnd = detectAutomaticEndReason(session);
 
   const handleContinue = () => {
+    if (autoEnd && !session.endReason) {
+      const reason = autoEnd;
+      const demoLimit = session.periodIndex >= session.maxPeriods && reason === 'voluntary';
+      const next = endSimulation(session, reason, { demoLimit });
+      setSession(next);
+      router.push('/play/end');
+      return;
+    }
+
     if (complete) {
       router.push('/play/dashboard');
       return;
@@ -43,6 +58,8 @@ export function AuditPageClient() {
 
   return (
     <div className="space-y-8">
+      <MetricsRibbon metrics={metrics} />
+
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
           <p className="text-xs font-medium uppercase tracking-wide text-muted">Net worth</p>
@@ -88,7 +105,7 @@ export function AuditPageClient() {
           onClick={handleContinue}
           className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90"
         >
-          {complete ? 'View final report stub' : 'Continue to next briefing'}
+          {autoEnd || complete ? 'View final report' : 'Continue to next briefing'}
         </button>
       </div>
     </div>
