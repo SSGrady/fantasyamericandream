@@ -8,7 +8,7 @@ Last updated: 2026-07-19
 - [x] **T002** - Shared types + ledger invariants
 - [x] **T003** - Monthly payroll & tax postings
 - [x] **T004** - Six-month audit tick
-- [ ] **T005** - Layoff + macro + market stub
+- [x] **T005** - Layoff + macro + market stub
 
 ## Notes
 
@@ -25,7 +25,15 @@ None.
 
 ## Velocity
 
-4/5 tickets done (80%).
+5/5 tickets done (100%).
+
+### 2026-07-19 (T005)
+
+- Seeded PRNG with Box-Muller normal samples in `packages/sim-engine/src/rng.ts`.
+- `MacroRegime` multipliers in `macro-regimes.ts` (expansion 0.8x, severe recession 2.5x layoff climate).
+- Monthly layoff hazard from BLS baseline (1.1%) modifies `CareerState` (unemployment, optional salary reset).
+- Regime-conditioned portfolio returns post via ledger `investment_return` transactions.
+- `tickMonthsWithSimulation` golden determinism test over 12 months (`twelve-month-determinism.json`).
 
 ### 2026-07-19 (T004)
 

@@ -1,0 +1,91 @@
+{
+  "description": "Twelve months with seeded macro, layoff, and market returns",
+  "input": {
+    "startDate": "2026-01-01",
+    "months": 12,
+    "randomSeed": "t005-determinism-golden",
+    "accounts": {
+      "checking": {
+        "id": "checking",
+        "balance": 500000
+      },
+      "hysa": {
+        "id": "hysa",
+        "balance": 1000000
+      },
+      "brokerage": {
+        "id": "brokerage",
+        "balance": 2500000
+      },
+      "rothIra": {
+        "id": "roth",
+        "balance": 0,
+        "taxYearContributions": 0
+      },
+      "traditional401k": {
+        "id": "401k",
+        "balance": 500000,
+        "taxYearContributions": 0
+      }
+    },
+    "debts": {
+      "creditCards": [
+        {
+          "id": "cc1",
+          "balance": 50000,
+          "limit": 500000,
+          "apr": 0.2199,
+          "minimumPayment": 2500
+        }
+      ],
+      "studentLoans": [
+        {
+          "id": "sl1",
+          "principal": 2500000,
+          "apr": 0.055,
+          "minimumPayment": 28000
+        }
+      ]
+    },
+    "career": {
+      "sector": "tech",
+      "title": "Software Engineer",
+      "employmentType": "w2",
+      "baseSalaryAnnual": 7500000,
+      "tenureMonths": 12,
+      "unemploymentWeeks": 0
+    },
+    "location": {
+      "stateCode": "TX",
+      "metroId": "austin",
+      "housingMode": "rent",
+      "rentPaymentMonthly": 150000
+    },
+    "macro": {
+      "regime": "expansion"
+    },
+    "deferral401kRate": 0.06
+  },
+  "expected": {
+    "endDate": "2027-01-01",
+    "netWorth": 6509181,
+    "layoffCount": 0,
+    "employmentType": "w2",
+    "brokerageBalance": 3049051,
+    "traditional401kBalance": 1103477,
+    "monthlyReturns": [
+      -0.0202503433,
+      0.0057359719,
+      0.0157810139,
+      0.0383493856,
+      0.0223111221,
+      0.0443038025,
+      0.074363487,
+      0.026836225,
+      0.0526956297,
+      0.0764189275,
+      -0.1008569614,
+      -0.022072509
+    ]
+  }
+}
