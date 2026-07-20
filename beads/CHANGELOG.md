@@ -4,6 +4,7 @@ Aggregated progress log. Append dated entries when closing tickets.
 
 ## 2026-07-19
 
+- **T009** - Character creator: trait grids, balance sheet, session draft, `/create/modules` stub, shared V1CharacterDraft types.
 - **E002** - V1 Playable Game epic opened; S003 UI shell sprint started.
 - **T008** - V1 UI shell: Tailwind in apps/web, landing, `/scenarios` card list, `/create` stub, shared V1 scenario types.
 - **T001** - Initial repo scaffold: AGENTS.md, ADRs 001-008, beads hierarchy, package skeleton, vision/schema docs.

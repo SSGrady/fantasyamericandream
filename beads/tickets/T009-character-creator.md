@@ -1,7 +1,7 @@
 ---
 id: T009
 title: Character creator
-status: open
+status: done
 type: feature
 priority: P1
 epic: E002
@@ -19,3 +19,10 @@ acceptance:
 ## Description
 
 Character setup screen with card grids and modifier subtext per user-journey.md section 2.
+
+## Completion (2026-07-19)
+
+- `/create` trait grids (age, state, education, career, marital, habits) and balance sheet form.
+- `@fad/shared` `V1CharacterDraft` types, trait options, scenario defaults.
+- Session draft persistence via `character-draft.ts`; scenario carry-over from T008.
+- Continue navigates to `/create/modules` stub for T010.

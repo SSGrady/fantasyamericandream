@@ -6,7 +6,7 @@ export default function CreatePage() {
   return (
     <PageShell
       title="Character setup"
-      subtitle="Define your starting life. Full creator arrives in the next sprint ticket."
+      subtitle="Define your starting life with trait grids and a balance sheet."
       backHref="/scenarios"
       backLabel="Scenarios"
     >

@@ -5,12 +5,18 @@ Last updated: 2026-07-19
 ## Ticket Status
 
 - [x] **T008** - UI shell + scenario select (Tailwind, landing, `/scenarios`, `/create` stub)
-- [ ] **T009** - Character creator
+- [x] **T009** - Character creator
 - [ ] **T010** - Module toggles
 - [ ] **T011** - Core play loop screens
 - [ ] **T012** - V1 content and endings
 
 ## Notes
+
+### 2026-07-19 (T009)
+
+- Character creator on `/create`: name, trait grids with modifier subtext, balance sheet form.
+- `@fad/shared` exports `V1CharacterDraft`, trait option catalogs, scenario defaults.
+- Session draft persisted via `character-draft.ts`; `/create/modules` stub for T010.
 
 ### 2026-07-19
 
@@ -26,4 +32,4 @@ None.
 
 ## Velocity
 
-1/5 tickets done (20%).
+2/5 tickets done (40%).
