@@ -11,6 +11,7 @@ import {
   clearPlaySession,
   computeRibbonMetrics,
   endSimulation,
+  formatChapterLabel,
   isSimulationComplete,
   isSimulationEnded,
   savePlaySession,
@@ -65,7 +66,7 @@ export function DashboardPageClient() {
         <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
           <p className="text-sm font-medium text-accent">Net-worth dashboard</p>
           <h2 className="mt-1 font-serif text-2xl text-ink">
-            Period {session.periodIndex} of {session.maxPeriods}
+            {formatChapterLabel(audit.asOf, session.periodIndex - 1)}
           </h2>
           <p className="mt-3 text-muted">
             Track your path, literacy unlocks, and end the run when you are ready.
@@ -97,7 +98,7 @@ export function DashboardPageClient() {
             onClick={handleContinuePlaying}
             className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90"
           >
-            Continue next period
+            Continue next chapter
           </button>
         ) : null}
         {!ended ? (

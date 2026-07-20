@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 import type { Accounts } from '@fad/shared';
 import { describe, expect, it } from 'vitest';
 import {
+  computeCashSurplusRate,
+  computeDeferral401kRate,
   computeEmergencyRunwayBreakdown,
   computeHousingBurdenBreakdown,
   computePeriod401kDeferrals,
@@ -11,6 +13,7 @@ import {
   computeSavingsInflows,
   computeSavingsRate,
   computeSavingsRateBreakdown,
+  computeTransferSavingsInflows,
   tickSixMonths,
   buildContributionProgress,
 } from '../index.js';
@@ -134,5 +137,29 @@ describe('briefing metrics', () => {
     expect(progress.traditional401k?.limitCents).toBe(IRS_LIMITS_2026.employee401kDeferral);
     expect(progress.rothIra?.limitCents).toBe(IRS_LIMITS_2026.iraContribution);
     expect(result.audit.metricBreakdown?.savingsRate.rate).toBeCloseTo(result.audit.savingsRate, 10);
+  });
+
+  it('splits savings rate into deferral, cash surplus, and total', () => {
+    const fixture = JSON.parse(
+      readFileSync(join(__dirname, 'fixtures/six-month-audit-jan-jun.json'), 'utf8'),
+    ) as SixMonthAuditFixture;
+
+    const result = tickSixMonths(fixture.input);
+    const netPay = computePeriodNetPay(result.transactions);
+    const deferrals = computePeriod401kDeferrals(result.transactions);
+    const transfers = computeTransferSavingsInflows(result.transactions);
+
+    expect(result.audit.deferral401kRate).toBeCloseTo(deferrals / netPay, 10);
+    expect(result.audit.cashSurplusRate).toBeCloseTo(transfers / netPay, 10);
+    expect(result.audit.savingsRate).toBeCloseTo(
+      result.audit.deferral401kRate + result.audit.cashSurplusRate,
+      10,
+    );
+    expect(computeDeferral401kRate(result.transactions)).toBeCloseTo(result.audit.deferral401kRate, 10);
+    expect(computeCashSurplusRate(result.transactions)).toBeCloseTo(result.audit.cashSurplusRate, 10);
+
+    const breakdown = computeSavingsRateBreakdown(result.transactions);
+    expect(breakdown.deferral401kRate).toBeCloseTo(result.audit.deferral401kRate, 10);
+    expect(breakdown.cashSurplusRate).toBeCloseTo(result.audit.cashSurplusRate, 10);
   });
 });

@@ -15,6 +15,8 @@ import { cloneAccounts, cloneDebts } from './clone-state.js';
 import { LIVING_EXPENSE_WATERFALL_LABELS, type LivingExpenseCategory } from './living-expenses.js';
 import { applyMonthlyTick, type MonthlyTickInput } from './monthly-tick.js';
 import {
+  computeCashSurplusRate,
+  computeDeferral401kRate,
   computeEmergencyRunwayBreakdown,
   computeHousingBurdenBreakdown,
   computePeriodNetPay,
@@ -22,6 +24,7 @@ import {
   computeSavingsRateBreakdown,
 } from './metrics.js';
 import type { MetricBreakdownSnapshot } from '@fad/shared';
+import { buildNetWorthAttribution } from './attribution.js';
 import { netWorth } from './net-worth.js';
 
 export interface SixMonthTickInput {
@@ -340,18 +343,29 @@ export function buildAuditSnapshot(input: {
     periodMonths: months,
   });
 
+  const waterfall = buildWaterfallFromTransactions(input.transactions);
+  const netWorthDelta = endNetWorth - startNetWorth;
+  const attribution = buildNetWorthAttribution({
+    netWorthDelta,
+    transactions: input.transactions,
+    waterfall,
+  });
+
   return {
     asOf: input.asOf,
     startNetWorth,
     netWorth: endNetWorth,
-    netWorthDelta: endNetWorth - startNetWorth,
-    waterfall: buildWaterfallFromTransactions(input.transactions),
+    netWorthDelta,
+    waterfall,
     periodNetPayCents: computePeriodNetPay(input.transactions),
     savingsRate: computeSavingsRate(input.transactions),
+    deferral401kRate: computeDeferral401kRate(input.transactions),
+    cashSurplusRate: computeCashSurplusRate(input.transactions),
     emergencyRunwayMonths: metricBreakdown.emergencyRunway.months,
     contributionProgress: buildContributionProgress(input.endAccounts),
     accountInvestmentReturns: computeAccountInvestmentReturns(input.transactions),
     metricBreakdown,
+    attribution,
   };
 }
 

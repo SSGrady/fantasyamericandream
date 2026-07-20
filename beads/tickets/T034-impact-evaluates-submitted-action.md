@@ -1,7 +1,7 @@
 ---
 id: T034
 title: Impact evaluates submitted action
-status: open
+status: done
 type: bug
 priority: P1
 epic: E004

@@ -69,6 +69,29 @@ export function computePeriod401kDeferrals(transactions: LedgerTransaction[]): M
   );
 }
 
+/** Post-payday transfer inflows to savings accounts (excludes payroll 401(k) deferrals). */
+export function computeTransferSavingsInflows(transactions: LedgerTransaction[]): MoneyCents {
+  return Math.max(0, computeSavingsInflows(transactions) - computePeriod401kDeferrals(transactions));
+}
+
+/** 401(k) deferrals divided by net pay. */
+export function computeDeferral401kRate(transactions: LedgerTransaction[]): number {
+  const netPay = computePeriodNetPay(transactions);
+  if (netPay <= 0) {
+    return 0;
+  }
+  return Math.max(0, computePeriod401kDeferrals(transactions) / netPay);
+}
+
+/** Post-payday transfer inflows divided by net pay (HYSA, brokerage, Roth, HSA). */
+export function computeCashSurplusRate(transactions: LedgerTransaction[]): number {
+  const netPay = computePeriodNetPay(transactions);
+  if (netPay <= 0) {
+    return 0;
+  }
+  return Math.max(0, computeTransferSavingsInflows(transactions) / netPay);
+}
+
 /** Intentional savings inflows divided by net pay (see docs/schema/metrics-definitions.md). */
 export function computeSavingsRate(transactions: LedgerTransaction[]): number {
   const netPay = computePeriodNetPay(transactions);
@@ -87,7 +110,12 @@ export interface MetricBreakdownLine {
 export interface SavingsRateBreakdown {
   savingsInflowsCents: MoneyCents;
   periodNetPayCents: MoneyCents;
+  /** Total savings rate (deferrals + transfers) / net pay. */
   rate: number;
+  deferral401kRate: number;
+  cashSurplusRate: number;
+  deferral401kCents: MoneyCents;
+  cashSurplusCents: MoneyCents;
   formula: string;
   lines: MetricBreakdownLine[];
 }
@@ -117,6 +145,9 @@ export function computeSavingsRateBreakdown(
   const savingsInflowsCents = computeSavingsInflows(transactions);
   const deferrals = computePeriod401kDeferrals(transactions);
   const transferInflows = Math.max(0, savingsInflowsCents - deferrals);
+  const rate = periodNetPayCents > 0 ? savingsInflowsCents / periodNetPayCents : 0;
+  const deferral401kRate = periodNetPayCents > 0 ? deferrals / periodNetPayCents : 0;
+  const cashSurplusRate = periodNetPayCents > 0 ? transferInflows / periodNetPayCents : 0;
 
   const lines: MetricBreakdownLine[] = [
     { label: 'Net pay to checking (denominator)', amountCents: periodNetPayCents },
@@ -134,7 +165,11 @@ export function computeSavingsRateBreakdown(
   return {
     savingsInflowsCents,
     periodNetPayCents,
-    rate: periodNetPayCents > 0 ? savingsInflowsCents / periodNetPayCents : 0,
+    rate,
+    deferral401kRate,
+    cashSurplusRate,
+    deferral401kCents: deferrals,
+    cashSurplusCents: transferInflows,
     formula:
       'Sum of payroll 401(k) deferrals and post-payday transfers to HYSA, brokerage, Roth, or HSA, divided by net pay deposited to checking. Investment returns are excluded.',
     lines,

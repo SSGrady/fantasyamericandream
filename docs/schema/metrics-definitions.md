@@ -32,22 +32,56 @@ Net pay is cash deposited to checking after pre-tax deferrals. It excludes discr
 
 ---
 
-## Savings rate
+## Savings rate metrics
 
-**Label:** Savings rate
+Three distinct ribbon metrics replace the single blended savings rate. HYSA, brokerage, Roth, and HSA transfers count as savings (cash surplus), not as residual checking balance.
+
+### 401(k) deferral rate
+
+**Label:** 401(k) deferral
 
 **Formula:**
 
 ```
-savingsInflows = sum(payroll 401k deferrals + transfer deposits to traditional401k, hsa, hysa, brokerage, rothIra)
+deferral401kRate = payroll401kDeferrals / periodNetPay
+```
+
+Numerator is employee 401(k) deferrals posted from W2 payroll during the audit period. Denominator is net pay deposited to checking.
+
+### Cash surplus rate
+
+**Label:** Cash surplus
+
+**Formula:**
+
+```
+cashSurplusRate = transferSavingsInflows / periodNetPay
+```
+
+Numerator is post-payday transfers to HYSA, brokerage, Roth IRA, or HSA during the audit period. Excludes payroll 401(k) deferrals and investment returns.
+
+### Total savings rate
+
+**Label:** Total savings
+
+**Formula:**
+
+```
+savingsInflows = payroll401kDeferrals + transferSavingsInflows
 savingsRate = savingsInflows / periodNetPay
 ```
 
-Numerator counts intentional savings vehicle deposits during the audit period. Investment returns (`investment_return` transactions) are excluded even when they increase brokerage, Roth, or 401(k) balances.
+Total savings rate equals deferral rate plus cash surplus rate (within rounding). Investment returns (`investment_return` transactions) are excluded even when they increase brokerage, Roth, or 401(k) balances.
 
 Denominator is net pay (not gross, not residual cash after rent).
 
 V0 has no HSA account yet; include `hsa` in the account list so future HSA payroll deferrals count automatically.
+
+---
+
+## Legacy label
+
+The field `savingsRate` on `AuditSnapshot` stores total savings rate for backward compatibility with narrative and history charts.
 
 ---
 
@@ -137,6 +171,33 @@ Payroll income splits into separate waterfall lines:
 Living expense lines: **Health insurance**, **Utilities**, **Groceries**, **Subscriptions**.
 
 Market gains post as **Investment returns** under the `growth` category.
+
+---
+
+## Net-worth attribution
+
+Six-month net-worth change decomposes into player choices, market luck, and lifestyle leakage.
+
+### Contributions vs returns
+
+```
+contributionCents = sum(payroll 401k deferrals + transfer deposits to savings accounts)
+returnCents = sum(investment_return net worth deltas by account)
+```
+
+Employer 401(k) match is not modeled in V0. HYSA interest posts as `investment_return` and counts in the return bucket.
+
+### Choice vs luck
+
+```
+choiceCents = contributionCents + (net pay retained as asset growth, ex returns)
+luckCents = returnCents (macro regime and market draw in V1)
+lifestyleLeakageCents = sum(essential expense waterfall lines + student loan principal)
+```
+
+Attribution sums to net-worth delta within integer rounding (`residualCents` captures remainder).
+
+Same-seed replay with different deferral rates shifts `choiceCents`, not `luckCents`, when macro seed is held constant.
 
 ---
 

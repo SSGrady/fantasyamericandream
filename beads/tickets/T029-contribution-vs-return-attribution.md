@@ -1,7 +1,7 @@
 ---
 id: T029
 title: Contribution vs return attribution
-status: open
+status: done
 type: feature
 priority: P1
 epic: E004

@@ -2,6 +2,15 @@ import type { GameState, MoneyCents, UsStateCode } from '@fad/shared';
 
 export type DreamHomeKnowledgeMode = 'guardrails' | 'acknowledge' | 'sandbox';
 
+export type DreamHomeBucket = 'plausible_now' | 'one_to_three_yr' | 'stretch' | 'dream';
+
+export const DREAM_HOME_BUCKET_LABELS: Record<DreamHomeBucket, string> = {
+  plausible_now: 'Plausible now',
+  one_to_three_yr: '1-3 year goal',
+  stretch: 'Stretch goal',
+  dream: 'Dream home',
+};
+
 export interface DreamHomeListing {
   id: string;
   address: string;
@@ -15,6 +24,7 @@ export interface DreamHomeListing {
   hoaMonthlyCents: MoneyCents;
   commuteMinutes: number;
   schoolRating: number;
+  bucket: DreamHomeBucket;
 }
 
 export interface AffordabilityGateResult {
@@ -102,6 +112,21 @@ function metroLabel(stateCode: UsStateCode): string {
   return labels[stateCode];
 }
 
+function bucketForPriceRatio(ratio: number): DreamHomeBucket {
+  if (ratio <= 3) return 'plausible_now';
+  if (ratio <= 4.5) return 'one_to_three_yr';
+  if (ratio <= 6) return 'stretch';
+  return 'dream';
+}
+
+/** Target price/income ratio bands per bucket for lite mode diversity. */
+const BUCKET_PRICE_FACTORS: Record<DreamHomeBucket, [number, number]> = {
+  plausible_now: [0.55, 0.85],
+  one_to_three_yr: [0.9, 1.25],
+  stretch: [1.3, 1.65],
+  dream: [1.75, 2.2],
+};
+
 export function generateDreamHomeListings(
   gameState: GameState,
   randomSeed: string,
@@ -109,13 +134,28 @@ export function generateDreamHomeListings(
 ): DreamHomeListing[] {
   const stateCode = gameState.location.stateCode;
   const median = STATE_MEDIAN_PRICE[stateCode];
-  const incomeMultiplier = gameState.career.baseSalaryAnnual / 120_000_00;
+  const annualIncome = gameState.career.baseSalaryAnnual;
+  const buckets: DreamHomeBucket[] = [
+    'plausible_now',
+    'plausible_now',
+    'one_to_three_yr',
+    'one_to_three_yr',
+    'stretch',
+    'stretch',
+    'dream',
+    'dream',
+    'plausible_now',
+    'dream',
+  ];
   const listings: DreamHomeListing[] = [];
 
-  for (let i = 0; i < 10; i += 1) {
+  for (let i = 0; i < buckets.length; i += 1) {
+    const bucket = buckets[i]!;
+    const [minFactor, maxFactor] = BUCKET_PRICE_FACTORS[bucket];
     const unit = seededUnit(`${randomSeed}:${periodIndex}`, i);
-    const priceFactor = 0.55 + unit * 1.1;
-    const priceCents = Math.round(median * priceFactor * Math.max(incomeMultiplier, 0.65));
+    const factor = minFactor + unit * (maxFactor - minFactor);
+    const priceCents = Math.round(median * factor);
+    const priceToIncome = annualIncome > 0 ? priceCents / annualIncome : 99;
     const beds = 1 + Math.floor(unit * 3);
     const baths = 1 + Math.floor(seededUnit(randomSeed, i + 20) * 2);
     const sqft = 750 + Math.floor(seededUnit(randomSeed, i + 40) * 2200);
@@ -133,6 +173,7 @@ export function generateDreamHomeListings(
       hoaMonthlyCents: unit > 0.7 ? Math.round(150_00 + unit * 350_00) : 0,
       commuteMinutes: 15 + Math.floor(seededUnit(randomSeed, i + 60) * 55),
       schoolRating: 5 + Math.floor(seededUnit(randomSeed, i + 80) * 5),
+      bucket: bucketForPriceRatio(priceToIncome),
     });
   }
 

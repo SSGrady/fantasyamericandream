@@ -14,8 +14,17 @@ export function formatMoney(cents: MoneyCents, options?: { signed?: boolean }): 
   return cents < 0 ? `−${formatted}` : formatted;
 }
 
-export function formatPercent(value: number, digits = 0): string {
-  return `${(value * 100).toFixed(digits)}%`;
+export function formatPercent(
+  value: number,
+  options?: number | { digits?: number; signed?: boolean },
+): string {
+  const opts = typeof options === 'number' ? { digits: options } : (options ?? {});
+  const digits = opts.digits ?? 0;
+  const pct = (value * 100).toFixed(digits);
+  if (opts.signed && value !== 0) {
+    return value > 0 ? `+${pct}%` : `−${Math.abs(value * 100).toFixed(digits)}%`;
+  }
+  return `${pct}%`;
 }
 
 export function formatMonths(value: number): string {

@@ -19,6 +19,8 @@ export interface StakeholderReaction {
 export interface ReactionContext {
   housingBurdenPct?: number;
   playerName?: string;
+  /** When true, partner voice is included. Defaults to false for single households. */
+  includePartner?: boolean;
 }
 
 function savingsSentiment(rate: number): ReactionSentiment {
@@ -103,8 +105,18 @@ export function renderStakeholderReactions(
   audit: AuditSnapshot,
   context: ReactionContext = {},
 ): StakeholderReaction[] {
+  const includePartner = context.includePartner ?? false;
+
+  if (includePartner) {
+    return [
+      renderPartnerReaction(audit, context),
+      renderFutureYouReaction(audit),
+      renderRecruiterReaction(audit),
+      renderFeePlannerReaction(audit),
+    ];
+  }
+
   return [
-    renderPartnerReaction(audit, context),
     renderFutureYouReaction(audit),
     renderRecruiterReaction(audit),
     renderFeePlannerReaction(audit),

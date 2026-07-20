@@ -1,7 +1,7 @@
 ---
 id: T035
 title: Choice vs luck attribution
-status: open
+status: done
 type: feature
 priority: P1
 epic: E004

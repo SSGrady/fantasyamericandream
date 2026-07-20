@@ -1,6 +1,7 @@
 'use client';
 
 import type { PeriodHistoryEntry } from '../../lib/play-session';
+import { formatCalendarRange, formatChapterLabel } from '../../lib/play-session';
 import { formatMoney, formatPercent } from '../../lib/format-money';
 
 interface TimelineHistoryProps {
@@ -13,7 +14,7 @@ export function TimelineHistory({ entries, startingNetWorth, startDate }: Timeli
   if (entries.length === 0 && startingNetWorth === undefined) {
     return (
       <p className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted shadow-sm">
-        No completed periods yet. Finish an audit to build your timeline.
+        No completed chapters yet. Finish an audit to build your timeline.
       </p>
     );
   }
@@ -40,8 +41,10 @@ export function TimelineHistory({ entries, startingNetWorth, startDate }: Timeli
           <span className="absolute -left-[1.35rem] top-1.5 h-2.5 w-2.5 rounded-full bg-accent" />
           <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <p className="text-sm font-semibold text-ink">Period {entry.periodIndex}</p>
-              <p className="text-xs text-muted">As of {entry.asOf}</p>
+              <p className="text-sm font-semibold text-ink">
+                {formatChapterLabel(entry.asOf, entry.periodIndex)}
+              </p>
+              <p className="text-xs text-muted">{formatCalendarRange(entry.asOf)}</p>
             </div>
             <div className="mt-2 grid gap-2 text-sm sm:grid-cols-3">
               <p className="text-muted">

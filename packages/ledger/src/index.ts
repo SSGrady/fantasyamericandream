@@ -1,3 +1,4 @@
+export { buildNetWorthAttribution } from './attribution.js';
 export { netWorth, totalAssets, totalLiabilities, validateNetWorthInvariant } from './net-worth.js';
 export { applyTransactions, applySingleTransaction } from './apply-transaction.js';
 export type { ApplyTransactionsResult } from './apply-transaction.js';
@@ -76,6 +77,9 @@ export type { SixMonthTickInput, SixMonthTickResult } from './audit.js';
 export {
   computePeriodNetPay,
   computePeriod401kDeferrals,
+  computeTransferSavingsInflows,
+  computeDeferral401kRate,
+  computeCashSurplusRate,
   computeSavingsInflows,
   computeSavingsRate,
   computeSavingsRateBreakdown,

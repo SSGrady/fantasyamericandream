@@ -1,7 +1,7 @@
 ---
 id: T031
 title: Chapter framing replaces period count
-status: open
+status: done
 type: task
 priority: P2
 epic: E004

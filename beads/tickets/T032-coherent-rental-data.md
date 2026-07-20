@@ -1,7 +1,7 @@
 ---
 id: T032
 title: Coherent rental data pipeline
-status: open
+status: done
 type: bug
 priority: P1
 epic: E004

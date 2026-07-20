@@ -10,6 +10,8 @@ const baseAudit: AuditSnapshot = {
   waterfall: [],
   periodNetPayCents: 26_757_00,
   savingsRate: 0.18,
+  deferral401kRate: 0.1,
+  cashSurplusRate: 0.08,
   emergencyRunwayMonths: 4.5,
   contributionProgress: {
     traditional401k: {
@@ -28,8 +30,11 @@ const baseAudit: AuditSnapshot = {
 };
 
 describe('renderStakeholderReactions', () => {
-  it('returns four stakeholder cards', () => {
-    const reactions = renderStakeholderReactions(baseAudit, { housingBurdenPct: 0.28 });
+  it('returns four stakeholder cards when partner is included', () => {
+    const reactions = renderStakeholderReactions(baseAudit, {
+      housingBurdenPct: 0.28,
+      includePartner: true,
+    });
     expect(reactions).toHaveLength(4);
     expect(reactions.map((r) => r.id)).toEqual([
       'partner',
@@ -39,8 +44,20 @@ describe('renderStakeholderReactions', () => {
     ]);
   });
 
+  it('omits partner voice for single-player households', () => {
+    const reactions = renderStakeholderReactions(baseAudit, {
+      housingBurdenPct: 0.28,
+      includePartner: false,
+    });
+    expect(reactions).toHaveLength(3);
+    expect(reactions.map((r) => r.id)).toEqual(['future_you_35', 'recruiter', 'fee_planner']);
+  });
+
   it('flags high housing burden for partner', () => {
-    const reactions = renderStakeholderReactions(baseAudit, { housingBurdenPct: 0.42 });
+    const reactions = renderStakeholderReactions(baseAudit, {
+      housingBurdenPct: 0.42,
+      includePartner: true,
+    });
     const partner = reactions.find((r) => r.id === 'partner');
     expect(partner?.sentiment).toBe('Concerned');
     expect(partner?.note).toContain('42%');

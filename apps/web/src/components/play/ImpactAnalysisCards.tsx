@@ -99,6 +99,32 @@ function buildImpactCards(
       useWaterfall: true,
     },
     {
+      id: 'contribution-vs-return',
+      label: 'Contributions vs returns',
+      value: audit.attribution
+        ? `${formatMoney(audit.attribution.contributionCents)} / ${formatMoney(audit.attribution.returnCents)}`
+        : '—',
+      detail: audit.attribution
+        ? `$${(audit.attribution.contributionCents / 100).toFixed(0)} from your savings deposits, $${(audit.attribution.returnCents / 100).toFixed(0)} from market growth this period.`
+        : 'Attribution unavailable for this audit.',
+      tone: audit.attribution && audit.attribution.returnCents >= 0 ? 'positive' : 'neutral',
+      mathSummary:
+        'Contributions = payroll deferrals and transfer inflows. Returns = investment_return postings by account.',
+    },
+    {
+      id: 'choice-vs-luck',
+      label: 'Choice vs luck',
+      value: audit.attribution
+        ? `${formatMoney(audit.attribution.choiceCents, { signed: true })} / ${formatMoney(audit.attribution.luckCents, { signed: true })}`
+        : '—',
+      detail: audit.attribution
+        ? `Player-controlled inflows ${formatMoney(audit.attribution.choiceCents)}; macro/market luck ${formatMoney(audit.attribution.luckCents)}; lifestyle outflows ${formatMoney(audit.attribution.lifestyleLeakageCents)}.`
+        : 'Attribution unavailable for this audit.',
+      tone: 'neutral',
+      mathSummary:
+        'Choice = savings deposits plus net pay retained. Luck = investment returns (V1). Lifestyle leakage = essential expenses and debt principal.',
+    },
+    {
       id: 'savings-rate',
       label: emphasizeSavingsRate ? 'Savings rate (unlocked emphasis)' : 'Savings rate',
       value: formatPercent(audit.savingsRate),

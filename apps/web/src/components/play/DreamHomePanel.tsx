@@ -1,6 +1,7 @@
 'use client';
 
 import type { ListingAffordability } from '../../lib/dream-home';
+import { DREAM_HOME_BUCKET_LABELS } from '../../lib/dream-home';
 import { formatMoney } from '../../lib/format-money';
 
 interface ListingCardProps {
@@ -25,6 +26,9 @@ export function ListingCard({ affordability, selected, onSelect }: ListingCardPr
     >
       <div className="flex items-start justify-between gap-3">
         <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-accent">
+            {DREAM_HOME_BUCKET_LABELS[listing.bucket]}
+          </p>
           <p className="text-sm font-semibold text-ink">{listing.address}</p>
           <p className="text-xs text-muted">
             {listing.city}, {listing.stateCode} · {listing.beds} bd · {listing.baths} ba ·{' '}

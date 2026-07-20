@@ -17,6 +17,13 @@ export {
 } from './calibration/housing/metros.js';
 export type { MetroRentAnchor } from './calibration/housing/metros.js';
 export {
+  baselineMarketRentForSeed,
+  COL_TIER_FACTORS,
+  generateRentalListingsFromCalibration,
+  marketRentForListingTier,
+} from './calibration/housing/rental-listings.js';
+export type { RentalListingData, RentalListingSeedInput } from './calibration/housing/rental-listings.js';
+export {
   V0_SCENARIO_CAREERS,
   V0_SCENARIO_MATRIX,
   V0_SCENARIO_STATES,

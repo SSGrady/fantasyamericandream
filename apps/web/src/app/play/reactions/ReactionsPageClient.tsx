@@ -22,6 +22,9 @@ export function ReactionsPageClient() {
   const reactions = renderStakeholderReactions(audit, {
     housingBurdenPct: metrics.housingBurdenPct,
     playerName: session.gameState.player.name,
+    includePartner:
+      session.gameState.household.maritalStatus !== 'single' &&
+      session.gameState.household.partner !== undefined,
   });
 
   return (

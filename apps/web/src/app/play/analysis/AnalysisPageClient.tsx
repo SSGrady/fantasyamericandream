@@ -3,8 +3,13 @@
 import { useRouter } from 'next/navigation';
 import { ImpactAnalysisCards } from '../../../components/play/ImpactAnalysisCards';
 import { MetricsRibbon } from '../../../components/play/MetricsRibbon';
+import { formatMoney, formatPercent } from '../../../lib/format-money';
+import {
+  computeMetricBreakdown,
+  computeRibbonMetrics,
+  hasUnlockedSkill,
+} from '../../../lib/play-session';
 import { usePlaySession } from '../../../lib/use-play-session';
-import { computeMetricBreakdown, computeRibbonMetrics, hasUnlockedSkill } from '../../../lib/play-session';
 
 export function AnalysisPageClient() {
   const router = useRouter();
@@ -18,7 +23,8 @@ export function AnalysisPageClient() {
     );
   }
 
-  const audit = session.currentAudit;
+  const preview = session.impactPreview;
+  const audit = preview?.chosenAudit ?? session.currentAudit;
   const metrics = computeRibbonMetrics(audit, session.gameState);
   const breakdown = computeMetricBreakdown(audit, session.gameState);
   const emphasizeSavingsRate = hasUnlockedSkill(session, 'investing_i');
@@ -29,13 +35,41 @@ export function AnalysisPageClient() {
 
       <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <p className="text-sm font-medium text-accent">Impact analysis</p>
-        <h2 className="mt-1 font-serif text-2xl text-ink">Fiscal and liquidity snapshot</h2>
+        <h2 className="mt-1 font-serif text-2xl text-ink">Baseline vs your choice</h2>
         <p className="mt-3 text-muted">
-          Cards below come from your audit snapshot. Expand any card to see ledger waterfall lines.
-          Baseline essential spend (insurance, utilities, groceries, subscriptions) posts each month
-          alongside rent and debt service.
+          Forward-looking six-month counterfactual with your submitted action applied. Same seed and
+          macro path; only player-controlled knobs (e.g. 401(k) deferral) differ from baseline.
         </p>
       </div>
+
+      {preview ? (
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted">Net worth delta</p>
+            <p className="mt-1 text-xl font-semibold text-ink">
+              {formatMoney(preview.deltaNetWorth, { signed: true })}
+            </p>
+            <p className="mt-1 text-sm text-muted">Chosen vs baseline after six months</p>
+          </div>
+          <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted">Runway delta</p>
+            <p className="mt-1 text-xl font-semibold text-ink">
+              {preview.deltaRunwayMonths >= 0 ? '+' : ''}
+              {preview.deltaRunwayMonths.toFixed(1)} mo
+            </p>
+          </div>
+          <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted">Savings rate delta</p>
+            <p className="mt-1 text-xl font-semibold text-ink">
+              {formatPercent(preview.deltaSavingsRate, { signed: true })}
+            </p>
+            <p className="mt-1 text-sm text-muted">
+              Deferral {(preview.chosenDeferral401kRate * 100).toFixed(0)}% vs baseline{' '}
+              {(session.deferral401kRate * 100).toFixed(0)}%
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       <ImpactAnalysisCards
         audit={audit}

@@ -1,7 +1,7 @@
 ---
 id: T028
 title: Split savings rate metrics
-status: open
+status: done
 type: bug
 priority: P1
 epic: E004

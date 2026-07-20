@@ -8,9 +8,11 @@ import {
 } from '../../../components/play/DreamHomePanel';
 import { MetricsRibbon } from '../../../components/play/MetricsRibbon';
 import {
+  DREAM_HOME_BUCKET_LABELS,
   evaluateListingAffordability,
   generateDreamHomeListings,
   knowledgeModeFromHints,
+  type DreamHomeBucket,
 } from '../../../lib/dream-home';
 import { formatMoney } from '../../../lib/format-money';
 import { computeRibbonMetrics, savePlaySession } from '../../../lib/play-session';
@@ -42,6 +44,17 @@ export function DreamHomePageClient() {
       ),
     [listings, session, knowledgeMode],
   );
+
+  const byBucket = useMemo(() => {
+    const groups = new Map<DreamHomeBucket, typeof affordabilities>();
+    for (const item of affordabilities) {
+      const bucket = item.listing.bucket;
+      const list = groups.get(bucket) ?? [];
+      list.push(item);
+      groups.set(bucket, list);
+    }
+    return groups;
+  }, [affordabilities]);
 
   const selected =
     affordabilities.find((item) => item.listing.id === selectedId) ?? affordabilities[0] ?? null;
@@ -82,51 +95,63 @@ export function DreamHomePageClient() {
 
       <div className="rounded-xl bg-card p-6 ring-1 ring-border/60">
         <p className="text-sm font-medium text-accent">DreamHome window</p>
-        <h2 className="mt-1 font-serif text-2xl text-ink">Ten synthetic listings near you</h2>
+        <h2 className="mt-1 font-serif text-2xl text-ink">Aspiration ladder by time horizon</h2>
         <p className="mt-3 text-sm text-muted">
-          Calibrated from your {session.gameState.location.stateCode} preference and income. Review
-          PITI, cash to close, and five affordability gates before any offer.
+          Ten listings grouped into plausible now, 1-3 year, stretch, and dream buckets. Calibrated
+          from your {session.gameState.location.stateCode} preference and income.
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-3">
-          {affordabilities.map((item) => (
-            <ListingCard
-              key={item.listing.id}
-              affordability={item}
-              selected={selected?.listing.id === item.listing.id}
-              onSelect={() => setSelectedId(item.listing.id)}
-            />
-          ))}
-        </div>
-
-        {selected ? (
-          <div className="space-y-4 rounded-xl bg-card p-5 ring-1 ring-border/60 lg:sticky lg:top-6 lg:self-start">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-muted">Selected home</p>
-              <p className="mt-1 text-lg font-semibold text-ink">{selected.listing.address}</p>
-              <p className="text-sm text-muted">
-                List {formatMoney(selected.listing.priceCents)} · PITI{' '}
-                {formatMoney(selected.pitiMonthlyCents)}/mo · Cash to close{' '}
-                {formatMoney(selected.cashToCloseCents)}
-              </p>
-            </div>
-            <AffordabilityGates affordability={selected} knowledgeMode={knowledgeMode} />
-            {selected.blockedInGuardrails ? (
-              <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                Guardrails mode blocks this purchase. Critical gates failed. Keep renting or pick a
-                lower list price.
-              </p>
-            ) : null}
-            {savedChoice === selected.listing.id ? (
-              <p className="text-sm text-emerald-700">
-                Saved as your browse choice (no ledger change in V1 lite).
-              </p>
-            ) : null}
-          </div>
-        ) : null}
+      <div className="space-y-8">
+        {(['plausible_now', 'one_to_three_yr', 'stretch', 'dream'] as DreamHomeBucket[]).map(
+          (bucket) => {
+            const bucketListings = byBucket.get(bucket) ?? [];
+            if (bucketListings.length === 0) return null;
+            return (
+              <section key={bucket} className="space-y-3">
+                <h3 className="font-serif text-lg text-ink">{DREAM_HOME_BUCKET_LABELS[bucket]}</h3>
+                <div className="grid gap-3 lg:grid-cols-2">
+                  {bucketListings.map((item) => (
+                    <ListingCard
+                      key={item.listing.id}
+                      affordability={item}
+                      selected={selected?.listing.id === item.listing.id}
+                      onSelect={() => setSelectedId(item.listing.id)}
+                    />
+                  ))}
+                </div>
+              </section>
+            );
+          },
+        )}
       </div>
+
+      {selected ? (
+        <div className="space-y-4 rounded-xl bg-card p-5 ring-1 ring-border/60">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted">Selected home</p>
+            <p className="mt-1 text-lg font-semibold text-ink">{selected.listing.address}</p>
+            <p className="text-sm text-muted">
+              {DREAM_HOME_BUCKET_LABELS[selected.listing.bucket]} · List{' '}
+              {formatMoney(selected.listing.priceCents)} · PITI{' '}
+              {formatMoney(selected.pitiMonthlyCents)}/mo · Cash to close{' '}
+              {formatMoney(selected.cashToCloseCents)}
+            </p>
+          </div>
+          <AffordabilityGates affordability={selected} knowledgeMode={knowledgeMode} />
+          {selected.blockedInGuardrails ? (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              Guardrails mode blocks this purchase. Critical gates failed. Keep renting or pick a
+              lower list price.
+            </p>
+          ) : null}
+          {savedChoice === selected.listing.id ? (
+            <p className="text-sm text-emerald-700">
+              Saved as your browse choice (no ledger change in V1 lite).
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="flex flex-col-reverse gap-3 border-t border-border/60 pt-6 sm:flex-row sm:justify-between">
         <button

@@ -24,8 +24,18 @@ const METRIC_ITEMS: {
     format: (m) => formatMoney(m.takeHomePayMonthly),
   },
   {
+    key: 'deferral401kRate',
+    label: '401(k) deferral',
+    format: (m) => formatPercent(m.deferral401kRate),
+  },
+  {
+    key: 'cashSurplusRate',
+    label: 'Cash surplus',
+    format: (m) => formatPercent(m.cashSurplusRate),
+  },
+  {
     key: 'savingsRate',
-    label: 'Savings rate',
+    label: 'Total savings',
     format: (m) => formatPercent(m.savingsRate),
   },
   {
@@ -47,7 +57,7 @@ const METRIC_ITEMS: {
 
 export function MetricsRibbon({ metrics }: MetricsRibbonProps) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
       {METRIC_ITEMS.map((item) => (
         <div
           key={item.key}

@@ -1,7 +1,7 @@
 ---
 id: S007
 title: Trust and Metric Fixes
-status: open
+status: done
 priority: P1
 epic: E004
 start_date: 2026-07-20

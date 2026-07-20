@@ -9,7 +9,7 @@ import { formatMoney } from '../../../lib/format-money';
 import {
   applyTickToSession,
   computeRibbonMetrics,
-  formatPeriodLabel,
+  formatChapterLabel,
   runSimTick,
   savePlaySession,
   type PlaySession,
@@ -96,7 +96,7 @@ export function BriefingPageClient() {
   const metrics = computeRibbonMetrics(audit, session.gameState);
   const headline = renderBriefingHeadline(audit);
   const eventsSummary = renderBriefingEventsSummary(session.periodEvents ?? []);
-  const periodLabel = formatPeriodLabel(audit.asOf);
+  const periodLabel = formatChapterLabel(audit.asOf, session.periodIndex - 1);
 
   return (
     <div className="space-y-6">

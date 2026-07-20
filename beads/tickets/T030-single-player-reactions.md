@@ -1,7 +1,7 @@
 ---
 id: T030
 title: Single-player reaction gating
-status: open
+status: done
 type: bug
 priority: P1
 epic: E004

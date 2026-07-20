@@ -52,6 +52,8 @@ export interface PlaySession {
   /** Roth IRA balance at simulation start (for contribution progress footnote). */
   startingRothBalance: number;
   currentAudit: AuditSnapshot | null;
+  /** Counterfactual impact preview from submitted player action. */
+  impactPreview: ImpactPreview | null;
   pendingDecisions: PendingDecision[];
   playerAction: string;
   periodIndex: number;
@@ -67,11 +69,22 @@ export interface PlaySession {
   dreamHomeBlocked: boolean;
 }
 
+export interface ImpactPreview {
+  baselineAudit: AuditSnapshot;
+  chosenAudit: AuditSnapshot;
+  deltaNetWorth: number;
+  deltaRunwayMonths: number;
+  deltaSavingsRate: number;
+  chosenDeferral401kRate: number;
+}
+
 export interface RibbonMetrics {
   startNetWorth: number;
   netWorth: number;
   netWorthDelta: number;
   takeHomePayMonthly: number;
+  deferral401kRate: number;
+  cashSurplusRate: number;
   savingsRate: number;
   emergencyRunwayMonths: number;
   housingBurdenPct: number;
@@ -107,6 +120,12 @@ export function computeMetricBreakdown(
     savingsInflowsCents,
     periodNetPayCents,
     rate: audit.savingsRate,
+    deferral401kRate: audit.deferral401kRate ?? deferrals / Math.max(periodNetPayCents, 1),
+    cashSurplusRate:
+      audit.cashSurplusRate ??
+      (savingsInflowsCents - deferrals) / Math.max(periodNetPayCents, 1),
+    deferral401kCents: deferrals,
+    cashSurplusCents: Math.max(0, savingsInflowsCents - deferrals),
     formula:
       'Sum of payroll 401(k) deferrals and post-payday transfers to HYSA, brokerage, Roth, or HSA, divided by net pay deposited to checking. Investment returns are excluded.',
     lines: [
@@ -195,6 +214,7 @@ function normalizeSession(parsed: PlaySession): PlaySession {
     periodEvents: parsed.periodEvents ?? [],
     dreamHomeChoiceId: parsed.dreamHomeChoiceId ?? null,
     dreamHomeBlocked: parsed.dreamHomeBlocked ?? false,
+    impactPreview: parsed.impactPreview ?? null,
   };
 }
 
@@ -238,6 +258,7 @@ export function initializePlaySession(
     startingNetWorth,
     startingRothBalance,
     currentAudit: null,
+    impactPreview: null,
     pendingDecisions: [],
     playerAction: '',
     periodIndex: 0,
@@ -326,6 +347,8 @@ export function computeRibbonMetrics(
     netWorth: audit.netWorth,
     netWorthDelta: audit.netWorthDelta,
     takeHomePayMonthly: monthlyNetPay,
+    deferral401kRate: audit.deferral401kRate ?? 0,
+    cashSurplusRate: audit.cashSurplusRate ?? 0,
     savingsRate: audit.savingsRate,
     emergencyRunwayMonths: audit.emergencyRunwayMonths,
     housingBurdenPct,
@@ -528,11 +551,59 @@ export function hasUnlockedSkill(session: PlaySession, skillId: LiteracySkillId)
 }
 
 export function formatPeriodLabel(currentDate: string): string {
-  const date = new Date(`${currentDate}T00:00:00Z`);
-  const month = date.getUTCMonth();
-  const year = date.getUTCFullYear();
-  const half = month < 6 ? 'H1' : 'H2';
-  return `${half} ${year} briefing`;
+  return formatChapterLabel(currentDate, 0);
+}
+
+const MONTH_NAMES = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+/** Calendar range for a six-month chapter window ending at asOf. */
+export function formatCalendarRange(asOf: string): string {
+  const end = new Date(`${asOf}T00:00:00Z`);
+  const start = new Date(end);
+  start.setUTCMonth(start.getUTCMonth() - 5);
+  const startLabel = `${MONTH_NAMES[start.getUTCMonth()]} ${start.getUTCFullYear()}`;
+  const endLabel = `${MONTH_NAMES[end.getUTCMonth()]} ${end.getUTCFullYear()}`;
+  return `${startLabel}-${endLabel}`;
+}
+
+/** Chapter header label (calendar range + chapter number). */
+export function formatChapterLabel(asOf: string, chapterIndex: number): string {
+  const chapterNum = chapterIndex + 1;
+  return `Chapter ${chapterNum}: ${formatCalendarRange(asOf)}`;
+}
+
+export interface ImpactSimRequest extends SimTickRequest {
+  baselineDeferral401kRate: number;
+  chosenDeferral401kRate: number;
+}
+
+export async function runImpactPreview(input: ImpactSimRequest): Promise<ImpactPreview> {
+  const response = await fetch('/api/sim/impact', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || 'Impact preview failed');
+  }
+
+  const result = (await response.json()) as Omit<ImpactPreview, 'chosenDeferral401kRate'>;
+  return { ...result, chosenDeferral401kRate: input.chosenDeferral401kRate };
 }
 
 export function isSimulationComplete(session: PlaySession): boolean {

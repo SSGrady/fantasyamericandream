@@ -174,7 +174,12 @@ export interface MetricBreakdownLineSnapshot {
 export interface SavingsRateBreakdownSnapshot {
   savingsInflowsCents: MoneyCents;
   periodNetPayCents: MoneyCents;
+  /** Total savings rate (deferrals + transfers) / net pay. */
   rate: number;
+  deferral401kRate: number;
+  cashSurplusRate: number;
+  deferral401kCents: MoneyCents;
+  cashSurplusCents: MoneyCents;
   formula: string;
   lines: MetricBreakdownLineSnapshot[];
 }
@@ -203,6 +208,23 @@ export interface MetricBreakdownSnapshot {
   emergencyRunway: EmergencyRunwayBreakdownSnapshot;
 }
 
+/** Six-month net-worth change attribution (contributions, returns, lifestyle, choice vs luck). */
+export interface NetWorthAttribution {
+  /** Intentional savings deposits (401k deferrals + transfers). */
+  contributionCents: MoneyCents;
+  /** Investment returns across brokerage, 401(k), Roth. */
+  returnCents: MoneyCents;
+  /** Essential lifestyle and debt outflows reducing net worth. */
+  lifestyleLeakageCents: MoneyCents;
+  /** Player-controlled inflows (contributions + net pay retained as assets). */
+  choiceCents: MoneyCents;
+  /** Macro and market luck (investment returns in V1). */
+  luckCents: MoneyCents;
+  /** Unattributed remainder within integer rounding. */
+  residualCents: MoneyCents;
+  byAccount: Partial<Record<'traditional401k' | 'brokerage' | 'rothIra', MoneyCents>>;
+}
+
 export interface AuditSnapshot {
   asOf: IsoDate;
   /** Net worth at the start of this audit window (ledger state before period ticks). */
@@ -212,7 +234,12 @@ export interface AuditSnapshot {
   waterfall: NetWorthWaterfallLine[];
   /** Net pay deposited to checking from W2 payroll over the audit period. */
   periodNetPayCents: MoneyCents;
+  /** Total savings inflows / net pay (deferrals + post-payday transfers). */
   savingsRate: number;
+  /** 401(k) payroll deferrals / net pay. */
+  deferral401kRate: number;
+  /** Post-payday transfer inflows to savings accounts / net pay. */
+  cashSurplusRate: number;
   emergencyRunwayMonths: number;
   contributionProgress: Record<string, ContributionProgress>;
   /** Investment return cents by account over the audit period (excludes contributions). */
@@ -221,6 +248,8 @@ export interface AuditSnapshot {
   >;
   /** Ledger-derived metric breakdown for impact analysis UI. */
   metricBreakdown?: MetricBreakdownSnapshot;
+  /** Net-worth change attribution for audit and narrative. */
+  attribution?: NetWorthAttribution;
 }
 
 export interface GameState {

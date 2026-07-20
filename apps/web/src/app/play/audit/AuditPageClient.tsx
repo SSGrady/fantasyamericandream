@@ -82,6 +82,36 @@ export function AuditPageClient() {
       </section>
 
       <section className="space-y-3">
+        <h2 className="font-serif text-xl text-ink">Change attribution</h2>
+        {audit.attribution ? (
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">Your choices</p>
+              <p className="mt-1 text-lg font-semibold text-ink">
+                {formatMoney(audit.attribution.choiceCents, { signed: true })}
+              </p>
+            </div>
+            <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">Market luck</p>
+              <p className="mt-1 text-lg font-semibold text-ink">
+                {formatMoney(audit.attribution.luckCents, { signed: true })}
+              </p>
+            </div>
+            <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">
+                Lifestyle leakage
+              </p>
+              <p className="mt-1 text-lg font-semibold text-ink">
+                {formatMoney(audit.attribution.lifestyleLeakageCents)}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-muted">Attribution not available for this audit.</p>
+        )}
+      </section>
+
+      <section className="space-y-3">
         <h2 className="font-serif text-xl text-ink">Contribution progress</h2>
         <p className="text-sm text-muted">
           Rings track tax-year contributions from ledger transactions. Roth balance breakdown
