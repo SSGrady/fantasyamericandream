@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Accounts, Debts, HouseholdState } from '@fad/shared';
+import { computeMonthlyLivingExpenses } from '../living-expenses.js';
 import { grossToNet, monthlyGrossFromAnnual } from '../payroll.js';
 import {
   applyMonthlyTick,
@@ -76,8 +77,14 @@ describe('dual-income household payroll', () => {
       deferral401kRate: 0.06,
     });
 
+    const livingTotal = Object.values(
+      computeMonthlyLivingExpenses({
+        career: { employmentType: 'w2', baseSalaryAnnual: 120_000_00 },
+      }),
+    ).reduce((sum, amount) => sum + amount, 0);
+
     expect(result.accounts.checking.balance).toBe(
-      baseAccounts.checking.balance + playerNet + partnerNet,
+      baseAccounts.checking.balance + playerNet + partnerNet - livingTotal,
     );
   });
 

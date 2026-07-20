@@ -284,6 +284,26 @@ export function CreatePageClient() {
         columns={2}
       />
 
+      <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            checked={draft.includeEmployerHealthPlan}
+            onChange={(event) =>
+              updateDraft({ includeEmployerHealthPlan: event.target.checked })
+            }
+            className="mt-1 h-4 w-4 rounded border-border text-accent focus:ring-accent"
+          />
+          <span>
+            <span className="block font-medium text-ink">Include employer health plan</span>
+            <span className="mt-1 block text-sm text-muted">
+              Posts a $140/mo single-coverage premium stub when employed W2. Turn off for
+              marketplace or uninsured scenarios.
+            </span>
+          </span>
+        </label>
+      </section>
+
       <BalanceSheetForm
         value={draft.balanceSheet}
         onChange={(balanceSheet) => updateDraft({ balanceSheet })}

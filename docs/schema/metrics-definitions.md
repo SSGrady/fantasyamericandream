@@ -90,11 +90,40 @@ Denominator is net pay, not gross salary.
 **Formula:**
 
 ```
-monthlyBurn = (rent + childcare + federalWithholding + fica + creditCardInterest + studentLoanInterest + studentLoanPrincipal) / periodMonths
+monthlyBurn = (
+  rent + healthInsurance + utilities + groceries + subscriptions
+  + childcare + federalWithholding + fica
+  + creditCardInterest + studentLoanInterest + studentLoanPrincipal
+) / periodMonths
 runwayMonths = checkingBalance / monthlyBurn
 ```
 
-V0/V1 essential burn includes rent, payroll taxes, childcare, and debt service from ledger postings. Discretionary living expenses (food, transport, subscriptions) are not modeled yet, so runway can read high when checking accumulates unspent net pay.
+Essential burn includes baseline living expenses posted each month from `packages/ledger/src/living-expenses.ts`:
+
+| Category | Stub (single, solo lease) | Account |
+|----------|---------------------------|---------|
+| Health insurance | $140/mo (employer W2 plan) | `expense:healthInsurance` |
+| Utilities | $185/mo × housing split | `expense:utilities` |
+| Groceries | $600/mo base, modified by cooking skill and delivery frequency | `expense:groceries` |
+| Subscriptions | $205/mo (subscriptions + cell + gym) | `expense:subscriptions` |
+
+Groceries modifiers: takeout-only cooking skill +50%, expert -30%; delivery frequency adds up to +35% at high.
+
+Utilities share uses the same housing arrangement fraction as rent (`housing-rent.ts`).
+
+Savings rate is unchanged: intentional inflows over net pay only. Living expenses reduce checking but are not savings outflows.
+
+---
+
+## Baseline living expenses
+
+**Source:** `packages/ledger/src/living-expenses.ts`, wired in `buildMonthlyTransactions` after payroll and before rent.
+
+Character creator fields:
+
+- `habits.cookingSkill` and `habits.deliveryFrequency` adjust groceries.
+- `includeEmployerHealthPlan` (default on) gates health insurance for W2 employment.
+- `location.housingArrangement` splits utilities like rent.
 
 ---
 
@@ -104,6 +133,8 @@ Payroll income splits into separate waterfall lines:
 
 - **Net pay to checking** (and **Partner net pay to checking** when applicable)
 - **401(k) deferrals** (and **Partner 401(k) deferrals** when applicable)
+
+Living expense lines: **Health insurance**, **Utilities**, **Groceries**, **Subscriptions**.
 
 Market gains post as **Investment returns** under the `growth` category.
 

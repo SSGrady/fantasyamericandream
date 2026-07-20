@@ -71,7 +71,7 @@
     },
     "accounts": {
       "checking": {
-        "balance": 767937
+        "balance": 651937
       },
       "traditional401k": {
         "balance": 37500,
@@ -92,6 +92,6 @@
         }
       ]
     },
-    "netWorth": -728937
+    "netWorth": -844937
   }
 }

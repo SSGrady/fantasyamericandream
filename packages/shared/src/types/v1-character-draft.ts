@@ -68,6 +68,8 @@ export interface V1CharacterDraft {
   dependentsCount: number;
   /** When single, enable dependents planning in character creator. */
   childrenPlanned: boolean;
+  /** Include employer health plan premium in monthly living expenses (default on for W2). */
+  includeEmployerHealthPlan: boolean;
   habits: {
     deliveryFrequency: V1DeliveryFrequency;
     cookingSkill: V1CookingSkill;
@@ -257,6 +259,7 @@ export function getDefaultV1CharacterDraft(scenarioId: V1StarterScenarioId): V1C
     partnerIncomeAnnual: 0,
     dependentsCount: 0,
     childrenPlanned: false,
+    includeEmployerHealthPlan: true,
     habits: overrides.habits ?? { deliveryFrequency: 'low', cookingSkill: 1 },
     balanceSheet: { ...DEFAULT_BALANCE, ...balanceOverrides },
   };

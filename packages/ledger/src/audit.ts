@@ -12,6 +12,7 @@ import type {
 } from '@fad/shared';
 import { applySingleTransaction } from './apply-transaction.js';
 import { cloneAccounts, cloneDebts } from './clone-state.js';
+import { LIVING_EXPENSE_WATERFALL_LABELS, type LivingExpenseCategory } from './living-expenses.js';
 import { applyMonthlyTick, type MonthlyTickInput } from './monthly-tick.js';
 import {
   computeEmergencyRunwayBreakdown,
@@ -30,6 +31,7 @@ export interface SixMonthTickInput {
   career: MonthlyTickInput['career'];
   location: MonthlyTickInput['location'];
   household?: MonthlyTickInput['household'];
+  player?: MonthlyTickInput['player'];
   deferral401kRate?: number;
 }
 
@@ -126,6 +128,18 @@ function waterfallEntriesForTransaction(
       .reduce((sum, line) => sum + line.debitCents, 0);
     if (interest > 0) {
       return [{ label: 'Student loan interest', category: 'expense', amount: -interest }];
+    }
+    return [];
+  }
+
+  if (tx.id.includes('-living-')) {
+    const category = tx.id.split('-living-')[1] as LivingExpenseCategory | undefined;
+    const label = category ? LIVING_EXPENSE_WATERFALL_LABELS[category] : tx.description;
+    const amount = tx.lines
+      .filter((line) => line.accountId.startsWith('expense:'))
+      .reduce((sum, line) => sum + line.debitCents, 0);
+    if (amount > 0) {
+      return [{ label, category: 'expense', amount: -amount }];
     }
     return [];
   }
@@ -321,6 +335,7 @@ export function tickSixMonths(input: SixMonthTickInput): SixMonthTickResult {
       career: input.career,
       location: input.location,
       household: input.household,
+      player: input.player,
       deferral401kRate: input.deferral401kRate,
     });
     accounts = tick.accounts;

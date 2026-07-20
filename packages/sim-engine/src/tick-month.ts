@@ -10,6 +10,7 @@ import type {
   LedgerTransaction,
   LocationState,
   MacroState,
+  PlayerState,
   SampledEventOccurrence,
 } from '@fad/shared';
 import { rollLayoff } from './layoff.js';
@@ -27,6 +28,7 @@ export interface TickMonthInput {
   career: CareerState;
   location: LocationState;
   household?: HouseholdState;
+  player?: Pick<PlayerState, 'habits' | 'includeEmployerHealthPlan'>;
   macro: MacroState;
   deferral401kRate?: number;
 }
@@ -50,6 +52,7 @@ export interface TickMonthsInput {
   career: CareerState;
   location: LocationState;
   household?: HouseholdState;
+  player?: Pick<PlayerState, 'habits' | 'includeEmployerHealthPlan'>;
   macro: MacroState;
   deferral401kRate?: number;
   difficulty?: Difficulty;
@@ -88,6 +91,7 @@ export function tickMonthWithSimulation(input: TickMonthInput): TickMonthResult 
     career: layoffResult.career,
     location: input.location,
     household: input.household,
+    player: input.player,
     deferral401kRate: input.deferral401kRate,
   });
 
@@ -186,6 +190,7 @@ export function tickMonthsWithSimulation(input: TickMonthsInput): TickMonthsResu
       career,
       location: input.location,
       household: input.household,
+      player: input.player,
       macro,
       deferral401kRate: input.deferral401kRate,
     });

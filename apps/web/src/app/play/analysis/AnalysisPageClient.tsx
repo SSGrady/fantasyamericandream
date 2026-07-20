@@ -32,6 +32,8 @@ export function AnalysisPageClient() {
         <h2 className="mt-1 font-serif text-2xl text-ink">Fiscal and liquidity snapshot</h2>
         <p className="mt-3 text-muted">
           Cards below come from your audit snapshot. Expand any card to see ledger waterfall lines.
+          Baseline essential spend (insurance, utilities, groceries, subscriptions) posts each month
+          alongside rent and debt service.
         </p>
       </div>
 

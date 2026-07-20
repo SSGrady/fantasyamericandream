@@ -63,7 +63,7 @@ const DEFAULT_START_DATE: IsoDate = '2026-01-01';
 
 function defaultAccounts(): Accounts {
   return {
-    checking: { id: 'checking', balance: 500_000 },
+    checking: { id: 'checking', balance: 1_500_000 },
     hysa: { id: 'hysa', balance: 1_000_000 },
     brokerage: { id: 'brokerage', balance: 2_500_000 },
     rothIra: { id: 'roth', balance: 0, taxYearContributions: 0 },

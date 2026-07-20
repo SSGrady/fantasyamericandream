@@ -58,6 +58,8 @@ export interface PlayerState {
     cookingSkill: 0 | 1 | 2 | 3;
     subscriptionLoad: MoneyCents;
   };
+  /** When true, posts employer health plan premium on monthly tick (W2 default). */
+  includeEmployerHealthPlan: boolean;
   riskTolerance: 'conservative' | 'moderate' | 'aggressive';
 }
 

@@ -12,6 +12,20 @@ export {
 } from './payroll.js';
 export type { GrossToNetInput, GrossToNetResult, BuildPayrollTransactionInput } from './payroll.js';
 export {
+  LIVING_EXPENSE_STUB_2026,
+  LIVING_EXPENSE_ACCOUNT_IDS,
+  LIVING_EXPENSE_WATERFALL_LABELS,
+  computeGroceriesMonthlyCents,
+  computeMonthlyLivingExpenses,
+  buildLivingExpenseTransaction,
+  buildLivingExpenseTransactions,
+} from './living-expenses.js';
+export type {
+  LivingExpenseCategory,
+  LivingExpensesInput,
+  MonthlyLivingExpenseAmounts,
+} from './living-expenses.js';
+export {
   applyMonthlyTick,
   buildMonthlyTransactions,
   buildCreditCardInterestTransactions,

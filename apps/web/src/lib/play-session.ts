@@ -156,7 +156,7 @@ export function computeMetricBreakdown(
     monthlyBurnCents,
     months: audit.emergencyRunwayMonths,
     formula:
-      'Checking balance divided by monthly essential burn from the audit period. Burn includes rent, childcare, payroll taxes, and debt service. Discretionary living expenses are not modeled in V0/V1.',
+      'Checking balance divided by monthly essential burn from the audit period. Burn includes rent, baseline living expenses (insurance, utilities, groceries, subscriptions), childcare, payroll taxes, and debt service.',
     burnComponents: burnLines,
   };
 
@@ -335,6 +335,7 @@ export interface SimTickRequest {
   career: GameState['career'];
   location: GameState['location'];
   household: GameState['household'];
+  player: Pick<GameState['player'], 'habits' | 'includeEmployerHealthPlan'>;
   macro: GameState['macro'];
   deferral401kRate: number;
   difficulty: GameState['run']['difficulty'];

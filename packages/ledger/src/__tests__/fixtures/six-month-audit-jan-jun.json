@@ -56,13 +56,13 @@
   },
   "expected": {
     "endDate": "2026-07-01",
-    "transactionCount": 24,
+    "transactionCount": 48,
     "startNetWorth": -1050000,
     "audit": {
       "asOf": "2026-07-01",
       "startNetWorth": -1050000,
-      "netWorth": 877261,
-      "netWorthDelta": 1927261,
+      "netWorth": 181261,
+      "netWorthDelta": 1231261,
       "waterfall": [
         {
           "label": "Net pay to checking",
@@ -80,6 +80,16 @@
           "amount": -5755
         },
         {
+          "label": "Groceries",
+          "category": "expense",
+          "amount": -378000
+        },
+        {
+          "label": "Health insurance",
+          "category": "expense",
+          "amount": -84000
+        },
+        {
           "label": "Rent",
           "category": "expense",
           "amount": -900000
@@ -88,11 +98,21 @@
           "label": "Student loan interest",
           "category": "expense",
           "amount": -67606
+        },
+        {
+          "label": "Subscriptions",
+          "category": "expense",
+          "amount": -123000
+        },
+        {
+          "label": "Utilities",
+          "category": "expense",
+          "amount": -111000
         }
       ],
-      "savingsRate": 0.08409259603935085,
       "periodNetPayCents": 2675622,
-      "emergencyRunwayMonths": 6.5755888958277975,
+      "savingsRate": 0.08409259603935085,
+      "emergencyRunwayMonths": 3.233792251099887,
       "contributionProgress": {
         "traditional401k": {
           "contributedCents": 225000,
@@ -106,13 +126,102 @@
           "remainingCents": 750000,
           "pctOfLimit": 0
         }
+      },
+      "metricBreakdown": {
+        "savingsRate": {
+          "savingsInflowsCents": 225000,
+          "periodNetPayCents": 2675622,
+          "rate": 0.08409259603935085,
+          "formula": "Sum of payroll 401(k) deferrals and post-payday transfers to HYSA, brokerage, Roth, or HSA, divided by net pay deposited to checking. Investment returns are excluded.",
+          "lines": [
+            {
+              "label": "Net pay to checking (denominator)",
+              "amountCents": 2675622
+            },
+            {
+              "label": "401(k) payroll deferrals",
+              "amountCents": 225000
+            },
+            {
+              "label": "Total savings inflows (numerator)",
+              "amountCents": 225000
+            }
+          ]
+        },
+        "housingBurden": {
+          "periodRentShareCents": 900000,
+          "periodNetPayCents": 2675622,
+          "monthlyRentShareCents": 150000,
+          "monthlyNetPayCents": 445937,
+          "rate": 0.3363703841574034,
+          "formula": "Player rent share from expense:rent postings divided by monthly net pay.",
+          "lines": [
+            {
+              "label": "Rent (player share, numerator)",
+              "amountCents": 900000
+            },
+            {
+              "label": "Net pay to checking (denominator basis)",
+              "amountCents": 2675622
+            }
+          ]
+        },
+        "emergencyRunway": {
+          "checkingBalanceCents": 1411622,
+          "monthlyBurnCents": 436522.1666666667,
+          "months": 3.233792251099887,
+          "formula": "Checking balance divided by monthly essential burn from the audit period. Burn includes rent, baseline living expenses (insurance, utilities, groceries, subscriptions), childcare, payroll taxes, and debt service.",
+          "burnComponents": [
+            {
+              "label": "Rent (6-month total)",
+              "amountCents": 900000
+            },
+            {
+              "label": "Health insurance (6-month total)",
+              "amountCents": 84000
+            },
+            {
+              "label": "Utilities (6-month total)",
+              "amountCents": 111000
+            },
+            {
+              "label": "Groceries (6-month total)",
+              "amountCents": 378000
+            },
+            {
+              "label": "Subscriptions (6-month total)",
+              "amountCents": 123000
+            },
+            {
+              "label": "Federal withholding (6-month total)",
+              "amountCents": 562500
+            },
+            {
+              "label": "FICA (6-month total)",
+              "amountCents": 286878
+            },
+            {
+              "label": "Credit card interest (6-month total)",
+              "amountCents": 5755
+            },
+            {
+              "label": "Student loan interest (6-month total)",
+              "amountCents": 67606
+            },
+            {
+              "label": "Student loan principal (6-month total)",
+              "amountCents": 100394
+            }
+          ]
+        }
       }
     },
     "accounts": {
       "checking": {
-        "balance": 2107622
+        "balance": 1411622
       },
       "traditional401k": {
+        "id": "401k",
         "balance": 225000,
         "taxYearContributions": 225000
       }
@@ -136,6 +245,6 @@
         }
       ]
     },
-    "netWorth": 877261
+    "netWorth": 181261
   }
 }

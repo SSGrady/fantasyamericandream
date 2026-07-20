@@ -128,6 +128,7 @@ export function buildInitialGameState(
         cookingSkill: draft.habits.cookingSkill,
         subscriptionLoad: 0,
       },
+      includeEmployerHealthPlan: draft.includeEmployerHealthPlan,
       riskTolerance: 'moderate',
     },
     career: { ...fixture.career },

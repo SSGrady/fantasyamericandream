@@ -17,6 +17,7 @@ const USER_DRAFT: V1CharacterDraft = {
   partnerIncomeAnnual: 0,
   dependentsCount: 0,
   childrenPlanned: false,
+  includeEmployerHealthPlan: true,
   habits: { deliveryFrequency: 'medium', cookingSkill: 1 },
   balanceSheet: {
     checking: 3_000_00,
@@ -62,6 +63,10 @@ describe('starting net worth transparency', () => {
       career: gameState.career,
       location: gameState.location,
       household: gameState.household,
+      player: {
+        habits: gameState.player.habits,
+        includeEmployerHealthPlan: gameState.player.includeEmployerHealthPlan,
+      },
       macro: createMacroState('expansion'),
       deferral401kRate,
       difficulty: gameState.run.difficulty,

@@ -8,6 +8,7 @@ import type {
   IsoDate,
   LocationState,
   MacroState,
+  PlayerState,
 } from '@fad/shared';
 import { NextResponse } from 'next/server';
 
@@ -21,6 +22,7 @@ interface TickRequestBody {
   career: CareerState;
   location: LocationState;
   household: HouseholdState;
+  player: Pick<PlayerState, 'habits' | 'includeEmployerHealthPlan'>;
   macro: MacroState;
   deferral401kRate?: number;
   difficulty?: Difficulty;
@@ -44,7 +46,7 @@ function parseTickRequest(body: unknown): TickRequestBody | null {
   if (typeof body.randomSeed !== 'string' || body.randomSeed.length === 0) return null;
   if (!isObject(body.accounts) || !isObject(body.debts)) return null;
   if (!isObject(body.career) || !isObject(body.location) || !isObject(body.macro)) return null;
-  if (!isObject(body.household)) return null;
+  if (!isObject(body.household) || !isObject(body.player)) return null;
 
   return {
     startDate: body.startDate,
@@ -54,6 +56,7 @@ function parseTickRequest(body: unknown): TickRequestBody | null {
     career: body.career as unknown as CareerState,
     location: body.location as unknown as LocationState,
     household: body.household as unknown as HouseholdState,
+    player: body.player as unknown as Pick<PlayerState, 'habits' | 'includeEmployerHealthPlan'>,
     macro: body.macro as unknown as MacroState,
     deferral401kRate:
       typeof body.deferral401kRate === 'number' ? body.deferral401kRate : undefined,

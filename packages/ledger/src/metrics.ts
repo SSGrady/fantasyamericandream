@@ -174,6 +174,10 @@ export function computeEmergencyRunwayBreakdown(input: {
 
   const rent = accountDebitTotal(transactions, 'expense:rent');
   const childcare = accountDebitTotal(transactions, 'expense:childcare');
+  const healthInsurance = accountDebitTotal(transactions, 'expense:healthInsurance');
+  const utilities = accountDebitTotal(transactions, 'expense:utilities');
+  const groceries = accountDebitTotal(transactions, 'expense:groceries');
+  const subscriptions = accountDebitTotal(transactions, 'expense:subscriptions');
   const withholding = accountDebitTotal(transactions, 'expense:federalWithholding');
   const fica = accountDebitTotal(transactions, 'expense:fica');
   const ccInterest = accountDebitTotal(transactions, 'expense:creditCardInterest');
@@ -190,6 +194,10 @@ export function computeEmergencyRunwayBreakdown(input: {
   const burnComponents: MetricBreakdownLine[] = [
     { label: 'Rent (6-month total)', amountCents: rent },
     { label: 'Childcare (6-month total)', amountCents: childcare },
+    { label: 'Health insurance (6-month total)', amountCents: healthInsurance },
+    { label: 'Utilities (6-month total)', amountCents: utilities },
+    { label: 'Groceries (6-month total)', amountCents: groceries },
+    { label: 'Subscriptions (6-month total)', amountCents: subscriptions },
     { label: 'Federal withholding (6-month total)', amountCents: withholding },
     { label: 'FICA (6-month total)', amountCents: fica },
     { label: 'Credit card interest (6-month total)', amountCents: ccInterest },
@@ -206,7 +214,7 @@ export function computeEmergencyRunwayBreakdown(input: {
     monthlyBurnCents,
     months: runwayMonths,
     formula:
-      'Checking balance divided by monthly essential burn from the audit period. Burn includes rent, childcare, payroll taxes, and debt service. Discretionary living expenses are not modeled in V0/V1.',
+      'Checking balance divided by monthly essential burn from the audit period. Burn includes rent, baseline living expenses (insurance, utilities, groceries, subscriptions), childcare, payroll taxes, and debt service.',
     burnComponents,
   };
 }

@@ -68,7 +68,7 @@
   },
   "expected": {
     "endDate": "2027-01-01",
-    "netWorth": 6509181,
+    "netWorth": 5117181,
     "layoffCount": 0,
     "employmentType": "w2",
     "brokerageBalance": 3049051,

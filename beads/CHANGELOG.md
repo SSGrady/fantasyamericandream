@@ -4,6 +4,7 @@ Aggregated progress log. Append dated entries when closing tickets.
 
 ## 2026-07-19 (continued)
 
+- **T026** - Baseline living expenses stub: health insurance, utilities, groceries, subscriptions on monthly tick; cooking/delivery modifiers; employer health plan toggle; runway and waterfall updated.
 - **T026** - Starting net worth transparency: brokerage on balance sheet, no hidden V0 fixture injection, `startNetWorth` on audit snapshot, timeline baseline, rental COL-tier jitter, regression test.
 
 - **T025** - Rental picker: `/create/rental` with synthetic listings, player rent share, draft storage, flow before briefing.

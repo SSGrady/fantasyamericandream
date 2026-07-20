@@ -6,10 +6,13 @@ import type {
   LedgerTransaction,
   LocationState,
   MoneyCents,
+  PlayerState,
   TermDebt,
+  V1HousingArrangement,
 } from '@fad/shared';
 import { childcareMonthlyCents } from '@fad/shared';
 import { applyTransactions, type ApplyTransactionsResult } from './apply-transaction.js';
+import { buildLivingExpenseTransactions } from './living-expenses.js';
 import { buildPayrollFromCareer } from './payroll.js';
 
 export interface MonthlyTickInput {
@@ -17,8 +20,9 @@ export interface MonthlyTickInput {
   accounts: Accounts;
   debts: Debts;
   career: Pick<CareerState, 'employmentType' | 'baseSalaryAnnual'>;
-  location: Pick<LocationState, 'rentPaymentMonthly'>;
+  location: Pick<LocationState, 'rentPaymentMonthly' | 'housingArrangement'>;
   household?: Pick<HouseholdState, 'partner' | 'dependentsCount'>;
+  player?: Pick<PlayerState, 'habits' | 'includeEmployerHealthPlan'>;
   deferral401kRate?: number;
 }
 
@@ -189,6 +193,16 @@ export function buildMonthlyTransactions(input: MonthlyTickInput): LedgerTransac
       description: 'Partner monthly W2 payroll',
     });
   }
+
+  transactions.push(
+    ...buildLivingExpenseTransactions(input.monthKey, {
+      career: input.career,
+      housingArrangement: input.location.housingArrangement as V1HousingArrangement | undefined,
+      cookingSkill: input.player?.habits.cookingSkill,
+      deliveryFrequency: input.player?.habits.deliveryFrequency,
+      includeEmployerHealthPlan: input.player?.includeEmployerHealthPlan,
+    }),
+  );
 
   transactions.push(...buildCreditCardInterestTransactions(input.monthKey, input.debts));
 
