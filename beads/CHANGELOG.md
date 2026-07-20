@@ -2,6 +2,11 @@
 
 Aggregated progress log. Append dated entries when closing tickets.
 
+## 2026-07-19 (continued)
+
+- **S005** - V1 metrics and housing fixes sprint opened (T016-T019 planning, housing-rent-system spec).
+- **E003** - V2 Household Simulator epic opened; S006 foundation sprint started.
+
 ## 2026-07-19
 
 - **E002** - V1 Playable Game epic complete (all four success criteria met).

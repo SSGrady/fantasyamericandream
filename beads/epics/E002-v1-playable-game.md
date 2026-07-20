@@ -45,9 +45,10 @@ Requires [ADR-007 UI interaction pattern](../../docs/adr/007-ui-consequence-pipe
 | [T014](../tickets/T014-skill-tree-v1.md) | Skill tree v1 UI | done |
 | [T015](../tickets/T015-dreamhome-lite.md) | DreamHome lite | done |
 
-## Follow-on Epics (planned)
+## Follow-on Work
 
-| Epic | Scope |
-|------|-------|
-| E003 | V2 Household Simulator |
-| E004 | V3 Platform |
+| Sprint / Epic | Scope |
+|---------------|-------|
+| [S005](../sprints/S005-v1-metrics-housing-fixes/sprint.md) | Metrics fix + housing/rent depth (T016-T019) |
+| [E003](./E003-v2-household-simulator.md) | V2 Household Simulator |
+| E004 | V3 Platform (planned) |

@@ -65,5 +65,7 @@ When completing a ticket:
 
 ## Current Active Work
 
-- **Epic:** [E001 - V0 Financial Engine Prototype](./epics/E001-v0-financial-engine.md)
-- **Sprint:** [S001 - V0 Scaffold & Core Ledger](./sprints/S001-v0-scaffold/sprint.md)
+- **Epic (metrics/housing):** [E002 - V1 Playable Game](./epics/E002-v1-playable-game.md) follow-on fixes
+- **Sprint (metrics/housing):** [S005 - V1 Metrics and Housing Fixes](./sprints/S005-v1-metrics-housing-fixes/sprint.md) (T016-T019, planning only)
+- **Epic (household):** [E003 - V2 Household Simulator](./epics/E003-v2-household-simulator.md)
+- **Sprint (household):** [S006 - V2 Household Foundation](./sprints/S006-v2-household-foundation/sprint.md) (T020 in progress)
