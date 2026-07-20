@@ -171,6 +171,64 @@ function intensityHours(intensity: JobSearchIntensity): number {
   return 8;
 }
 
+/** Parse range input values defensively (guards against non-numeric or Event-like values). */
+export function parseSliderNumber(value: unknown, fallback = 0): number {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return fallback;
+}
+
+function formatCentsMonthly(cents: number): string {
+  const dollars = Math.round(cents / 100);
+  return `$${dollars.toLocaleString('en-US')}/mo`;
+}
+
+/** Human-readable policy value for plan summaries (never hours for passive money knobs). */
+export function formatCommandPolicySummary(command: ActionCommand): string {
+  switch (command.type) {
+    case 'set_401k_deferral_rate':
+      return `${Math.round(parseSliderNumber(command.rate, 0) * 100)}%`;
+    case 'set_roth_contribution_monthly':
+    case 'set_hysa_auto_transfer':
+    case 'set_brokerage_auto_transfer':
+      return formatCentsMonthly(parseSliderNumber(command.amountCents, 0));
+    case 'set_student_loan_extra':
+    case 'set_credit_card_paydown':
+      return formatCentsMonthly(parseSliderNumber(command.extraPaymentCents, 0));
+    case 'set_job_search_intensity':
+      return `${intensityHours(command.intensity)}h/wk`;
+    case 'set_side_gig_hours':
+    case 'set_career_upskill_hours':
+      return `${parseSliderNumber(command.hoursPerWeek, 0)}h/wk`;
+    case 'set_delivery_spend_cap':
+      return command.cap;
+    case 'set_relocation_intent':
+      return command.intent === 'none'
+        ? 'none'
+        : `${command.intent} · ${commandWeeklyCapacityHours(command)}h/wk`;
+    case 'run_subscription_audit':
+      return command.enabled ? '1h/wk audit' : 'Off';
+    case 'set_emergency_fund_target':
+      return `${command.targetMonths} mo target`;
+    case 'set_cooking_commitment':
+      return `skill ${command.cookingSkill}`;
+    case 'set_coast_mode':
+      return command.enabled ? 'On' : 'Off';
+    default:
+      return '';
+  }
+}
+
+/** Capacity badge for catalog tiles; null when the command has no weekly time cost. */
+export function formatCommandCapacityBadge(command: ActionCommand): string | null {
+  const hours = commandWeeklyCapacityHours(command);
+  if (hours <= 0) return null;
+  return `${hours}h/wk`;
+}
+
 export function commandWeeklyCapacityHours(command: ActionCommand): number {
   if (command.type === 'set_job_search_intensity') {
     return intensityHours(command.intensity);

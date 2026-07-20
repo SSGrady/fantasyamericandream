@@ -2,8 +2,9 @@
 
 import type { ActionCommand, ActionCommandType } from '@fad/shared';
 import {
-  commandWeeklyCapacityHours,
   DEFAULT_COMMAND_STATE,
+  formatCommandCapacityBadge,
+  formatCommandPolicySummary,
   totalWeeklyCapacityUsed,
 } from '@fad/shared';
 
@@ -71,14 +72,14 @@ interface CommandCenterProps {
   effectiveMonthKey: string;
   commands: ActionCommand[];
   capacityError: string | null;
-  onChange: (commands: ActionCommand[]) => void;
+  onCommandsChange: (commands: ActionCommand[]) => void;
 }
 
 export function CommandCenter({
   effectiveMonthKey,
   commands,
   capacityError,
-  onChange,
+  onCommandsChange,
 }: CommandCenterProps) {
   const weeklyLimit = DEFAULT_COMMAND_STATE.weeklyCapacityHours;
   const used = totalWeeklyCapacityUsed(commands);
@@ -86,13 +87,13 @@ export function CommandCenter({
   const toggleCommand = (type: ActionCommandType) => {
     const existing = commands.find((command) => command.type === type);
     if (existing) {
-      onChange(commands.filter((command) => command.type !== type));
+      onCommandsChange(commands.filter((command) => command.type !== type));
       return;
     }
 
     const next = buildDefaultCommand(type, effectiveMonthKey);
     next.id = `cmd-${type}-${Date.now()}`;
-    onChange([...commands, next]);
+    onCommandsChange([...commands, next]);
   };
 
   return (
@@ -121,10 +122,15 @@ export function CommandCenter({
 
       <div className="grid gap-3 sm:grid-cols-2">
         {COMMAND_CATALOG.map((entry) => {
-          const active = commands.some((command) => command.type === entry.type);
-          const cost = commandWeeklyCapacityHours(
+          const activeCommand = commands.find((command) => command.type === entry.type);
+          const active = Boolean(activeCommand);
+          const policyLabel = activeCommand
+            ? formatCommandPolicySummary(activeCommand)
+            : null;
+          const capacityHint = formatCommandCapacityBadge(
             buildDefaultCommand(entry.type, effectiveMonthKey),
           );
+          const badge = policyLabel ?? capacityHint;
           return (
             <button
               key={entry.type}
@@ -138,7 +144,7 @@ export function CommandCenter({
             >
               <div className="flex items-start justify-between gap-2">
                 <p className="text-sm font-semibold text-ink">{entry.label}</p>
-                <span className="text-xs text-muted">{cost}h/wk</span>
+                {badge ? <span className="text-xs text-muted">{badge}</span> : null}
               </div>
               <p className="mt-1 text-xs text-muted">{entry.description}</p>
             </button>

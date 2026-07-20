@@ -2,6 +2,7 @@
 
 import type { ActionCommand } from '@fad/shared';
 import { totalWeeklyCapacityUsed } from '@fad/shared';
+import { parseRangeInputValue } from '../../lib/parse-slider-value';
 
 const TIME_TYPES = [
   'set_side_gig_hours',
@@ -25,14 +26,14 @@ interface TimeCapacityPanelProps {
   commands: ActionCommand[];
   effectiveMonthKey: string;
   weeklyLimit: number;
-  onChange: (commands: ActionCommand[]) => void;
+  onCommandsChange: (commands: ActionCommand[]) => void;
 }
 
 export function TimeCapacityPanel({
   commands,
   effectiveMonthKey,
   weeklyLimit,
-  onChange,
+  onCommandsChange,
 }: TimeCapacityPanelProps) {
   const sideGig = findCommand(commands, 'set_side_gig_hours');
   const upskill = findCommand(commands, 'set_career_upskill_hours');
@@ -61,16 +62,17 @@ export function TimeCapacityPanel({
           max={20}
           step={1}
           value={sideGigHours}
-          onChange={(event) =>
-            onChange(
+          onChange={(event) => {
+            const hours = parseRangeInputValue(event, sideGigHours);
+            onCommandsChange(
               upsertCommand(commands, {
                 id: sideGig?.id ?? `cmd-gig-${Date.now()}`,
                 type: 'set_side_gig_hours',
                 effectiveMonthKey,
-                hoursPerWeek: Number(event.target.value),
+                hoursPerWeek: hours,
               }),
-            )
-          }
+            );
+          }}
           className="w-full accent-accent"
         />
       </label>
@@ -83,16 +85,17 @@ export function TimeCapacityPanel({
           max={10}
           step={1}
           value={upskillHours}
-          onChange={(event) =>
-            onChange(
+          onChange={(event) => {
+            const hours = parseRangeInputValue(event, upskillHours);
+            onCommandsChange(
               upsertCommand(commands, {
                 id: upskill?.id ?? `cmd-upskill-${Date.now()}`,
                 type: 'set_career_upskill_hours',
                 effectiveMonthKey,
-                hoursPerWeek: Number(event.target.value),
+                hoursPerWeek: hours,
               }),
-            )
-          }
+            );
+          }}
           className="w-full accent-accent"
         />
       </label>
@@ -105,7 +108,7 @@ export function TimeCapacityPanel({
               key={intensity}
               type="button"
               onClick={() =>
-                onChange(
+                onCommandsChange(
                   upsertCommand(commands, {
                     id: jobSearch?.id ?? `cmd-search-${Date.now()}`,
                     type: 'set_job_search_intensity',

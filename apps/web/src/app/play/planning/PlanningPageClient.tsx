@@ -8,6 +8,7 @@ import {
   formatSimWindowRange,
   resolveJobOffer,
 } from '@fad/domain';
+import { parseActionCommandsJson } from '@fad/shared';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { JobOfferPicker } from '../../../components/create/JobOfferPicker';
@@ -167,9 +168,15 @@ export function PlanningPageClient() {
       <InteractivePlanningPanel
         session={session}
         dirty={planDirty}
-        onCommandsChange={(commands) =>
-          setSession({ ...session, commandDraft: commands, commandCapacityError: null })
-        }
+        onCommandsChange={(commands) => {
+          if (!Array.isArray(commands)) return;
+          try {
+            const validated = parseActionCommandsJson(commands);
+            setSession({ ...session, commandDraft: validated, commandCapacityError: null });
+          } catch {
+            // Ignore malformed draft updates (e.g. accidental Event object).
+          }
+        }}
         onCommit={handleCommitPlan}
       />
     </div>

@@ -44,6 +44,12 @@ export function InteractivePlanningPanel({
   useEffect(() => {
     let cancelled = false;
     const timer = window.setTimeout(() => {
+      if (!Number.isFinite(deferralFromCommands)) {
+        setPreviewDelta(null);
+        setPreviewLoading(false);
+        return;
+      }
+
       setPreviewLoading(true);
       void runImpactPreview({
         startDate: session.gameState.run.currentDate,
@@ -71,9 +77,12 @@ export function InteractivePlanningPanel({
           if (cancelled) return;
           setPreviewDelta(preview.deltaNetWorth);
         })
-        .catch(() => {
+        .catch((error: unknown) => {
           if (cancelled) return;
           setPreviewDelta(null);
+          if (process.env.NODE_ENV === 'development' && error instanceof Error) {
+            console.warn('Impact preview failed:', error.message);
+          }
         })
         .finally(() => {
           if (!cancelled) setPreviewLoading(false);
@@ -96,13 +105,13 @@ export function InteractivePlanningPanel({
           commands={session.commandDraft}
           effectiveMonthKey={effectiveMonthKey}
           monthlyNetPayCents={monthlyNetPay}
-          onChange={onCommandsChange}
+          onCommandsChange={onCommandsChange}
         />
         <TimeCapacityPanel
           commands={session.commandDraft}
           effectiveMonthKey={effectiveMonthKey}
           weeklyLimit={weeklyLimit}
-          onChange={onCommandsChange}
+          onCommandsChange={onCommandsChange}
         />
       </div>
 
@@ -117,7 +126,7 @@ export function InteractivePlanningPanel({
         effectiveMonthKey={effectiveMonthKey}
         commands={session.commandDraft}
         capacityError={session.commandCapacityError}
-        onChange={onCommandsChange}
+        onCommandsChange={onCommandsChange}
       />
 
       <div className="sticky bottom-0 rounded-lg border border-border bg-card/95 p-4 shadow-sm backdrop-blur card-preview">

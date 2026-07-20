@@ -761,7 +761,11 @@ export function resolveChapterInterrupt(
 
 export function getDeferralFromCommands(session: PlaySession): number {
   const cmd = session.commandDraft.find((c) => c.type === 'set_401k_deferral_rate');
-  return cmd && cmd.type === 'set_401k_deferral_rate' ? cmd.rate : session.deferral401kRate;
+  if (cmd && cmd.type === 'set_401k_deferral_rate') {
+    const rate = typeof cmd.rate === 'number' ? cmd.rate : Number(cmd.rate);
+    if (Number.isFinite(rate)) return rate;
+  }
+  return session.deferral401kRate;
 }
 
 export function validateCommandDraftEffect(session: PlaySession): {

@@ -2,6 +2,7 @@
 
 import type { ActionCommand } from '@fad/shared';
 import { formatMoney } from '../../lib/format-money';
+import { parseRangeInputValue } from '../../lib/parse-slider-value';
 
 const MONEY_TYPES = [
   'set_401k_deferral_rate',
@@ -23,7 +24,7 @@ interface MoneyPolicySlidersProps {
   commands: ActionCommand[];
   effectiveMonthKey: string;
   monthlyNetPayCents: number;
-  onChange: (commands: ActionCommand[]) => void;
+  onCommandsChange: (commands: ActionCommand[]) => void;
 }
 
 function upsertCommand(commands: ActionCommand[], next: ActionCommand): ActionCommand[] {
@@ -35,7 +36,7 @@ export function MoneyPolicySliders({
   commands,
   effectiveMonthKey,
   monthlyNetPayCents,
-  onChange,
+  onCommandsChange,
 }: MoneyPolicySlidersProps) {
   const deferral = findCommand(commands, 'set_401k_deferral_rate');
   const roth = findCommand(commands, 'set_roth_contribution_monthly');
@@ -69,16 +70,17 @@ export function MoneyPolicySliders({
           max={20}
           step={1}
           value={Math.round(deferralRate * 100)}
-          onChange={(event) =>
-            onChange(
+          onChange={(event) => {
+            const pct = parseRangeInputValue(event, Math.round(deferralRate * 100));
+            onCommandsChange(
               upsertCommand(commands, {
                 id: deferral?.id ?? `cmd-401k-${Date.now()}`,
                 type: 'set_401k_deferral_rate',
                 effectiveMonthKey,
-                rate: Number(event.target.value) / 100,
+                rate: pct / 100,
               }),
-            )
-          }
+            );
+          }}
           className="w-full accent-accent"
         />
       </label>
@@ -91,16 +93,17 @@ export function MoneyPolicySliders({
           max={583}
           step={25}
           value={rothCents / 100}
-          onChange={(event) =>
-            onChange(
+          onChange={(event) => {
+            const dollars = parseRangeInputValue(event, rothCents / 100);
+            onCommandsChange(
               upsertCommand(commands, {
                 id: roth?.id ?? `cmd-roth-${Date.now()}`,
                 type: 'set_roth_contribution_monthly',
                 effectiveMonthKey,
-                amountCents: Number(event.target.value) * 100,
+                amountCents: dollars * 100,
               }),
-            )
-          }
+            );
+          }}
           className="w-full accent-accent"
         />
       </label>
@@ -113,16 +116,17 @@ export function MoneyPolicySliders({
           max={1500}
           step={50}
           value={hysaCents / 100}
-          onChange={(event) =>
-            onChange(
+          onChange={(event) => {
+            const dollars = parseRangeInputValue(event, hysaCents / 100);
+            onCommandsChange(
               upsertCommand(commands, {
                 id: hysa?.id ?? `cmd-hysa-${Date.now()}`,
                 type: 'set_hysa_auto_transfer',
                 effectiveMonthKey,
-                amountCents: Number(event.target.value) * 100,
+                amountCents: dollars * 100,
               }),
-            )
-          }
+            );
+          }}
           className="w-full accent-accent"
         />
       </label>
@@ -135,7 +139,7 @@ export function MoneyPolicySliders({
               key={cap}
               type="button"
               onClick={() =>
-                onChange(
+                onCommandsChange(
                   upsertCommand(commands, {
                     id: delivery?.id ?? `cmd-delivery-${Date.now()}`,
                     type: 'set_delivery_spend_cap',
