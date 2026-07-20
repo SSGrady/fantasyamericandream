@@ -1,18 +1,19 @@
 'use client';
 
-import type { ContributionProgress } from '@fad/shared';
+import type { ContributionProgress, TaxAdvantagedBucket } from '@fad/shared';
 import { formatMoney, formatPercent } from '../../lib/format-money';
 
 interface ProgressRingsProps {
   progress: Record<string, ContributionProgress>;
+  rothIra?: TaxAdvantagedBucket;
 }
 
 const LABELS: Record<string, string> = {
   traditional401k: '401(k) deferrals',
-  rothIra: 'Roth IRA',
+  rothIra: 'Roth IRA contributions',
 };
 
-export function ProgressRings({ progress }: ProgressRingsProps) {
+export function ProgressRings({ progress, rothIra }: ProgressRingsProps) {
   const entries = Object.entries(progress);
 
   if (entries.length === 0) {
@@ -23,6 +24,11 @@ export function ProgressRings({ progress }: ProgressRingsProps) {
     <div className="grid gap-4 sm:grid-cols-2">
       {entries.map(([key, item]) => {
         const pct = Math.min(100, Math.round(item.pctOfLimit * 100));
+        const priorBalance =
+          key === 'rothIra' && rothIra
+            ? Math.max(0, rothIra.balance - rothIra.taxYearContributions)
+            : 0;
+
         return (
           <div
             key={key}
@@ -48,6 +54,12 @@ export function ProgressRings({ progress }: ProgressRingsProps) {
                 <p className="text-xs text-muted">
                   {formatMoney(item.remainingCents)} remaining
                 </p>
+                {priorBalance > 0 ? (
+                  <p className="mt-2 text-xs text-muted">
+                    Account balance {formatMoney(rothIra?.balance ?? 0)} includes{' '}
+                    {formatMoney(priorBalance)} from prior savings and market returns.
+                  </p>
+                ) : null}
               </div>
             </div>
           </div>

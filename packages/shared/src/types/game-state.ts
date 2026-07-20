@@ -1,6 +1,9 @@
 /** Integer cents - display formatting happens at UI boundary */
 export type MoneyCents = number;
 
+import type { HouseholdState } from './household-state.js';
+import type { V1HousingArrangement } from './housing-rent.js';
+
 export type IsoDate = `${number}-${number}-${number}`;
 
 export type UsStateCode =
@@ -71,7 +74,11 @@ export interface LocationState {
   stateCode: UsStateCode;
   metroId: string;
   housingMode: 'rent';
+  /** Full market rent before roommate or partner split. */
+  marketRentMonthly: MoneyCents;
+  /** Player's share posted to expense:rent each month. */
   rentPaymentMonthly: MoneyCents;
+  housingArrangement?: V1HousingArrangement;
 }
 
 export interface AccountBucket {
@@ -152,8 +159,6 @@ export interface AuditSnapshot {
   emergencyRunwayMonths: number;
   contributionProgress: Record<string, ContributionProgress>;
 }
-
-import type { HouseholdState } from './household-state.js';
 
 export interface GameState {
   run: SimulationRun;

@@ -36,3 +36,5 @@ See [housing-rent-system.md](../../docs/specifications/housing-rent-system.md) P
 ## Completion
 
 2026-07-19: Added `docs/schema/metrics-definitions.md`, `packages/ledger/src/metrics.ts`, `periodNetPayCents` on `AuditSnapshot`, fixed savings rate / ribbon DTI and housing burden. Golden fixture updated.
+
+2026-07-19 (T016b): Savings rate was still inflated (~31%) because `computeSavingsInflows` counted investment returns on brokerage/Roth/401(k) as savings. Fixed to count payroll deferrals and transfer deposits only. Waterfall now splits net pay vs deferrals; investment returns post under `growth`. Analysis page uses `computeMetricBreakdown` aligned with metrics doc.

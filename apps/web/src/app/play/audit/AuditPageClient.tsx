@@ -83,7 +83,14 @@ export function AuditPageClient() {
 
       <section className="space-y-3">
         <h2 className="font-serif text-xl text-ink">Contribution progress</h2>
-        <ProgressRings progress={audit.contributionProgress} />
+        <p className="text-sm text-muted">
+          Rings track tax-year contributions from ledger transactions. Roth IRA balance can include
+          prior savings and market returns not counted here.
+        </p>
+        <ProgressRings
+          progress={audit.contributionProgress}
+          rothIra={session.gameState.accounts.rothIra}
+        />
       </section>
 
       <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">

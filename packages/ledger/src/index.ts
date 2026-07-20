@@ -38,8 +38,18 @@ export {
 export type { SixMonthTickInput, SixMonthTickResult } from './audit.js';
 export {
   computePeriodNetPay,
+  computePeriod401kDeferrals,
   computeSavingsInflows,
   computeSavingsRate,
+  computeSavingsRateBreakdown,
+  computeHousingBurdenBreakdown,
+  computeEmergencyRunwayBreakdown,
   SAVINGS_ACCOUNT_IDS,
 } from './metrics.js';
-export type { SavingsAccountId } from './metrics.js';
+export type {
+  SavingsAccountId,
+  MetricBreakdownLine,
+  SavingsRateBreakdown,
+  HousingBurdenBreakdown,
+  EmergencyRunwayBreakdown,
+} from './metrics.js';

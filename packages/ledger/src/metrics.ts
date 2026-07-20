@@ -11,21 +11,42 @@ export const SAVINGS_ACCOUNT_IDS = [
 
 export type SavingsAccountId = (typeof SAVINGS_ACCOUNT_IDS)[number];
 
-function accountNetInflow(transactions: LedgerTransaction[], accountId: string): MoneyCents {
+const TRANSFER_SAVINGS_ACCOUNT_IDS = ['hysa', 'brokerage', 'rothIra', 'hsa', 'traditional401k'] as const;
+
+function accountDebitTotal(transactions: LedgerTransaction[], accountId: string): MoneyCents {
   return transactions.reduce((sum, tx) => {
     const lineSum = tx.lines
       .filter((line) => line.accountId === accountId)
-      .reduce((lineTotal, line) => lineTotal + line.debitCents - line.creditCents, 0);
+      .reduce((lineTotal, line) => lineTotal + line.debitCents, 0);
     return sum + lineSum;
   }, 0);
 }
 
-/** Net inflows to 401k, HSA, brokerage, Roth, and HYSA over the audit period. */
+function savingsInflowFromTransaction(tx: LedgerTransaction): MoneyCents {
+  if (tx.source === 'investment_return') {
+    return 0;
+  }
+
+  if (tx.source === 'income') {
+    return tx.lines
+      .filter((line) => line.accountId === 'traditional401k')
+      .reduce((sum, line) => sum + line.debitCents, 0);
+  }
+
+  if (tx.source === 'transfer') {
+    return tx.lines
+      .filter((line) =>
+        (TRANSFER_SAVINGS_ACCOUNT_IDS as readonly string[]).includes(line.accountId),
+      )
+      .reduce((sum, line) => sum + line.debitCents, 0);
+  }
+
+  return 0;
+}
+
+/** Intentional savings deposits over the audit period (excludes investment returns). */
 export function computeSavingsInflows(transactions: LedgerTransaction[]): MoneyCents {
-  return SAVINGS_ACCOUNT_IDS.reduce(
-    (sum, accountId) => sum + Math.max(0, accountNetInflow(transactions, accountId)),
-    0,
-  );
+  return transactions.reduce((sum, tx) => sum + savingsInflowFromTransaction(tx), 0);
 }
 
 /** Net pay deposited to checking from W2 payroll (player + partner) over the audit period. */
@@ -40,6 +61,14 @@ export function computePeriodNetPay(transactions: LedgerTransaction[]): MoneyCen
     }, 0);
 }
 
+/** 401(k) deferrals posted from payroll over the audit period. */
+export function computePeriod401kDeferrals(transactions: LedgerTransaction[]): MoneyCents {
+  return accountDebitTotal(
+    transactions.filter((tx) => tx.source === 'income'),
+    'traditional401k',
+  );
+}
+
 /** Intentional savings inflows divided by net pay (see docs/schema/metrics-definitions.md). */
 export function computeSavingsRate(transactions: LedgerTransaction[]): number {
   const netPay = computePeriodNetPay(transactions);
@@ -48,4 +77,133 @@ export function computeSavingsRate(transactions: LedgerTransaction[]): number {
   }
   const savingsInflows = computeSavingsInflows(transactions);
   return Math.max(0, savingsInflows / netPay);
+}
+
+export interface MetricBreakdownLine {
+  label: string;
+  amountCents: MoneyCents;
+}
+
+export interface SavingsRateBreakdown {
+  savingsInflowsCents: MoneyCents;
+  periodNetPayCents: MoneyCents;
+  rate: number;
+  formula: string;
+  lines: MetricBreakdownLine[];
+}
+
+export interface HousingBurdenBreakdown {
+  periodRentShareCents: MoneyCents;
+  periodNetPayCents: MoneyCents;
+  monthlyRentShareCents: MoneyCents;
+  monthlyNetPayCents: MoneyCents;
+  rate: number;
+  formula: string;
+  lines: MetricBreakdownLine[];
+}
+
+export interface EmergencyRunwayBreakdown {
+  checkingBalanceCents: MoneyCents;
+  monthlyBurnCents: MoneyCents;
+  months: number;
+  formula: string;
+  burnComponents: MetricBreakdownLine[];
+}
+
+export function computeSavingsRateBreakdown(
+  transactions: LedgerTransaction[],
+): SavingsRateBreakdown {
+  const periodNetPayCents = computePeriodNetPay(transactions);
+  const savingsInflowsCents = computeSavingsInflows(transactions);
+  const deferrals = computePeriod401kDeferrals(transactions);
+  const transferInflows = Math.max(0, savingsInflowsCents - deferrals);
+
+  const lines: MetricBreakdownLine[] = [
+    { label: 'Net pay to checking (denominator)', amountCents: periodNetPayCents },
+  ];
+  if (deferrals > 0) {
+    lines.push({ label: '401(k) payroll deferrals', amountCents: deferrals });
+  }
+  if (transferInflows > 0) {
+    lines.push({ label: 'Transfers to savings accounts', amountCents: transferInflows });
+  }
+
+  return {
+    savingsInflowsCents,
+    periodNetPayCents,
+    rate: periodNetPayCents > 0 ? savingsInflowsCents / periodNetPayCents : 0,
+    formula:
+      'Sum of payroll 401(k) deferrals and post-payday transfers to HYSA, brokerage, Roth, or HSA, divided by net pay deposited to checking. Investment returns are excluded.',
+    lines,
+  };
+}
+
+export function computeHousingBurdenBreakdown(
+  transactions: LedgerTransaction[],
+  periodMonths: number,
+): HousingBurdenBreakdown {
+  const periodNetPayCents = computePeriodNetPay(transactions);
+  const periodRentShareCents = accountDebitTotal(transactions, 'expense:rent');
+  const monthlyNetPayCents = periodMonths > 0 ? periodNetPayCents / periodMonths : 0;
+  const monthlyRentShareCents = periodMonths > 0 ? periodRentShareCents / periodMonths : 0;
+
+  return {
+    periodRentShareCents,
+    periodNetPayCents,
+    monthlyRentShareCents,
+    monthlyNetPayCents,
+    rate: monthlyNetPayCents > 0 ? monthlyRentShareCents / monthlyNetPayCents : 0,
+    formula: 'Player rent share from expense:rent postings divided by monthly net pay.',
+    lines: [
+      { label: 'Rent (player share, numerator)', amountCents: periodRentShareCents },
+      { label: 'Net pay to checking (denominator basis)', amountCents: periodNetPayCents },
+    ],
+  };
+}
+
+export function computeEmergencyRunwayBreakdown(input: {
+  checkingBalanceCents: MoneyCents;
+  transactions: LedgerTransaction[];
+  periodMonths: number;
+}): EmergencyRunwayBreakdown {
+  const { checkingBalanceCents, transactions, periodMonths } = input;
+  const months = periodMonths > 0 ? periodMonths : 1;
+
+  const rent = accountDebitTotal(transactions, 'expense:rent');
+  const childcare = accountDebitTotal(transactions, 'expense:childcare');
+  const withholding = accountDebitTotal(transactions, 'expense:federalWithholding');
+  const fica = accountDebitTotal(transactions, 'expense:fica');
+  const ccInterest = accountDebitTotal(transactions, 'expense:creditCardInterest');
+  const slInterest = accountDebitTotal(transactions, 'expense:studentLoanInterest');
+  const slPrincipal = transactions
+    .filter((tx) => tx.source === 'debt_payment')
+    .reduce((sum, tx) => {
+      const principal = tx.lines
+        .filter((line) => line.accountId.startsWith('studentLoan:'))
+        .reduce((lineTotal, line) => lineTotal + line.debitCents, 0);
+      return sum + principal;
+    }, 0);
+
+  const burnComponents: MetricBreakdownLine[] = [
+    { label: 'Rent', amountCents: rent },
+    { label: 'Childcare', amountCents: childcare },
+    { label: 'Federal withholding', amountCents: withholding },
+    { label: 'FICA', amountCents: fica },
+    { label: 'Credit card interest', amountCents: ccInterest },
+    { label: 'Student loan interest', amountCents: slInterest },
+    { label: 'Student loan principal', amountCents: slPrincipal },
+  ].filter((line) => line.amountCents > 0);
+
+  const periodBurn = burnComponents.reduce((sum, line) => sum + line.amountCents, 0);
+  const monthlyBurnCents = periodBurn / months;
+  const runwayMonths = monthlyBurnCents > 0 ? checkingBalanceCents / monthlyBurnCents : Infinity;
+
+  return {
+    checkingBalanceCents,
+    monthlyBurnCents,
+    months: runwayMonths,
+    formula:
+      'Checking balance divided by monthly essential burn from the audit period. Burn includes rent, childcare, payroll taxes, and debt service. Discretionary living expenses are not modeled in V0/V1.',
+    burnComponents,
+  };
 }

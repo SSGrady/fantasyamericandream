@@ -1,5 +1,12 @@
 import type { CareerSector, MoneyCents, UsStateCode } from './game-state.js';
+import type { V1HousingArrangement, V1MaritalStatus } from './housing-rent.js';
+import {
+  defaultHousingArrangement,
+  isHousingArrangementAllowed,
+} from './housing-rent.js';
 import type { V1StarterScenarioId } from './v1-scenarios.js';
+
+export type { V1HousingArrangement, V1MaritalStatus } from './housing-rent.js';
 
 /** Eight V0 states with distinct tax profiles (see packages/data v0-rent-only). */
 export const V1_CHARACTER_STATES: readonly UsStateCode[] = [
@@ -16,8 +23,6 @@ export const V1_CHARACTER_STATES: readonly UsStateCode[] = [
 export type V1AgeBand = '22' | '25' | '28' | '30';
 
 export type V1EducationTier = 'target' | 'non_target';
-
-export type V1MaritalStatus = 'single' | 'partnered' | 'married';
 
 export type V1DeliveryFrequency = 'none' | 'low' | 'medium' | 'high';
 
@@ -40,6 +45,8 @@ export interface V1CharacterDraft {
   educationTier: V1EducationTier;
   careerSector: CareerSector;
   maritalStatus: V1MaritalStatus;
+  /** Rent and utilities split applied to market rent at game start. */
+  housingArrangement: V1HousingArrangement;
   relationshipSimulation: boolean;
   /** Annual partner W2 salary in cents; 0 when single or no partner income. */
   partnerIncomeAnnual: MoneyCents;
@@ -96,6 +103,30 @@ export const V1_MARITAL_OPTIONS: readonly TraitOption<V1MaritalStatus>[] = [
   { value: 'partnered', label: 'Partnered', modifier: 'Shared expenses optional' },
   { value: 'married', label: 'Married', modifier: 'Joint decisions, dual income potential' },
 ] as const;
+
+export const V1_HOUSING_ARRANGEMENT_OPTIONS: readonly TraitOption<V1HousingArrangement>[] = [
+  { value: 'roommates_4', label: '4 roommates', modifier: 'Rent and utilities split four ways' },
+  { value: 'roommate_1', label: '1 roommate', modifier: 'Rent and utilities split in half' },
+  { value: 'solo', label: 'Solo lease', modifier: 'You pay full market rent' },
+  {
+    value: 'partner_split',
+    label: 'Split with partner',
+    modifier: 'Shared lease, 50/50 rent and utilities',
+  },
+  {
+    value: 'pay_alone',
+    label: 'Pay alone',
+    modifier: 'Partnered but separate lease, full rent',
+  },
+] as const;
+
+export function housingOptionsForMaritalStatus(
+  maritalStatus: V1MaritalStatus,
+): readonly TraitOption<V1HousingArrangement>[] {
+  return V1_HOUSING_ARRANGEMENT_OPTIONS.filter((option) =>
+    isHousingArrangementAllowed(option.value, maritalStatus),
+  );
+}
 
 export const V1_DELIVERY_OPTIONS: readonly TraitOption<V1DeliveryFrequency>[] = [
   { value: 'none', label: 'Rarely', modifier: 'Minimal food delivery spend' },
@@ -202,6 +233,8 @@ export function getDefaultV1CharacterDraft(scenarioId: V1StarterScenarioId): V1C
     educationTier: overrides.educationTier ?? 'target',
     careerSector: overrides.careerSector ?? 'tech',
     maritalStatus: overrides.maritalStatus ?? 'single',
+    housingArrangement:
+      overrides.housingArrangement ?? defaultHousingArrangement(overrides.maritalStatus ?? 'single'),
     relationshipSimulation: false,
     partnerIncomeAnnual: 0,
     dependentsCount: 0,

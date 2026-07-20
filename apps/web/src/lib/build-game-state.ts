@@ -1,11 +1,15 @@
 import { buildV0ScenarioFixture } from '@fad/data';
 import {
   buildHouseholdFromDraft,
+  defaultHousingArrangement,
   enabledModulesFromV1RunConfig,
+  isHousingArrangementAllowed,
+  playerRentShare,
   type GameState,
   type IsoDate,
   type MacroState,
   type V1CharacterDraft,
+  type V1HousingArrangement,
   type V1RunConfig,
 } from '@fad/shared';
 
@@ -90,6 +94,16 @@ export function buildInitialGameState(
     ],
   };
 
+  const housingArrangement: V1HousingArrangement = isHousingArrangementAllowed(
+    draft.housingArrangement,
+    draft.maritalStatus,
+  )
+    ? draft.housingArrangement
+    : defaultHousingArrangement(draft.maritalStatus);
+
+  const marketRentMonthly = fixture.location.marketRentMonthly;
+  const playerRentShareMonthly = playerRentShare(marketRentMonthly, housingArrangement);
+
   const gameState: GameState = {
     run: {
       id: `run-${deterministicSeed(draft)}`,
@@ -121,7 +135,12 @@ export function buildInitialGameState(
       partnerIncomeAnnual: draft.partnerIncomeAnnual,
       dependentsCount: draft.dependentsCount,
     }),
-    location: { ...fixture.location },
+    location: {
+      ...fixture.location,
+      marketRentMonthly,
+      rentPaymentMonthly: playerRentShareMonthly,
+      housingArrangement,
+    },
     accounts,
     debts,
     macro: { ...DEFAULT_MACRO },

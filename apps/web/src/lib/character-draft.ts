@@ -1,5 +1,8 @@
 import {
+  defaultHousingArrangement,
   getDefaultV1CharacterDraft,
+  housingOptionsForMaritalStatus,
+  isHousingArrangementAllowed,
   type V1CharacterDraft,
   type V1StarterScenarioId,
 } from '@fad/shared';
@@ -19,7 +22,12 @@ export function loadCharacterDraft(): V1CharacterDraft | null {
   try {
     const parsed = JSON.parse(raw) as V1CharacterDraft;
     if (!parsed.scenarioId) return null;
-    return parsed;
+    const maritalStatus = parsed.maritalStatus ?? 'single';
+    const housingArrangement =
+      parsed.housingArrangement && isHousingArrangementAllowed(parsed.housingArrangement, maritalStatus)
+        ? parsed.housingArrangement
+        : defaultHousingArrangement(maritalStatus);
+    return { ...parsed, maritalStatus, housingArrangement };
   } catch {
     return null;
   }

@@ -97,6 +97,7 @@ describe('V1 event expansion', () => {
         stateCode: 'CA',
         metroId: 'sf',
         housingMode: 'rent',
+        marketRentMonthly: 2_800_00,
         rentPaymentMonthly: 2_800_00,
       },
       macro: {
@@ -125,6 +126,7 @@ describe('V1 event expansion', () => {
         stateCode: 'CA',
         metroId: 'sf',
         housingMode: 'rent',
+        marketRentMonthly: 2_800_00,
         rentPaymentMonthly: 2_800_00,
       },
       macro: {

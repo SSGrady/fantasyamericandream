@@ -4,6 +4,8 @@ Aggregated progress log. Append dated entries when closing tickets.
 
 ## 2026-07-19 (continued)
 
+- **T017** - Housing arrangement rent split: character creator selector, `housing-rent.ts` fractions, `LocationState.marketRentMonthly`, player share on monthly tick.
+- **T016b** - Savings rate fix: exclude investment returns from numerator; split payroll waterfall; analysis metric breakdown aligned with metrics doc.
 - **T021** - Dependents stub: dependentsCount, childcare expense, plan529 bucket, parental leave event, tests.
 - **T016** - Briefing metrics: savings rate over net pay, periodNetPayCents on audit, metrics-definitions doc, ribbon labels.
 - **S005** - V1 metrics and housing fixes sprint opened (T016-T019 planning, housing-rent-system spec).

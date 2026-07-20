@@ -141,6 +141,7 @@ export function buildV0ScenarioFixture(config: V0ScenarioConfig): V0ScenarioFixt
       stateCode: config.stateCode,
       metroId: locationMeta.metroId,
       housingMode: 'rent',
+      marketRentMonthly: locationMeta.rentPaymentMonthly,
       rentPaymentMonthly: locationMeta.rentPaymentMonthly,
     },
     deferral401kRate: profile.deferral401kRate,

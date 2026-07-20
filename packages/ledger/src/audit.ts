@@ -13,7 +13,11 @@ import type {
 import { applySingleTransaction } from './apply-transaction.js';
 import { cloneAccounts, cloneDebts } from './clone-state.js';
 import { applyMonthlyTick, type MonthlyTickInput } from './monthly-tick.js';
-import { computePeriodNetPay, computeSavingsRate } from './metrics.js';
+import {
+  computeEmergencyRunwayBreakdown,
+  computePeriodNetPay,
+  computeSavingsRate,
+} from './metrics.js';
 import { netWorth } from './net-worth.js';
 
 export interface SixMonthTickInput {
@@ -59,25 +63,60 @@ function transactionNetWorthDelta(tx: LedgerTransaction): MoneyCents {
   return tx.lines.reduce((sum, line) => sum + lineNetWorthDelta(line), 0);
 }
 
-function waterfallKey(tx: LedgerTransaction): { label: string; category: NetWorthWaterfallLine['category'] } {
-  if (tx.source === 'income') {
-    return { label: 'W2 payroll (net + deferrals)', category: 'income' };
+function isPartnerPayroll(tx: LedgerTransaction): boolean {
+  return tx.id.includes('-payroll-partner') || tx.description.toLowerCase().includes('partner');
+}
+
+function payrollWaterfallEntries(
+  tx: LedgerTransaction,
+): Array<{ label: string; category: NetWorthWaterfallLine['category']; amount: MoneyCents }> {
+  const partner = isPartnerPayroll(tx);
+  const checkingNet = tx.lines
+    .filter((line) => line.accountId === 'checking')
+    .reduce((sum, line) => sum + line.debitCents - line.creditCents, 0);
+  const deferral401k = tx.lines
+    .filter((line) => line.accountId === 'traditional401k')
+    .reduce((sum, line) => sum + line.debitCents, 0);
+
+  const entries: Array<{
+    label: string;
+    category: NetWorthWaterfallLine['category'];
+    amount: MoneyCents;
+  }> = [];
+
+  if (checkingNet > 0) {
+    entries.push({
+      label: partner ? 'Partner net pay to checking' : 'Net pay to checking',
+      category: 'income',
+      amount: checkingNet,
+    });
   }
-  if (tx.id.includes('-rent')) {
-    return { label: 'Rent', category: 'expense' };
+  if (deferral401k > 0) {
+    entries.push({
+      label: partner ? 'Partner 401(k) deferrals' : '401(k) deferrals',
+      category: 'income',
+      amount: deferral401k,
+    });
   }
-  if (tx.id.includes('-childcare')) {
-    return { label: 'Childcare', category: 'expense' };
-  }
-  if (tx.source === 'interest_expense') {
-    return { label: 'Credit card interest', category: 'expense' };
-  }
-  return { label: tx.description, category: 'other' };
+
+  return entries;
 }
 
 function waterfallEntriesForTransaction(
   tx: LedgerTransaction,
 ): Array<{ label: string; category: NetWorthWaterfallLine['category']; amount: MoneyCents }> {
+  if (tx.source === 'income') {
+    return payrollWaterfallEntries(tx);
+  }
+
+  if (tx.source === 'investment_return') {
+    const delta = transactionNetWorthDelta(tx);
+    if (delta === 0) {
+      return [];
+    }
+    return [{ label: 'Investment returns', category: 'growth', amount: delta }];
+  }
+
   if (tx.source === 'debt_payment') {
     const interest = tx.lines
       .filter((line) => line.accountId === 'expense:studentLoanInterest')
@@ -88,13 +127,41 @@ function waterfallEntriesForTransaction(
     return [];
   }
 
+  if (tx.id.includes('-rent')) {
+    const rent = tx.lines
+      .filter((line) => line.accountId === 'expense:rent')
+      .reduce((sum, line) => sum + line.debitCents, 0);
+    if (rent > 0) {
+      return [{ label: 'Rent', category: 'expense', amount: -rent }];
+    }
+    return [];
+  }
+
+  if (tx.id.includes('-childcare')) {
+    const childcare = tx.lines
+      .filter((line) => line.accountId === 'expense:childcare')
+      .reduce((sum, line) => sum + line.debitCents, 0);
+    if (childcare > 0) {
+      return [{ label: 'Childcare', category: 'expense', amount: -childcare }];
+    }
+    return [];
+  }
+
+  if (tx.source === 'interest_expense') {
+    const interest = tx.lines
+      .filter((line) => line.accountId === 'expense:creditCardInterest')
+      .reduce((sum, line) => sum + line.debitCents, 0);
+    if (interest > 0) {
+      return [{ label: 'Credit card interest', category: 'expense', amount: -interest }];
+    }
+  }
+
   const delta = transactionNetWorthDelta(tx);
   if (delta === 0) {
     return [];
   }
 
-  const { label, category } = waterfallKey(tx);
-  return [{ label, category, amount: delta }];
+  return [{ label: tx.description, category: 'other', amount: delta }];
 }
 
 export function buildWaterfallFromTransactions(
@@ -120,6 +187,14 @@ export function buildWaterfallFromTransactions(
     if (orderDiff !== 0) {
       return orderDiff;
     }
+    const incomeOrder = (label: string): number => {
+      if (label.includes('Net pay')) return 0;
+      if (label.includes('401(k)')) return 1;
+      return 2;
+    };
+    if (a.category === 'income' && b.category === 'income') {
+      return incomeOrder(a.label) - incomeOrder(b.label);
+    }
     return a.label.localeCompare(b.label);
   });
 }
@@ -140,41 +215,16 @@ export function buildContributionProgress(accounts: Accounts): Record<string, Co
   };
 }
 
-function sumNominalDebits(transactions: LedgerTransaction[], accountId: string): MoneyCents {
-  return transactions.reduce((sum, tx) => {
-    const lineSum = tx.lines
-      .filter((line) => line.accountId === accountId)
-      .reduce((lineTotal, line) => lineTotal + line.debitCents, 0);
-    return sum + lineSum;
-  }, 0);
-}
-
-
 function computeEmergencyRunwayMonths(
   accounts: Accounts,
   transactions: LedgerTransaction[],
   months: number,
 ): number {
-  const rent = sumNominalDebits(transactions, 'expense:rent');
-  const childcare = sumNominalDebits(transactions, 'expense:childcare');
-  const withholding = sumNominalDebits(transactions, 'expense:federalWithholding');
-  const fica = sumNominalDebits(transactions, 'expense:fica');
-  const ccInterest = sumNominalDebits(transactions, 'expense:creditCardInterest');
-  const slInterest = sumNominalDebits(transactions, 'expense:studentLoanInterest');
-  const slPrincipal = transactions
-    .filter((tx) => tx.source === 'debt_payment')
-    .reduce((sum, tx) => {
-      const principal = tx.lines
-        .filter((line) => line.accountId.startsWith('studentLoan:'))
-        .reduce((lineTotal, line) => lineTotal + line.debitCents, 0);
-      return sum + principal;
-    }, 0);
-
-  const monthlyBurn = (rent + childcare + withholding + fica + ccInterest + slInterest + slPrincipal) / months;
-  if (monthlyBurn <= 0) {
-    return Infinity;
-  }
-  return accounts.checking.balance / monthlyBurn;
+  return computeEmergencyRunwayBreakdown({
+    checkingBalanceCents: accounts.checking.balance,
+    transactions,
+    periodMonths: months,
+  }).months;
 }
 
 export function monthKeyFromIsoDate(isoDate: IsoDate): string {

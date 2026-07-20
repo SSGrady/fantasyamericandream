@@ -64,9 +64,14 @@
       "netWorthDelta": 1927261,
       "waterfall": [
         {
-          "label": "W2 payroll (net + deferrals)",
+          "label": "Net pay to checking",
           "category": "income",
-          "amount": 2900622
+          "amount": 2675622
+        },
+        {
+          "label": "401(k) deferrals",
+          "category": "income",
+          "amount": 225000
         },
         {
           "label": "Credit card interest",

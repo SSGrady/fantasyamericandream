@@ -1,7 +1,7 @@
 ---
 id: T017
 title: Housing arrangement + rent split
-status: open
+status: done
 type: feature
 priority: P1
 epic: E002
@@ -32,3 +32,7 @@ Flat state rent (e.g. $2500 LA) ignores roommate and partner splits. Character c
 ## Notes
 
 Grill-me resolutions in [housing-rent-system.md](../../docs/specifications/housing-rent-system.md). Phase V1.2.
+
+## Completion
+
+2026-07-19: Added `V1HousingArrangement`, `packages/shared/src/types/housing-rent.ts`, character creator TraitGrid, `build-game-state` rent split, `LocationState.marketRentMonthly` + player share on `rentPaymentMonthly`. Tests in `packages/shared/src/__tests__/housing-rent.test.ts`.

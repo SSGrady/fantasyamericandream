@@ -54,6 +54,7 @@ describe('tickSixMonthsWithSimulation dual income', () => {
         stateCode: 'CA' as const,
         metroId: 'los_angeles',
         housingMode: 'rent' as const,
+        marketRentMonthly: 2_500_00,
         rentPaymentMonthly: 2_500_00,
       },
       household,

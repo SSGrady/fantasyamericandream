@@ -11,7 +11,10 @@ import {
   V1_MARITAL_OPTIONS,
   V1_STATE_OPTIONS,
   centsToDollars,
+  defaultHousingArrangement,
   dollarsToCents,
+  housingOptionsForMaritalStatus,
+  isHousingArrangementAllowed,
   type V1CharacterDraft,
   type V1StarterScenarioId,
 } from '@fad/shared';
@@ -134,17 +137,33 @@ export function CreatePageClient() {
         description="Household shape for life-module simulations."
         options={V1_MARITAL_OPTIONS}
         value={draft.maritalStatus}
-        onChange={(maritalStatus) =>
+        onChange={(maritalStatus) => {
+          const housingArrangement = isHousingArrangementAllowed(
+            draft.housingArrangement,
+            maritalStatus,
+          )
+            ? draft.housingArrangement
+            : defaultHousingArrangement(maritalStatus);
           updateDraft({
             maritalStatus,
+            housingArrangement,
             relationshipSimulation:
               maritalStatus === 'married' ? draft.relationshipSimulation : false,
             partnerIncomeAnnual: maritalStatus === 'single' ? 0 : draft.partnerIncomeAnnual,
             childrenPlanned: maritalStatus === 'single' ? draft.childrenPlanned : false,
             dependentsCount:
               maritalStatus === 'single' && !draft.childrenPlanned ? 0 : draft.dependentsCount,
-          })
-        }
+          });
+        }}
+      />
+
+      <TraitGrid
+        label="Housing arrangement"
+        description="How you split market rent and utilities. Your share posts to expense:rent each month."
+        options={housingOptionsForMaritalStatus(draft.maritalStatus)}
+        value={draft.housingArrangement}
+        onChange={(housingArrangement) => updateDraft({ housingArrangement })}
+        columns={2}
       />
 
       {draft.maritalStatus === 'single' ? (

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { ImpactAnalysisCards } from '../../../components/play/ImpactAnalysisCards';
 import { MetricsRibbon } from '../../../components/play/MetricsRibbon';
 import { usePlaySession } from '../../../lib/use-play-session';
-import { computeRibbonMetrics, hasUnlockedSkill } from '../../../lib/play-session';
+import { computeMetricBreakdown, computeRibbonMetrics, hasUnlockedSkill } from '../../../lib/play-session';
 
 export function AnalysisPageClient() {
   const router = useRouter();
@@ -20,6 +20,7 @@ export function AnalysisPageClient() {
 
   const audit = session.currentAudit;
   const metrics = computeRibbonMetrics(audit, session.gameState);
+  const breakdown = computeMetricBreakdown(audit, session.gameState);
   const emphasizeSavingsRate = hasUnlockedSkill(session, 'investing_i');
 
   return (
@@ -36,7 +37,9 @@ export function AnalysisPageClient() {
 
       <ImpactAnalysisCards
         audit={audit}
-        metrics={metrics}
+        breakdown={breakdown}
+        housingBurdenPct={metrics.housingBurdenPct}
+        rothIra={session.gameState.accounts.rothIra}
         emphasizeSavingsRate={emphasizeSavingsRate}
       />
 

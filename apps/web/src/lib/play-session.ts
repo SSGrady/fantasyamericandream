@@ -1,5 +1,11 @@
 import type { AuditSnapshot, GameState, LiteracySkillId, LiteracyProgress, SampledEventOccurrence, SimulationEndReason } from '@fad/shared';
 import { createDefaultLiteracyProgress, DEFAULT_HOUSEHOLD, LITERACY_SKILL_STUBS } from '@fad/shared';
+import type {
+  EmergencyRunwayBreakdown,
+  HousingBurdenBreakdown,
+  MetricBreakdownLine,
+  SavingsRateBreakdown,
+} from '@fad/ledger';
 import type { TickSixMonthsResult } from '@fad/sim-engine';
 import type { V1CharacterDraft, V1RunConfig } from '@fad/shared';
 import { buildInitialGameState } from './build-game-state';
@@ -63,6 +69,90 @@ export interface RibbonMetrics {
   emergencyRunwayMonths: number;
   housingBurdenPct: number;
   dti: number;
+}
+
+export interface MetricBreakdown {
+  savingsRate: SavingsRateBreakdown;
+  housingBurden: HousingBurdenBreakdown;
+  emergencyRunway: EmergencyRunwayBreakdown;
+}
+
+function sumWaterfallLabels(waterfall: AuditSnapshot['waterfall'], labels: string[]): number {
+  return waterfall
+    .filter((line) => labels.includes(line.label))
+    .reduce((sum, line) => sum + line.amount, 0);
+}
+
+export function computeMetricBreakdown(
+  audit: AuditSnapshot,
+  gameState: GameState,
+  periodMonths = 6,
+): MetricBreakdown {
+  const periodNetPayCents = audit.periodNetPayCents;
+  const deferrals = sumWaterfallLabels(audit.waterfall, ['401(k) deferrals', 'Partner 401(k) deferrals']);
+  const savingsInflowsCents = Math.round(audit.savingsRate * periodNetPayCents);
+
+  const savingsRate: SavingsRateBreakdown = {
+    savingsInflowsCents,
+    periodNetPayCents,
+    rate: audit.savingsRate,
+    formula:
+      'Sum of payroll 401(k) deferrals and post-payday transfers to HYSA, brokerage, Roth, or HSA, divided by net pay deposited to checking. Investment returns are excluded.',
+    lines: [
+      { label: 'Net pay to checking (denominator)', amountCents: periodNetPayCents },
+      ...(deferrals > 0 ? [{ label: '401(k) payroll deferrals', amountCents: deferrals }] : []),
+      ...(savingsInflowsCents > deferrals
+        ? [
+            {
+              label: 'Other savings transfers',
+              amountCents: savingsInflowsCents - deferrals,
+            },
+          ]
+        : []),
+    ],
+  };
+
+  const periodRentShareCents = Math.abs(sumWaterfallLabels(audit.waterfall, ['Rent']));
+  const monthlyNetPayCents = periodMonths > 0 ? periodNetPayCents / periodMonths : 0;
+  const monthlyRentShareCents = periodMonths > 0 ? periodRentShareCents / periodMonths : 0;
+
+  const housingBurden: HousingBurdenBreakdown = {
+    periodRentShareCents,
+    periodNetPayCents,
+    monthlyRentShareCents,
+    monthlyNetPayCents,
+    rate: monthlyNetPayCents > 0 ? monthlyRentShareCents / monthlyNetPayCents : 0,
+    formula: 'Player rent share from expense:rent postings divided by monthly net pay.',
+    lines: [
+      { label: 'Rent (player share, numerator)', amountCents: periodRentShareCents },
+      { label: 'Net pay to checking (denominator basis)', amountCents: periodNetPayCents },
+    ],
+  };
+
+  const burnLines: MetricBreakdownLine[] = audit.waterfall
+    .filter(
+      (line) =>
+        line.category === 'expense' ||
+        (line.category === 'debt' && line.label.includes('Student loan')),
+    )
+    .map((line) => ({
+      label: line.label,
+      amountCents: Math.abs(line.amount),
+    }));
+
+  const periodBurn = burnLines.reduce((sum, line) => sum + line.amountCents, 0);
+  const monthlyBurnCents = periodMonths > 0 ? periodBurn / periodMonths : 0;
+
+  const emergencyRunway: EmergencyRunwayBreakdown = {
+    checkingBalanceCents: gameState.accounts.checking.balance,
+    monthlyBurnCents,
+    months: audit.emergencyRunwayMonths,
+    formula:
+      'Checking balance divided by monthly essential burn from the audit period. Burn includes rent, childcare, payroll taxes, and debt service. Discretionary living expenses are not modeled in V0/V1.',
+    burnComponents: burnLines,
+  };
+
+  return { savingsRate, housingBurden, emergencyRunway };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
