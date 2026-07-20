@@ -1,7 +1,7 @@
 ---
 id: T104
 title: ChapterPeriod state model
-status: open
+status: done
 type: feature
 priority: P2
 epic: E015

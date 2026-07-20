@@ -3,6 +3,7 @@ import type {
   AuditSnapshot,
   GameState,
   IsoDate,
+  LifePriorityId,
   LiteracySkillId,
   LiteracyProgress,
   SampledEventOccurrence,
@@ -89,4 +90,8 @@ export interface RunState {
   decisionLog: DecisionRecord[];
   activeInterrupt: ChapterInterrupt | null;
   chapterLessonUnlock: LiteracySkillId | null;
+  /** Top 3 priorities from onboarding; drives delta badges. */
+  lifePriorities?: LifePriorityId[];
+  /** Months completed during simulating stage (0-6). */
+  monthsCompleted?: number;
 }

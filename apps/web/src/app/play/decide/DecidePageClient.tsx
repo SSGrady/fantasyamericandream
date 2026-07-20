@@ -1,9 +1,12 @@
 'use client';
 
-import { chapterShellPathWithStage } from '@fad/domain';
+import { chapterShellPathWithStage, chapterSimMonthLabels } from '@fad/domain';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { DirectionalPreview } from '../../../components/play/DirectionalPreview';
 import { LiteracyQuizStub } from '../../../components/play/LiteracyQuizStub';
+import { LiveMonthRail } from '../../../components/play/LiveMonthRail';
+import { PriorityDeltaBadges } from '../../../components/play/PriorityDeltaBadges';
 import { formatMoney } from '../../../lib/format-money';
 import {
   commitCommandDraft,
@@ -19,6 +22,11 @@ import {
   type PendingDecision,
 } from '../../../lib/play-session';
 import { usePlaySession } from '../../../lib/use-play-session';
+import {
+  filterDeltasForPriorities,
+  interruptChoiceDeltas,
+  planChoiceDeltas,
+} from '../../../lib/priority-deltas';
 
 export function DecidePageClient() {
   const router = useRouter();
@@ -127,6 +135,12 @@ export function DecidePageClient() {
     };
   }, [session, deferralFromCommands, commandEffect]);
 
+  const months = session ? chapterSimMonthLabels(session.chapterPeriod) : [];
+  const planDeltas = filterDeltasForPriorities(
+    planChoiceDeltas('commit_plan'),
+    session?.lifePriorities,
+  );
+
   if (!ready || !session) {
     return (
       <div className="rounded-lg border border-border bg-card p-6 text-muted shadow-sm">
@@ -173,64 +187,61 @@ export function DecidePageClient() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-        <p className="text-sm font-medium text-accent">Decision day</p>
-        <h2 className="mt-1 font-serif text-2xl text-ink">Set persistent commands</h2>
-        <p className="mt-3 text-muted">
-          Review required and optional decisions for this chapter. Persistent commands were set on
-          the planning screen.
-        </p>
-      </div>
-
-      {session.activeInterrupt ? (
-        <div className="rounded-lg border border-warning/40 bg-warning/5 p-5 shadow-sm">
-          <p className="text-sm font-medium text-warning">Chapter interrupt</p>
-          <h3 className="mt-1 font-serif text-lg text-ink">{session.activeInterrupt.title}</h3>
-          <p className="mt-2 text-sm text-muted">{session.activeInterrupt.description}</p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {session.activeInterrupt.type === 'return_to_office' ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setSession(resolveChapterInterrupt(session, 'accept-rto'))}
-                  className="rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-ink hover:border-accent/40"
-                >
-                  Accept RTO (-4h/wk capacity)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSession(resolveChapterInterrupt(session, 'negotiate-hybrid'))}
-                  className="rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-ink hover:border-accent/40"
-                >
-                  Negotiate hybrid (-2h/wk)
-                </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setSession(resolveChapterInterrupt(session, 'acknowledge'))}
-                className="rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-ink hover:border-accent/40"
-              >
-                Acknowledge and continue
-              </button>
-            )}
-          </div>
-        </div>
+      {months.length > 0 ? (
+        <LiveMonthRail
+          months={months}
+          activeIndex={0}
+          interrupt={session.activeInterrupt}
+          interruptPending={Boolean(session.activeInterrupt)}
+          onInterruptResolve={(choiceId) => {
+            const resolved = resolveChapterInterrupt(session, choiceId);
+            const deltas = session.activeInterrupt
+              ? filterDeltasForPriorities(
+                  interruptChoiceDeltas(session.activeInterrupt, choiceId),
+                  session.lifePriorities,
+                )
+              : [];
+            const logged = recordDecision(resolved, 'interrupt_resolved', {
+              interruptId: session.activeInterrupt?.id,
+              choiceId,
+              priorityDeltas: deltas,
+            });
+            setSession(logged);
+          }}
+        />
       ) : null}
 
-      <LiteracyQuizStub answered={session.literacyQuizAnswered ?? false} onAnswer={handleQuizAnswer} />
-
-      <div className="rounded-lg border border-dashed border-border bg-surface p-4 shadow-sm">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted">Consequence preview</p>
-        <p className="mt-1 text-sm text-ink">
-          {previewLoading
-            ? 'Updating preview…'
-            : previewReason
-              ? previewReason
-              : previewDelta === null
-                ? 'Adjust commands to see six-month deltas.'
-                : `Net worth ${formatMoney(previewDelta, { signed: true })} · Runway ${previewRunway !== null && previewRunway >= 0 ? '+' : ''}${previewRunway?.toFixed(1) ?? '0.0'} mo vs baseline`}
+      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <p className="text-sm font-medium text-accent">Decision day</p>
+        <h2 className="mt-1 font-serif text-2xl text-ink">Commit and live the chapter</h2>
+        <p className="mt-3 text-muted">
+          Review your plan, resolve any interrupts on the timeline, then submit to run the six-month
+          window.
         </p>
+        {planDeltas.length > 0 ? (
+          <div className="mt-3">
+            <PriorityDeltaBadges deltas={planDeltas} />
+          </div>
+        ) : null}
+      </div>
+
+      <LiteracyQuizStub
+        answered={session.literacyQuizAnswered ?? false}
+        onAnswer={handleQuizAnswer}
+        eventContext={session.activeInterrupt?.type ?? 'decision_day'}
+      />
+
+      <div className="card-preview rounded-lg border border-dashed border-border bg-surface p-4 shadow-sm">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted">Consequence preview</p>
+        <div className="mt-2">
+          <DirectionalPreview
+            deltaNetWorth={previewDelta}
+            deltaRunwayMonths={previewRunway}
+            isFlat={previewDelta === 0}
+            flatReason={previewReason}
+            loading={previewLoading}
+          />
+        </div>
       </div>
 
       <div className="space-y-4">

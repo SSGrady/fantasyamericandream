@@ -1,7 +1,7 @@
 ---
 id: E015
 title: Live Chapter Simulation
-status: open
+status: done
 priority: P3
 sprints:
   - S018

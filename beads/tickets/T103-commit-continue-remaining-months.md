@@ -1,7 +1,7 @@
 ---
 id: T103
 title: Commit and continue months
-status: open
+status: done
 type: feature
 priority: P2
 epic: E015

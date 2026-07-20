@@ -1,7 +1,7 @@
 ---
 id: T101
 title: Timeline interrupt overlay
-status: open
+status: done
 type: feature
 priority: P2
 epic: E015

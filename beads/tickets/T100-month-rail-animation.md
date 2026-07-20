@@ -1,7 +1,7 @@
 ---
 id: T100
 title: Month rail animation
-status: open
+status: done
 type: feature
 priority: P2
 epic: E015

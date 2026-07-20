@@ -298,6 +298,8 @@ export function initializePlaySession(
     decisionLog: [],
     activeInterrupt: null,
     chapterLessonUnlock: null,
+    lifePriorities: draft.lifePriorities?.slice(0, 3),
+    monthsCompleted: 0,
   };
   savePlaySession(session);
   return session;
@@ -713,6 +715,19 @@ export function acceptJobOffer(session: PlaySession, offerId: string): PlaySessi
 /** @deprecated Use acceptJobOffer */
 export function applyJobOfferToSession(session: PlaySession, offerId: string): PlaySession {
   return acceptJobOffer(session, offerId);
+}
+
+export function rollChapterInterruptForSession(session: PlaySession): PlaySession {
+  if (session.activeInterrupt) return session;
+  const interrupt = rollChapterInterrupt(
+    CA_ENGINEER_2026,
+    session.gameState.run.randomSeed,
+    session.periodIndex,
+  );
+  if (!interrupt) return session;
+  const next = { ...session, activeInterrupt: interrupt };
+  savePlaySession(next);
+  return next;
 }
 
 export function resolveChapterInterrupt(

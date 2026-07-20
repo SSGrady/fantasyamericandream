@@ -4,6 +4,7 @@ export { chapterShellPath, chapterShellPathWithStage, legacyRouteToShell, chapte
 export { appendDecisionRecord, createDecisionRecord, hashDecisionPayload } from './decision-record/append.js';
 export type { DecisionActionType, DecisionRecord } from './decision-record/types.js';
 export { CA_ENGINEER_2026, getChapterDefinition } from './chapter/ca-engineer-2026.js';
+export { chapterSimMonthLabels, interruptMonthIndex } from './chapter/timeline.js';
 export { evaluateChapterLessonUnlock } from './chapter/lesson-unlocks.js';
 export {
   applyInterruptCapacityDelta,
