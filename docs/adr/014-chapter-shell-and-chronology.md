@@ -10,93 +10,70 @@ Proposed
 
 ## Context
 
-V1.5 shipped the consequence pipeline (ADR-010, ADR-013) across eight serial play routes. AI playthrough review (T078 batch) verdict: materially better than V1, but still feels like a **financial documents workflow**, not living through a chapter.
-
-Primary gaps:
-
-1. **Chronology** - Opening briefing Jan 1 vs chapter close Jul 31; planning available after simulation.
-2. **Identity** - Counterfactual branches infer offer from UI instead of persisted `acceptedOfferId`.
-3. **Continuity** - Eight full-page routes (briefing, planning, processing, analysis, reactions, counterfactual, audit, dashboard) break narrative flow.
-4. **Interaction density** - Planning is static forms; simulation is batch Processing; interrupts sit on Decision Day instead of the timeline.
+V1.5 playthrough feedback: the loop still felt like "financial documents workflow." Opening briefing showed Jul 31 close results before planning; counterfactual inferred offers from UI state; metrics drifted across pages. V1.6 Continuity Pass fixes trust (P0) before chapter shell UX (P1+).
 
 ## Decision
 
-Adopt a **persistent chapter shell** and strict **period lifecycle** as the V1.6 (Continuity Pass) north star.
-
-### Route model
-
-Single primary route:
+### Chronology invariant
 
 ```
-/play/:runId/chapter/:chapterNumber
+openingBriefing (Jan 1 start state)
+  → planning (Feb–Jul policy)
+  → simulating (six-month tick)
+  → chapterClose (Jul 31 audit + tabs)
 ```
 
-Legacy routes redirect into shell panels or serve as tab content sources during migration.
-
-### Stage pipeline
-
-Replace ADR-013 seven-route pipeline with four in-shell stages:
-
-```
-openingBriefing → planning → simulating (live) → chapterClose
-```
-
-| Stage | Purpose |
-|-------|---------|
-| openingBriefing | Stakes, calendar anchor (Jan 1), editorial hook |
-| planning | Money + time policies, live projections, Commit plan CTA |
-| simulating | Month rail Feb-Jul, interrupt overlays, directional previews |
-| chapterClose | Tabbed merge: Story \| Money \| What If? \| Voices \| Lesson |
-
-Interrupt handling: `simulating → planning` on INTERRUPT, DecisionRecord logged, `RESUME → simulating` through remaining months.
+Never offer planning for a period that is `in_progress` or `closed`. Opening briefing never runs simulation on load.
 
 ### ChapterPeriod lifecycle
 
 ```typescript
-type ChapterPeriodStatus = 'planned' | 'in_progress' | 'closed';
+interface ChapterPeriod {
+  openingDate: IsoDate;   // period start anchor (e.g. 2026-01-01)
+  closingDate: IsoDate;   // period end anchor (e.g. 2026-07-31)
+  status: 'planned' | 'in_progress' | 'closed';
+}
 ```
 
-- Plan stage blocked when status is `closed` or when sim already committed for period.
-- Never plan a closed period.
+| Status | Allowed routes |
+|--------|----------------|
+| planned | opening briefing, planning, decide |
+| in_progress | processing only |
+| closed | analysis, reactions, counterfactual, audit, dashboard |
 
-### Authoritative state
+### RunState and selectors
 
-- **RunState** - single client model (E020 T086)
-- **Selector layer** - all surfaces read `selectNetWorth`, `selectLiquidRunway`, `selectContributionProgress`, etc. (T087)
-- **DecisionRecord** - append-only log for offer acceptance, plan commits, interrupt responses (T088)
+Single authoritative `RunState` blob replaces scattered session keys. UI reads metrics only through pure selectors:
 
-### Sticky life rail
+- `selectNetWorth`
+- `selectLiquidRunway`
+- `selectContributionProgress`
+- `selectChoiceAttribution`
 
-Persistent rail across all stages: job, runway, capacity, goals, open threads. Values from selectors only.
+### Four-stage chapter shell (P1)
 
-### Financial attribution invariant
-
-Ending net worth delta must reconcile:
+Persistent route `/play/chapter/:n` with panel state:
 
 ```
-deltaNW = choice + market + lifestyle + events
+openingBriefing | planning | simulating | chapterClose
 ```
 
-Enforced by Vitest invariant (T082) and cross-page consistency (T085).
+Chapter Close merges analysis, reactions, counterfactual, audit into tabbed panels: Story | Money | What If | Voices | Lesson.
+
+### Identity invariants
+
+- `acceptedOfferId` written at offer acceptance; immutable except explicit interrupt path
+- Counterfactual reads stored id, never infers from career title or card index
+- Zero-preview gate blocks silent flat impact previews
 
 ## Consequences
 
-- Beads epics E012-E020, sprints S015-S022, tickets T079-T128.
-- ADR-013 route table superseded for player-facing flow; XState machine updated (T089).
-- E004/E008 work remains foundation; E012/E016 extend trust and visual semantics.
-- PLAN.md V1.6 Continuity Pass section tracks delivery.
-
-## Alternatives Considered
-
-- **Polish existing eight routes only** - rejected; does not fix continuity or interaction density.
-- **Monthly player turns** - rejected; ADR-004 six-month cadence unchanged; shell wraps the window.
-- **Server-side RunState first** - rejected for V1.6; client Dexie authoritative with selector layer.
+- S015 ships chronology, RunState, selectors, attribution tests before S016 shell routes
+- ADR-013 seven-route pipeline remains until S016 migrates to chapter shell
+- Dexie persistence targets RunState blob (extends T076)
 
 ## Related
 
-- [ADR 010](./010-game-loop-and-consequence-pipeline.md)
-- [ADR 013](./013-chapter-workflow.md) - prior route model
+- [ADR 013](./013-chapter-workflow.md)
 - [E012](../../beads/epics/E012-trust-data-integrity-v16.md)
 - [E013](../../beads/epics/E013-persistent-chapter-shell.md)
-- [E004](../../beads/epics/E004-trust-metric-integrity.md)
-- [E008](../../beads/epics/E008-consequence-theater-visual-design.md)
