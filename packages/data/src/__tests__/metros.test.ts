@@ -19,12 +19,13 @@ describe('metro rent anchors', () => {
     expect(la?.zoriMonthlyUsd).toBe(1354.7);
   });
 
-  it('applies metro multiplier in market rent sampling', () => {
+  it('uses COL tier bands for player-facing CA rents', () => {
     const caRent = sampleMarketRentMonthly('CA', 'metro-seed');
-    const txRent = sampleMarketRentMonthly('TX', 'metro-seed');
     expect(getMetroRentMultiplier('los_angeles')).toBeLessThan(1);
     expect(metroIdForState('CA')).toBe('los_angeles');
-    expect(caRent).toBeGreaterThan(50_00);
+    expect(caRent).toBeGreaterThanOrEqual(220_000);
+    expect(caRent).toBeLessThanOrEqual(432_000);
+    const txRent = sampleMarketRentMonthly('TX', 'metro-seed');
     expect(caRent).not.toBe(txRent);
   });
 });

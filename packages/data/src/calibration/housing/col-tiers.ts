@@ -1,5 +1,5 @@
 import type { MoneyCents, UsStateCode } from '@fad/shared';
-import { getMetroRentMultiplier } from './metros.js';
+import { getMetroRentAnchor } from './metros.js';
 
 export type ColTier = 'VHCOL' | 'HCOL' | 'MCOL' | 'LCOL';
 
@@ -9,7 +9,7 @@ export interface ColTierRentBand {
   maxMonthlyCents: MoneyCents;
 }
 
-/** Monthly rent bands by COL tier (calibration-2026 anchors). */
+/** Monthly rent bands by COL tier (player-facing calibration-2026). */
 export const COL_TIER_RENT_BANDS: Record<ColTier, ColTierRentBand> = {
   VHCOL: { tier: 'VHCOL', minMonthlyCents: 220_000, maxMonthlyCents: 320_000 },
   HCOL: { tier: 'HCOL', minMonthlyCents: 160_000, maxMonthlyCents: 240_000 },
@@ -17,7 +17,7 @@ export const COL_TIER_RENT_BANDS: Record<ColTier, ColTierRentBand> = {
   LCOL: { tier: 'LCOL', minMonthlyCents: 90_000, maxMonthlyCents: 150_000 },
 };
 
-/** V0 state set mapped to COL tier (metro overrides deferred to T019). */
+/** V0 state set mapped to COL tier. */
 export const STATE_COL_TIER: Record<UsStateCode, ColTier> = {
   CA: 'VHCOL',
   NY: 'VHCOL',
@@ -54,16 +54,22 @@ function seededUniform(seed: string, salt: string): number {
   return state / 0x100000000;
 }
 
-/** Deterministic market rent draw fixed at character create (same seed + state → same rent). */
+/**
+ * Player-facing market rent from COL tier bands.
+ * Metro ZORI anchors inform relative pricing in rental listings, not a down-multiplier here.
+ */
 export function sampleMarketRentMonthly(stateCode: UsStateCode, seed: string): MoneyCents {
   const tier = STATE_COL_TIER[stateCode];
   const band = COL_TIER_RENT_BANDS[tier];
   const u = seededUniform(seed, `col-rent-${stateCode}`);
   const raw = band.minMonthlyCents + u * (band.maxMonthlyCents - band.minMonthlyCents);
-  const stateBaseline = Math.max(50_00, Math.round(raw / 25_00) * 25_00);
   const metroId = metroIdForState(stateCode);
-  const multiplier = getMetroRentMultiplier(metroId);
-  const adjusted = stateBaseline * multiplier;
+  const anchor = getMetroRentAnchor(metroId);
+  const metroScale =
+    anchor && tier === 'VHCOL'
+      ? Math.min(1.35, Math.max(0.92, anchor.zoriMonthlyUsd / 1800))
+      : 1;
+  const adjusted = raw * metroScale;
   return Math.max(50_00, Math.round(adjusted / 25_00) * 25_00);
 }
 
@@ -74,3 +80,5 @@ export function metroIdForState(stateCode: UsStateCode): string {
 export function colTierForState(stateCode: UsStateCode): ColTier {
   return STATE_COL_TIER[stateCode];
 }
+
+export { getMetroRentAnchor, getMetroRentMultiplier } from './metros.js';

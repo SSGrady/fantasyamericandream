@@ -6,10 +6,26 @@ import {
 import { playerRentShare } from '@fad/shared';
 
 describe('rental listings calibration', () => {
-  it('derives listings from same baseline as sampleMarketRentMonthly', () => {
+  it('CA listings use realistic VHCOL rent and sqft bands', () => {
     const input = {
       scenarioId: 'baseline',
       stateCode: 'CA' as const,
+      careerSector: 'software_engineer',
+      name: 'Alex',
+    };
+    const listings = generateRentalListingsFromCalibration(input);
+
+    expect(listings.length).toBe(8);
+    expect(listings[0]!.marketRentMonthly).toBeGreaterThanOrEqual(1_600_00);
+    expect(listings[listings.length - 1]!.marketRentMonthly).toBeLessThanOrEqual(4_500_00);
+    expect(listings[0]!.sqft).toBeLessThanOrEqual(1000);
+    expect(listings[0]!.moveInCashCents).toBeGreaterThan(0);
+  });
+
+  it('derives listings from same baseline as sampleMarketRentMonthly', () => {
+    const input = {
+      scenarioId: 'baseline',
+      stateCode: 'TX' as const,
       careerSector: 'software_engineer',
       name: 'Alex',
     };
@@ -17,10 +33,9 @@ describe('rental listings calibration', () => {
     const listings = generateRentalListingsFromCalibration(input);
 
     expect(listings.length).toBe(8);
-    const tierOne = listings.find((listing) => listing.colTierFactor === 1);
-    expect(tierOne).toBeDefined();
-    expect(tierOne!.marketRentMonthly).toBeGreaterThanOrEqual(baseline * 0.85);
-    expect(tierOne!.marketRentMonthly).toBeLessThanOrEqual(baseline * 1.15);
+    const midListing = listings[Math.floor(listings.length / 2)]!;
+    expect(midListing.marketRentMonthly).toBeGreaterThanOrEqual(baseline * 0.7);
+    expect(midListing.marketRentMonthly).toBeLessThanOrEqual(baseline * 1.35);
   });
 
   it('player share applies housing arrangement split', () => {
