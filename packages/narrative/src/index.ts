@@ -1,4 +1,4 @@
-export { renderBriefingHeadline } from './briefing.js';
+export { renderBriefingHeadline, renderBriefingEventsSummary } from './briefing.js';
 export {
   renderFeePlannerReaction,
   renderFutureYouReaction,

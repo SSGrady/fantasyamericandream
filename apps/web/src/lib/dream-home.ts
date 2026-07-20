@@ -1,0 +1,244 @@
+import type { GameState, MoneyCents, UsStateCode } from '@fad/shared';
+
+export type DreamHomeKnowledgeMode = 'guardrails' | 'acknowledge' | 'sandbox';
+
+export interface DreamHomeListing {
+  id: string;
+  address: string;
+  city: string;
+  stateCode: UsStateCode;
+  priceCents: MoneyCents;
+  beds: number;
+  baths: number;
+  sqft: number;
+  propertyTaxRate: number;
+  hoaMonthlyCents: MoneyCents;
+  commuteMinutes: number;
+  schoolRating: number;
+}
+
+export interface AffordabilityGateResult {
+  id: string;
+  label: string;
+  passed: boolean;
+  detail: string;
+  critical: boolean;
+}
+
+export interface ListingAffordability {
+  listing: DreamHomeListing;
+  downPaymentCents: MoneyCents;
+  closingCostsCents: MoneyCents;
+  moveAndFurnishCents: MoneyCents;
+  cashToCloseCents: MoneyCents;
+  pitiMonthlyCents: MoneyCents;
+  gates: AffordabilityGateResult[];
+  passCount: number;
+  blockedInGuardrails: boolean;
+}
+
+const STATE_MEDIAN_PRICE: Record<UsStateCode, number> = {
+  CA: 850_000_00,
+  NY: 620_000_00,
+  WA: 720_000_00,
+  TX: 380_000_00,
+  FL: 410_000_00,
+  GA: 340_000_00,
+  IL: 360_000_00,
+  NC: 390_000_00,
+  SC: 320_000_00,
+  TN: 350_000_00,
+};
+
+const STATE_PROPERTY_TAX: Record<UsStateCode, number> = {
+  CA: 0.0073,
+  NY: 0.012,
+  WA: 0.0092,
+  TX: 0.018,
+  FL: 0.0089,
+  GA: 0.0091,
+  IL: 0.021,
+  NC: 0.0062,
+  SC: 0.0057,
+  TN: 0.0064,
+};
+
+const STREET_NAMES = [
+  'Oak Lane',
+  'Maple Court',
+  'Cedar Street',
+  'Birch Avenue',
+  'Willow Drive',
+  'Pine Ridge',
+  'Summit View',
+  'Lakefront Way',
+  'Garden Path',
+  'Harbor Circle',
+];
+
+function seededUnit(seed: string, index: number): number {
+  let state = 0;
+  const input = `${seed}:dream:${index}`;
+  for (let i = 0; i < input.length; i += 1) {
+    state = (state + input.charCodeAt(i) * (i + 1)) >>> 0;
+  }
+  state = (state * 1664525 + 1013904223) >>> 0;
+  return state / 0x100000000;
+}
+
+function metroLabel(stateCode: UsStateCode): string {
+  const labels: Record<UsStateCode, string> = {
+    CA: 'Oakland',
+    NY: 'Yonkers',
+    WA: 'Tacoma',
+    TX: 'Round Rock',
+    FL: 'Tampa',
+    GA: 'Marietta',
+    IL: 'Naperville',
+    NC: 'Raleigh',
+    SC: 'Greenville',
+    TN: 'Franklin',
+  };
+  return labels[stateCode];
+}
+
+export function generateDreamHomeListings(
+  gameState: GameState,
+  randomSeed: string,
+  periodIndex: number,
+): DreamHomeListing[] {
+  const stateCode = gameState.location.stateCode;
+  const median = STATE_MEDIAN_PRICE[stateCode];
+  const incomeMultiplier = gameState.career.baseSalaryAnnual / 120_000_00;
+  const listings: DreamHomeListing[] = [];
+
+  for (let i = 0; i < 10; i += 1) {
+    const unit = seededUnit(`${randomSeed}:${periodIndex}`, i);
+    const priceFactor = 0.55 + unit * 1.1;
+    const priceCents = Math.round(median * priceFactor * Math.max(incomeMultiplier, 0.65));
+    const beds = 1 + Math.floor(unit * 3);
+    const baths = 1 + Math.floor(seededUnit(randomSeed, i + 20) * 2);
+    const sqft = 750 + Math.floor(seededUnit(randomSeed, i + 40) * 2200);
+
+    listings.push({
+      id: `listing-${periodIndex}-${i}`,
+      address: `${100 + i * 17} ${STREET_NAMES[i] ?? 'Main Street'}`,
+      city: metroLabel(stateCode),
+      stateCode,
+      priceCents,
+      beds,
+      baths,
+      sqft,
+      propertyTaxRate: STATE_PROPERTY_TAX[stateCode],
+      hoaMonthlyCents: unit > 0.7 ? Math.round(150_00 + unit * 350_00) : 0,
+      commuteMinutes: 15 + Math.floor(seededUnit(randomSeed, i + 60) * 55),
+      schoolRating: 5 + Math.floor(seededUnit(randomSeed, i + 80) * 5),
+    });
+  }
+
+  return listings.sort((a, b) => a.priceCents - b.priceCents);
+}
+
+function estimatePiti(listing: DreamHomeListing, mortgageRate: number, loanCents: MoneyCents): MoneyCents {
+  const monthlyRate = mortgageRate / 12;
+  const months = 360;
+  const principalInterest =
+    monthlyRate === 0
+      ? loanCents / months
+      : (loanCents * monthlyRate * (1 + monthlyRate) ** months) /
+        ((1 + monthlyRate) ** months - 1);
+  const propertyTax = Math.round((listing.priceCents * listing.propertyTaxRate) / 12);
+  const insurance = Math.round(listing.priceCents * 0.003 / 12);
+  return Math.round(principalInterest + propertyTax + insurance + listing.hoaMonthlyCents);
+}
+
+export function evaluateListingAffordability(
+  listing: DreamHomeListing,
+  gameState: GameState,
+  knowledgeMode: DreamHomeKnowledgeMode,
+): ListingAffordability {
+  const mortgageRate = gameState.macro.mortgageRate30y;
+  const downPct = 0.1;
+  const downPaymentCents = Math.round(listing.priceCents * downPct);
+  const loanCents = listing.priceCents - downPaymentCents;
+  const closingCostsCents = Math.round(listing.priceCents * 0.03);
+  const moveAndFurnishCents = 8_000_00;
+  const cashToCloseCents = downPaymentCents + closingCostsCents + moveAndFurnishCents;
+  const liquidCash = gameState.accounts.checking.balance + gameState.accounts.hysa.balance;
+  const grossMonthly = gameState.career.baseSalaryAnnual / 12;
+  const takeHomeMonthly = grossMonthly * 0.72;
+  const pitiMonthlyCents = estimatePiti(listing, mortgageRate, loanCents);
+  const monthlyDebt =
+    gameState.debts.creditCards.reduce((sum, card) => sum + card.minimumPayment, 0) +
+    gameState.debts.studentLoans.reduce((sum, loan) => sum + loan.minimumPayment, 0);
+  const postCloseLiquid = liquidCash - cashToCloseCents;
+  const monthlyBurn = takeHomeMonthly * 0.65;
+  const runwayMonths = monthlyBurn > 0 ? postCloseLiquid / monthlyBurn : 0;
+  const housingRatio = takeHomeMonthly > 0 ? pitiMonthlyCents / takeHomeMonthly : 1;
+  const dti = grossMonthly > 0 ? (pitiMonthlyCents + monthlyDebt) / grossMonthly : 1;
+  const stressPiti = Math.round(pitiMonthlyCents * 1.15 + 7_500_00 / 12);
+  const stressHousingRatio = takeHomeMonthly > 0 ? stressPiti / takeHomeMonthly : 1;
+
+  const gates: AffordabilityGateResult[] = [
+    {
+      id: 'cash_to_close',
+      label: 'Cash to close',
+      passed: liquidCash >= cashToCloseCents,
+      detail: `Need ${formatCents(cashToCloseCents)} (down, closing, move). Liquid: ${formatCents(liquidCash)}.`,
+      critical: true,
+    },
+    {
+      id: 'liquidity_remaining',
+      label: 'Liquidity remaining',
+      passed: postCloseLiquid >= monthlyBurn * 3,
+      detail: `Post-close runway ${runwayMonths.toFixed(1)} months (target 3+).`,
+      critical: true,
+    },
+    {
+      id: 'monthly_affordability',
+      label: 'Monthly affordability (28/36)',
+      passed: housingRatio <= 0.28 && dti <= 0.36,
+      detail: `PITI ${formatCents(pitiMonthlyCents)}/mo (${(housingRatio * 100).toFixed(0)}% of take-home). DTI ${(dti * 100).toFixed(0)}%.`,
+      critical: true,
+    },
+    {
+      id: 'stress_test',
+      label: 'Stress test',
+      passed: stressHousingRatio <= 0.36 && postCloseLiquid >= 7_500_00,
+      detail: `+15% insurance, $7.5k repair, buffer check: ${(stressHousingRatio * 100).toFixed(0)}% housing ratio.`,
+      critical: false,
+    },
+    {
+      id: 'life_fit',
+      label: 'Life fit',
+      passed: listing.commuteMinutes <= 45 && listing.schoolRating >= 6,
+      detail: `${listing.commuteMinutes} min commute, school rating ${listing.schoolRating}/10.`,
+      critical: false,
+    },
+  ];
+
+  const passCount = gates.filter((gate) => gate.passed).length;
+  const criticalFails = gates.filter((gate) => gate.critical && !gate.passed);
+  const blockedInGuardrails =
+    knowledgeMode === 'guardrails' && criticalFails.length > 0;
+
+  return {
+    listing,
+    downPaymentCents,
+    closingCostsCents,
+    moveAndFurnishCents,
+    cashToCloseCents,
+    pitiMonthlyCents,
+    gates,
+    passCount,
+    blockedInGuardrails,
+  };
+}
+
+function formatCents(cents: MoneyCents): string {
+  return `$${(cents / 100).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+}
+
+export function knowledgeModeFromHints(hintsEnabled: boolean): DreamHomeKnowledgeMode {
+  return hintsEnabled ? 'guardrails' : 'sandbox';
+}

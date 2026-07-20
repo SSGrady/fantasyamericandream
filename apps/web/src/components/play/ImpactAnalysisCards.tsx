@@ -22,7 +22,11 @@ function toneClass(tone: ImpactCard['tone']): string {
   return 'text-ink';
 }
 
-function buildImpactCards(audit: AuditSnapshot, metrics: RibbonMetrics): ImpactCard[] {
+function buildImpactCards(
+  audit: AuditSnapshot,
+  metrics: RibbonMetrics,
+  emphasizeSavingsRate: boolean,
+): ImpactCard[] {
   const savingsTone: ImpactCard['tone'] =
     audit.savingsRate >= 0.15 ? 'positive' : audit.savingsRate >= 0.05 ? 'neutral' : 'warning';
   const runwayTone: ImpactCard['tone'] =
@@ -51,9 +55,11 @@ function buildImpactCards(audit: AuditSnapshot, metrics: RibbonMetrics): ImpactC
     },
     {
       id: 'savings-rate',
-      label: 'Savings rate',
+      label: emphasizeSavingsRate ? 'Savings rate (unlocked emphasis)' : 'Savings rate',
       value: formatPercent(audit.savingsRate),
-      detail: 'Share of take-home retained or invested this period.',
+      detail: emphasizeSavingsRate
+        ? 'Investing I unlocked: savings rate is your primary lever for the first $100K. Returns matter later.'
+        : 'Share of take-home retained or invested this period.',
       tone: savingsTone,
       mathSummary: 'Income minus spending and debt service, divided by gross inflow.',
       waterfallFilter: (line) => line.category === 'income' || line.category === 'expense',
@@ -82,10 +88,15 @@ function buildImpactCards(audit: AuditSnapshot, metrics: RibbonMetrics): ImpactC
 interface ImpactAnalysisCardsProps {
   audit: AuditSnapshot;
   metrics: RibbonMetrics;
+  emphasizeSavingsRate?: boolean;
 }
 
-export function ImpactAnalysisCards({ audit, metrics }: ImpactAnalysisCardsProps) {
-  const cards = buildImpactCards(audit, metrics);
+export function ImpactAnalysisCards({
+  audit,
+  metrics,
+  emphasizeSavingsRate = false,
+}: ImpactAnalysisCardsProps) {
+  const cards = buildImpactCards(audit, metrics, emphasizeSavingsRate);
 
   return (
     <div className="space-y-4">

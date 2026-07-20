@@ -2,6 +2,7 @@ export * from './types/game-state.js';
 export * from './types/ledger.js';
 export * from './types/literacy-skills.js';
 export * from './types/event-definition.js';
+export * from './types/sampled-event.js';
 export * from './types/v1-scenarios.js';
 export * from './types/v1-character-draft.js';
 export * from './types/v1-run-config.js';

@@ -4,14 +4,17 @@ import type {
   AuditSnapshot,
   CareerState,
   Debts,
+  Difficulty,
   IsoDate,
   LedgerTransaction,
   LocationState,
   MacroState,
+  SampledEventOccurrence,
 } from '@fad/shared';
 import { rollLayoff } from './layoff.js';
 import { maybeTransitionRegime, syncMacroToRegime } from './macro-regimes.js';
 import { buildInvestmentReturnTransactions, sampleMonthlyReturn } from './market-returns.js';
+import { rollEventsForMonth } from './events/roll-events.js';
 import { createRng } from './rng.js';
 
 export interface TickMonthInput {
@@ -46,6 +49,7 @@ export interface TickMonthsInput {
   location: LocationState;
   macro: MacroState;
   deferral401kRate?: number;
+  difficulty?: Difficulty;
 }
 
 export interface TickMonthsResult {
@@ -58,6 +62,7 @@ export interface TickMonthsResult {
   transactions: LedgerTransaction[];
   monthlyReturns: number[];
   layoffCount: number;
+  sampledEvents: SampledEventOccurrence[];
 }
 
 function monthRng(randomSeed: string, monthIndex: number): () => number {
@@ -138,10 +143,36 @@ export function tickMonthsWithSimulation(input: TickMonthsInput): TickMonthsResu
   const monthlyReturns: number[] = [];
   let layoffCount = 0;
 
+  const sampledEvents: SampledEventOccurrence[] = [];
+  const eventCooldowns = new Map<string, number>();
+  const difficulty = input.difficulty ?? 'medium';
+
   const startMonthKey = monthKeyFromIsoDate(input.startDate);
 
   for (let i = 0; i < input.months; i += 1) {
+    for (const [eventId, remaining] of eventCooldowns.entries()) {
+      if (remaining <= 1) eventCooldowns.delete(eventId);
+      else eventCooldowns.set(eventId, remaining - 1);
+    }
+
     const monthKey = monthKeyAdd(startMonthKey, i);
+    const eventRng = monthRng(input.randomSeed, i + 10_000);
+    const monthEvents = rollEventsForMonth(
+      {
+        monthIndex: i,
+        monthKey,
+        startDate: input.startDate,
+        randomSeed: input.randomSeed,
+        career,
+        location: input.location,
+        macro,
+        difficulty,
+        cooldowns: eventCooldowns,
+      },
+      eventRng,
+    );
+    sampledEvents.push(...monthEvents);
+
     const tick = tickMonthWithSimulation({
       monthKey,
       monthIndex: i,
@@ -175,5 +206,6 @@ export function tickMonthsWithSimulation(input: TickMonthsInput): TickMonthsResu
     transactions,
     monthlyReturns,
     layoffCount,
+    sampledEvents,
   };
 }

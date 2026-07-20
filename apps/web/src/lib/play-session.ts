@@ -1,4 +1,5 @@
-import type { AuditSnapshot, GameState, SimulationEndReason } from '@fad/shared';
+import type { AuditSnapshot, GameState, LiteracySkillId, LiteracyProgress, SampledEventOccurrence, SimulationEndReason } from '@fad/shared';
+import { createDefaultLiteracyProgress, LITERACY_SKILL_STUBS } from '@fad/shared';
 import type { TickSixMonthsResult } from '@fad/sim-engine';
 import type { V1CharacterDraft, V1RunConfig } from '@fad/shared';
 import { buildInitialGameState } from './build-game-state';
@@ -28,9 +29,10 @@ export interface PeriodHistoryEntry {
 }
 
 export interface SkillTreeEntry {
-  id: string;
+  id: LiteracySkillId;
   title: string;
   track: string;
+  unlocks: string[];
   status: 'locked' | 'in_progress' | 'unlocked';
 }
 
@@ -47,6 +49,10 @@ export interface PlaySession {
   endReason: SimulationEndReason | null;
   endedByDemoLimit: boolean;
   literacyQuizAnswered: boolean;
+  literacyProgress: Record<LiteracySkillId, LiteracyProgress>;
+  periodEvents: SampledEventOccurrence[];
+  dreamHomeChoiceId: string | null;
+  dreamHomeBlocked: boolean;
 }
 
 export interface RibbonMetrics {
@@ -70,6 +76,10 @@ function normalizeSession(parsed: PlaySession): PlaySession {
     endReason: parsed.endReason ?? null,
     endedByDemoLimit: parsed.endedByDemoLimit ?? false,
     literacyQuizAnswered: parsed.literacyQuizAnswered ?? false,
+    literacyProgress: parsed.literacyProgress ?? createDefaultLiteracyProgress(),
+    periodEvents: parsed.periodEvents ?? [],
+    dreamHomeChoiceId: parsed.dreamHomeChoiceId ?? null,
+    dreamHomeBlocked: parsed.dreamHomeBlocked ?? false,
   };
 }
 
@@ -119,6 +129,10 @@ export function initializePlaySession(
     endReason: null,
     endedByDemoLimit: false,
     literacyQuizAnswered: false,
+    literacyProgress: createDefaultLiteracyProgress(),
+    periodEvents: [],
+    dreamHomeChoiceId: null,
+    dreamHomeBlocked: false,
   };
   savePlaySession(session);
   return session;
@@ -205,6 +219,7 @@ export interface SimTickRequest {
   location: GameState['location'];
   macro: GameState['macro'];
   deferral401kRate: number;
+  difficulty: GameState['run']['difficulty'];
 }
 
 export async function runSimTick(input: SimTickRequest): Promise<TickSixMonthsResult> {
@@ -247,6 +262,7 @@ export function applyTickToSession(
       debts: tick.debts,
       career: tick.career,
     }),
+    periodEvents: tick.sampledEvents ?? [],
     periodIndex: session.periodIndex + 1,
     tickInProgress: false,
     periodHistory: [...(session.periodHistory ?? []), historyEntry],
@@ -342,23 +358,46 @@ export function isSimulationEnded(session: PlaySession): boolean {
 }
 
 export function buildSkillTreeProgress(session: PlaySession): SkillTreeEntry[] {
-  const unlockedCount = Math.min(session.periodIndex, 4);
-  const tracks = [
-    { id: 'cash_flow_i', title: 'Cash Flow I', track: 'Cash Flow' },
-    { id: 'emergency_readiness', title: 'Emergency Readiness', track: 'Emergency' },
-    { id: 'investing_i', title: 'Investing I', track: 'Investing' },
-    { id: 'housing', title: 'Housing', track: 'Housing' },
-  ];
-
-  return tracks.map((skill, index) => ({
-    ...skill,
-    status:
-      index < unlockedCount
+  return LITERACY_SKILL_STUBS.map((skill) => {
+    const progress = session.literacyProgress[skill.id];
+    const status =
+      progress.mastery === 'mastered'
         ? 'unlocked'
-        : index === unlockedCount
+        : progress.mastery === 'in_progress'
           ? 'in_progress'
-          : 'locked',
-  }));
+          : 'locked';
+
+    return {
+      id: skill.id,
+      title: skill.title,
+      track: skill.track,
+      unlocks: [...skill.unlocks],
+      status,
+    };
+  });
+}
+
+export function unlockLiteracySkill(
+  session: PlaySession,
+  skillId: LiteracySkillId,
+): PlaySession {
+  const next: PlaySession = {
+    ...session,
+    literacyProgress: {
+      ...session.literacyProgress,
+      [skillId]: {
+        mastery: 'mastered',
+        quizAttempts: session.literacyProgress[skillId].quizAttempts + 1,
+        lastAssessedAt: session.gameState.run.currentDate,
+      },
+    },
+  };
+  savePlaySession(next);
+  return next;
+}
+
+export function hasUnlockedSkill(session: PlaySession, skillId: LiteracySkillId): boolean {
+  return session.literacyProgress[skillId]?.mastery === 'mastered';
 }
 
 export function formatPeriodLabel(currentDate: string): string {

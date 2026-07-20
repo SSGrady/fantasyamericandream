@@ -1,6 +1,6 @@
 'use client';
 
-import { renderBriefingHeadline } from '@fad/narrative';
+import { renderBriefingHeadline, renderBriefingEventsSummary } from '@fad/narrative';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -46,6 +46,7 @@ export function BriefingPageClient() {
           location: session!.gameState.location,
           macro: session!.gameState.macro,
           deferral401kRate: session!.deferral401kRate,
+          difficulty: session!.gameState.run.difficulty,
         });
 
         if (cancelled) return;
@@ -86,6 +87,7 @@ export function BriefingPageClient() {
   const audit = session.currentAudit;
   const metrics = computeRibbonMetrics(audit, session.gameState);
   const headline = renderBriefingHeadline(audit);
+  const eventsSummary = renderBriefingEventsSummary(session.periodEvents ?? []);
   const periodLabel = formatPeriodLabel(audit.asOf);
 
   return (
@@ -101,6 +103,7 @@ export function BriefingPageClient() {
           {audit.asOf}. Net worth is now tracked through the ledger; the next screen is decision
           day for the following six months.
         </p>
+        <p className="mt-3 rounded-md bg-surface px-3 py-2 text-sm text-muted">{eventsSummary}</p>
       </div>
 
       <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">

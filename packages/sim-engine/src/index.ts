@@ -21,11 +21,15 @@ export type {
 export {
   V0_STARTER_EVENT_DEFINITIONS,
   V0_STARTER_EVENT_IDS,
+  V1_EXPANSION_EVENT_DEFINITIONS,
+  V1_EXPANSION_EVENT_IDS,
 } from './events/definitions/index.js';
 export {
+  ALL_EVENT_DEFINITIONS,
   assertEventRegistryComplete,
   getEventDefinition,
   listEventDefinitions,
 } from './events/registry.js';
+export { rollEventsForMonth, rollEventsForPeriod } from './events/roll-events.js';
 export { tickSixMonths, exportAuditJson } from '@fad/ledger';
 export type { SixMonthTickInput, SixMonthTickResult } from '@fad/ledger';

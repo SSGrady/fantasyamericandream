@@ -3,6 +3,7 @@ import type {
   Accounts,
   CareerState,
   Debts,
+  Difficulty,
   IsoDate,
   LocationState,
   MacroState,
@@ -20,6 +21,7 @@ interface TickRequestBody {
   location: LocationState;
   macro: MacroState;
   deferral401kRate?: number;
+  difficulty?: Difficulty;
 }
 
 function isIsoDate(value: unknown): value is IsoDate {
@@ -28,6 +30,10 @@ function isIsoDate(value: unknown): value is IsoDate {
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+function isDifficulty(value: unknown): value is Difficulty {
+  return value === 'easy' || value === 'medium' || value === 'hard';
 }
 
 function parseTickRequest(body: unknown): TickRequestBody | null {
@@ -47,6 +53,7 @@ function parseTickRequest(body: unknown): TickRequestBody | null {
     macro: body.macro as unknown as MacroState,
     deferral401kRate:
       typeof body.deferral401kRate === 'number' ? body.deferral401kRate : undefined,
+    difficulty: isDifficulty(body.difficulty) ? body.difficulty : undefined,
   };
 }
 

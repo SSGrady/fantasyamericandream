@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { LiteracyQuizStub } from '../../../components/play/LiteracyQuizStub';
-import { savePlaySession, type PendingDecision } from '../../../lib/play-session';
+import { savePlaySession, unlockLiteracySkill, type PendingDecision } from '../../../lib/play-session';
 import { usePlaySession } from '../../../lib/use-play-session';
 
 export function DecidePageClient() {
@@ -30,8 +30,11 @@ export function DecidePageClient() {
     router.push('/play/processing');
   };
 
-  const handleQuizAnswer = () => {
-    const next = { ...session, literacyQuizAnswered: true };
+  const handleQuizAnswer = (correct: boolean) => {
+    let next = { ...session, literacyQuizAnswered: true };
+    if (correct) {
+      next = unlockLiteracySkill(next, 'investing_i');
+    }
     savePlaySession(next);
     setSession(next);
   };

@@ -47,13 +47,7 @@ export function AuditPageClient() {
       return;
     }
 
-    savePlaySession({
-      ...session,
-      currentAudit: null,
-      pendingDecisions: [],
-      playerAction: '',
-    });
-    router.push('/play/briefing');
+    router.push('/play/dream-home');
   };
 
   return (
@@ -105,7 +99,7 @@ export function AuditPageClient() {
           onClick={handleContinue}
           className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90"
         >
-          {autoEnd || complete ? 'View final report' : 'Continue to next briefing'}
+          {autoEnd || complete ? 'View final report' : 'Browse DreamHome listings'}
         </button>
       </div>
     </div>

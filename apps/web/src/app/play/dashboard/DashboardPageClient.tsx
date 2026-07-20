@@ -79,9 +79,9 @@ export function DashboardPageClient() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="font-serif text-xl text-ink">Skill tree (stub)</h2>
+        <h2 className="font-serif text-xl text-ink">Skill tree</h2>
         <p className="text-sm text-muted">
-          Literacy tracks unlock as you complete periods. Quizzes gate analysis tools, not outcomes.
+          Ten literacy tracks. Quizzes unlock analysis tools, not market luck.
         </p>
         <SkillTreeStub skills={skills} />
       </section>

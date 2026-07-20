@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 interface LiteracyQuizStubProps {
   answered: boolean;
-  onAnswer: () => void;
+  onAnswer: (correct: boolean) => void;
 }
 
 const OPTIONS = [
@@ -20,12 +20,12 @@ export function LiteracyQuizStub({ answered, onAnswer }: LiteracyQuizStubProps) 
   const handleSubmit = () => {
     if (!selected) return;
     setRevealed(true);
-    onAnswer();
+    onAnswer(selected === 'savings');
   };
 
   return (
     <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted">Literacy quiz stub</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-muted">Literacy quiz</p>
       <h3 className="mt-1 text-sm font-semibold text-ink">The First $100K</h3>
       <p className="mt-2 text-sm text-muted">
         What matters most for reaching your first $100K of net worth in your twenties?
@@ -53,8 +53,8 @@ export function LiteracyQuizStub({ answered, onAnswer }: LiteracyQuizStubProps) 
 
       {revealed ? (
         <p className="mt-3 rounded-md bg-surface px-3 py-2 text-sm text-muted">
-          Savings rate drives the first $100K for most earners. Unlocks savings-rate emphasis in
-          projections (no luck modifiers).
+          Savings rate drives the first $100K for most earners. Unlocks Investing I and savings-rate
+          emphasis in analysis (no luck modifiers).
         </p>
       ) : (
         <button

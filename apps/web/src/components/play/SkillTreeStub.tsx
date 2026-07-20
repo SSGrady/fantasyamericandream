@@ -32,6 +32,9 @@ export function SkillTreeStub({ skills }: SkillTreeStubProps) {
                 {skill.track}
               </p>
               <p className="mt-1 text-sm font-semibold text-ink">{skill.title}</p>
+              {skill.unlocks.length > 0 ? (
+                <p className="mt-1 text-xs text-muted">Unlocks: {skill.unlocks.join(', ')}</p>
+              ) : null}
             </div>
             <span
               className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[skill.status]}`}

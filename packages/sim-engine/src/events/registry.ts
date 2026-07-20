@@ -1,8 +1,16 @@
 import type { EventDefinition } from '@fad/shared';
-import { V0_STARTER_EVENT_DEFINITIONS } from './definitions/index.js';
+import {
+  V0_STARTER_EVENT_DEFINITIONS,
+  V1_EXPANSION_EVENT_DEFINITIONS,
+} from './definitions/index.js';
+
+export const ALL_EVENT_DEFINITIONS: EventDefinition[] = [
+  ...V0_STARTER_EVENT_DEFINITIONS,
+  ...V1_EXPANSION_EVENT_DEFINITIONS,
+];
 
 const byId = new Map<string, EventDefinition>(
-  V0_STARTER_EVENT_DEFINITIONS.map((definition) => [definition.id, definition]),
+  ALL_EVENT_DEFINITIONS.map((definition) => [definition.id, definition]),
 );
 
 export function getEventDefinition(id: string): EventDefinition | undefined {
@@ -10,7 +18,7 @@ export function getEventDefinition(id: string): EventDefinition | undefined {
 }
 
 export function listEventDefinitions(): EventDefinition[] {
-  return [...V0_STARTER_EVENT_DEFINITIONS];
+  return [...ALL_EVENT_DEFINITIONS];
 }
 
 export function assertEventRegistryComplete(expectedIds: readonly string[]): void {

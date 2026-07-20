@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { ImpactAnalysisCards } from '../../../components/play/ImpactAnalysisCards';
 import { MetricsRibbon } from '../../../components/play/MetricsRibbon';
 import { usePlaySession } from '../../../lib/use-play-session';
-import { computeRibbonMetrics } from '../../../lib/play-session';
+import { computeRibbonMetrics, hasUnlockedSkill } from '../../../lib/play-session';
 
 export function AnalysisPageClient() {
   const router = useRouter();
@@ -20,6 +20,7 @@ export function AnalysisPageClient() {
 
   const audit = session.currentAudit;
   const metrics = computeRibbonMetrics(audit, session.gameState);
+  const emphasizeSavingsRate = hasUnlockedSkill(session, 'investing_i');
 
   return (
     <div className="space-y-6">
@@ -33,7 +34,11 @@ export function AnalysisPageClient() {
         </p>
       </div>
 
-      <ImpactAnalysisCards audit={audit} metrics={metrics} />
+      <ImpactAnalysisCards
+        audit={audit}
+        metrics={metrics}
+        emphasizeSavingsRate={emphasizeSavingsRate}
+      />
 
       {session.playerAction ? (
         <div className="rounded-lg border border-dashed border-border bg-surface px-4 py-3 text-sm text-muted">

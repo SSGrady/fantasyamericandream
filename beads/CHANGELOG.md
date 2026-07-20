@@ -4,7 +4,11 @@ Aggregated progress log. Append dated entries when closing tickets.
 
 ## 2026-07-19
 
-- **T012** - V1 content and endings: impact cards, stakeholder reactions, dashboard timeline, final report, end stubs, literacy quiz stub.
+- **E002** - V1 Playable Game epic complete (all four success criteria met).
+- **T015** - DreamHome lite: `/play/dream-home`, 10 synthetic listings, five affordability gates, guardrails mode.
+- **T014** - Skill tree v1: 10 literacy tracks on dashboard, First $100K quiz unlocks Investing I and analysis emphasis.
+- **T013** - 32 event definitions, seeded event roll in tickMonthsWithSimulation, briefing event summary.
+- **S004** - V1 content depth sprint complete (3/3 tickets).
 - **T011** - Core play loop: sim tick API, play session, briefing through audit screens, pipeline stubs.
 - **T010** - Module toggles: grouped panels on `/create/modules`, V1RunConfig types, session run config, `/play/briefing` stub.
 - **T009** - Character creator: trait grids, balance sheet, session draft, `/create/modules` stub, shared V1CharacterDraft types.
