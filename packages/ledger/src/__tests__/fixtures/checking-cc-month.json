@@ -1,0 +1,55 @@
+{
+  "description": "Paycheck to checking, pay CC statement from checking",
+  "initial": {
+    "accounts": {
+      "checking": { "id": "checking", "balance": 300000 },
+      "hysa": { "id": "hysa", "balance": 1000000 },
+      "brokerage": { "id": "brokerage", "balance": 0 },
+      "rothIra": { "id": "roth", "balance": 0, "taxYearContributions": 0 },
+      "traditional401k": { "id": "401k", "balance": 0, "taxYearContributions": 0 }
+    },
+    "debts": {
+      "creditCards": [
+        {
+          "id": "cc1",
+          "balance": 50000,
+          "limit": 500000,
+          "apr": 0.2199,
+          "minimumPayment": 2500
+        }
+      ],
+      "studentLoans": []
+    }
+  },
+  "transactions": [
+    {
+      "id": "tx-paycheck",
+      "description": "Biweekly net pay",
+      "source": "income",
+      "lines": [
+        { "accountId": "checking", "debitCents": 250000, "creditCents": 0 },
+        { "accountId": "income:salary", "debitCents": 0, "creditCents": 250000 }
+      ]
+    },
+    {
+      "id": "tx-cc-payment",
+      "description": "Pay credit card statement",
+      "source": "transfer",
+      "lines": [
+        { "accountId": "creditCard:cc1", "debitCents": 0, "creditCents": 50000 },
+        { "accountId": "checking", "debitCents": 0, "creditCents": 50000 }
+      ]
+    }
+  ],
+  "expectedAfterPaycheckAndPayment": {
+    "accounts": {
+      "checking": { "balance": 500000 },
+      "hysa": { "balance": 1000000 }
+    },
+    "debts": {
+      "creditCards": [{ "id": "cc1", "balance": 0 }],
+      "studentLoans": []
+    },
+    "netWorth": 1500000
+  }
+}

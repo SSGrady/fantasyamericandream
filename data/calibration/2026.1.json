@@ -1,0 +1,19 @@
+{
+  "snapshotId": "2026.1",
+  "taxYear": 2026,
+  "irs": {
+    "employee401kDeferralCents": 2450000,
+    "iraContributionCents": 750000
+  },
+  "mortgage": {
+    "baseRate30y": 0.0655,
+    "stressHigh30y": 0.08
+  },
+  "layoff": {
+    "baselineMonthlyFlowRate": 0.011,
+    "source": "BLS JOLTS May 2026"
+  },
+  "states": {
+    "noIncomeTax": ["FL", "TX", "WA", "TN"]
+  }
+}
