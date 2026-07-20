@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "@fad/shared": "workspace:*",
-    "@fad/ledger": "workspace:*"
+    "@fad/ledger": "workspace:*",
+    "@fad/data": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

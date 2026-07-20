@@ -1,6 +1,7 @@
-import { applyMonthlyTick, applyTransactions, addMonthsToIsoDate, monthKeyAdd, monthKeyFromIsoDate } from '@fad/ledger';
+import { applyMonthlyTick, applyTransactions, addMonthsToIsoDate, monthKeyAdd, monthKeyFromIsoDate, buildAuditSnapshot } from '@fad/ledger';
 import type {
   Accounts,
+  AuditSnapshot,
   CareerState,
   Debts,
   IsoDate,
@@ -103,6 +104,29 @@ export function tickMonthWithSimulation(input: TickMonthInput): TickMonthResult 
     layoffOccurred: layoffResult.laidOff,
     monthlyReturn,
   };
+}
+
+export interface TickSixMonthsResult extends TickMonthsResult {
+  audit: AuditSnapshot;
+}
+
+export function tickSixMonthsWithSimulation(
+  input: Omit<TickMonthsInput, 'months'>,
+): TickSixMonthsResult {
+  const startAccounts = structuredClone(input.accounts);
+  const startDebts = structuredClone(input.debts);
+  const result = tickMonthsWithSimulation({ ...input, months: 6 });
+  const audit = buildAuditSnapshot({
+    asOf: result.endDate,
+    startAccounts,
+    startDebts,
+    endAccounts: result.accounts,
+    endDebts: result.debts,
+    transactions: result.transactions,
+    periodMonths: 6,
+  });
+
+  return { ...result, audit };
 }
 
 export function tickMonthsWithSimulation(input: TickMonthsInput): TickMonthsResult {

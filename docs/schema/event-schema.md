@@ -81,4 +81,4 @@ interface ResolvedEvent {
 19. `certification_opportunity`
 20. `promotion_review`
 
-Implementations live in `packages/sim-engine/src/events/definitions/`.
+Implementations live in `packages/sim-engine/src/events/definitions/`. TypeScript types in `packages/shared/src/types/event-definition.ts`. Registry: `packages/sim-engine/src/events/registry.ts`.

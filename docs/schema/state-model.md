@@ -24,6 +24,30 @@ interface SimulationRun {
 }
 ```
 
+## LiteracyProgress (V0 stubs)
+
+```typescript
+type LiteracySkillId =
+  | 'cash_flow_i'
+  | 'emergency_readiness'
+  | 'credit_debt'
+  | 'workplace_benefits'
+  | 'investing_i'
+  | 'investing_ii'
+  | 'housing'
+  | 'transportation'
+  | 'insurance'
+  | 'taxes';
+
+interface LiteracyProgress {
+  mastery: 'locked' | 'in_progress' | 'mastered';
+  quizAttempts: number;
+  lastAssessedAt?: string;
+}
+```
+
+See `packages/shared/src/types/literacy-skills.ts` for stub definitions and default progress factory.
+
 ## PlayerState
 
 ```typescript

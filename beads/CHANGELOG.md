@@ -9,3 +9,6 @@ Aggregated progress log. Append dated entries when closing tickets.
 - **T003** - Monthly payroll, grossToNet stub, 401k deferral, rent/CC interest/student loan postings, golden fixture.
 - **T004** - Six-month audit tick, waterfall snapshot, contribution progress, JSON export, golden fixture.
 - **T005** - Seeded sim-engine: macro regimes, layoff hazard, market returns, tickMonthsWithSimulation, determinism golden test.
+- **T006** - V0 scenario matrix: 5 careers × 8 states rent-only fixtures, tickSixMonthsWithSimulation, 40-scenario Vitest matrix.
+- **T007** - 20 V0 event definitions, EventDefinition types, 10 literacy skill stubs, registry and tests.
+- **E001** - V0 Financial Engine Prototype epic complete (all success criteria met).
