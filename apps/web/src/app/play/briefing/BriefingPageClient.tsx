@@ -11,7 +11,7 @@ import { usePlaySession } from '../../../lib/use-play-session';
 
 export function BriefingPageClient() {
   const router = useRouter();
-  const { session, ready } = usePlaySession({ redirectTo: '/create/modules' });
+  const { session, ready } = usePlaySession({ redirectTo: '/create' });
 
   useEffect(() => {
     if (!ready || !session) return;
@@ -80,10 +80,10 @@ export function BriefingPageClient() {
 
       <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
         <Link
-          href="/create/modules"
+          href="/create/rental"
           className="inline-flex items-center justify-center rounded-md border border-border bg-card px-5 py-2.5 text-sm font-medium text-ink hover:border-accent/40 hover:text-accent"
         >
-          Back to module toggles
+          Back to rental search
         </Link>
         <button
           type="button"

@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  applyModulePreset,
   getV1StarterScenario,
   MAX_DEPENDENTS_COUNT,
   V1_AGE_BAND_OPTIONS,
@@ -16,7 +17,9 @@ import {
   dollarsToCents,
   housingOptionsForMaritalStatus,
   isHousingArrangementAllowed,
+  type ModulePresetId,
   type V1CharacterDraft,
+  type V1RunConfig,
   type V1StarterScenarioId,
   type LifePriorityId,
 } from '@fad/shared';
@@ -27,11 +30,22 @@ import { BalanceSheetForm } from '../../components/create/BalanceSheetForm';
 import { CharacterSetupWizard } from '../../components/create/CharacterSetupWizard';
 import { OnboardingPreviewRail } from '../../components/create/OnboardingPreviewRail';
 import { TraitGrid } from '../../components/create/TraitGrid';
+import { WorldRulesBottomSheet } from '../../components/create/WorldRulesBottomSheet';
 import {
   loadOrCreateCharacterDraft,
   saveCharacterDraft,
 } from '../../lib/character-draft';
+import { loadOrCreateRunConfig, saveRunConfig } from '../../lib/run-config';
 import { loadSelectedScenario, saveSelectedScenario } from '../../lib/scenario-session';
+import {
+  inferModulePresetId,
+  summarizeWorldRules,
+  WORLD_RULES_PRESETS,
+} from '../../lib/world-rules-summary';
+import {
+  parseOnboardingStepParam,
+  shouldOpenModulesSheet,
+} from '../../lib/world-rules-url';
 
 export function CreatePageClient() {
   const router = useRouter();
@@ -39,7 +53,9 @@ export function CreatePageClient() {
   const scenarioParam = searchParams.get('scenario') as V1StarterScenarioId | null;
   const [scenarioId, setScenarioId] = useState<V1StarterScenarioId | null>(scenarioParam);
   const [draft, setDraft] = useState<V1CharacterDraft | null>(null);
+  const [runConfig, setRunConfig] = useState<V1RunConfig | null>(null);
   const [step, setStep] = useState(1);
+  const [modulesSheetOpen, setModulesSheetOpen] = useState(false);
 
   useEffect(() => {
     const resolvedScenario =
@@ -48,7 +64,18 @@ export function CreatePageClient() {
     setScenarioId(resolvedScenario);
     saveSelectedScenario(resolvedScenario);
     setDraft(loadOrCreateCharacterDraft(resolvedScenario));
+    setRunConfig(loadOrCreateRunConfig());
   }, [scenarioParam]);
+
+  useEffect(() => {
+    const stepFromUrl = parseOnboardingStepParam(searchParams.get('step'));
+    if (stepFromUrl) {
+      setStep(stepFromUrl);
+    }
+    if (shouldOpenModulesSheet(searchParams.get('modules'))) {
+      setModulesSheetOpen(true);
+    }
+  }, [searchParams]);
 
   const updateDraft = useCallback((patch: Partial<V1CharacterDraft>) => {
     setDraft((current) => {
@@ -66,7 +93,21 @@ export function CreatePageClient() {
       return;
     }
     saveCharacterDraft(draft);
+    if (runConfig) {
+      saveRunConfig(runConfig);
+    }
     router.push('/create/job-offer');
+  };
+
+  const applyPreset = (preset: ModulePresetId) => {
+    const next = applyModulePreset(preset);
+    setRunConfig(next);
+    saveRunConfig(next);
+  };
+
+  const handleSaveModules = (config: V1RunConfig) => {
+    setRunConfig(config);
+    saveRunConfig(config);
   };
 
   const handleBack = () => {
@@ -88,7 +129,7 @@ export function CreatePageClient() {
     { id: 'family', label: 'Family' },
   ];
 
-  if (!draft || !scenarioId) {
+  if (!draft || !scenarioId || !runConfig) {
     return (
       <div className="rounded-lg border border-border bg-card p-6 text-muted shadow-sm">
         Loading character setup…
@@ -426,15 +467,39 @@ export function CreatePageClient() {
         <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
           <h2 className="font-serif text-xl text-ink">World rules</h2>
           <p className="mt-2 text-sm text-muted">
-            Module presets (Guided, Realistic, Volatile, Harsh) set macro and hazard toggles. You can
-            fine-tune on the next screen; defaults favor Guided for first-time players.
+            Pick a preset for macro stress and hazard frequency. Defaults favor Guided for
+            first-time players. Open the panel below to fine-tune individual modules.
           </p>
-          <Link
-            href="/create/modules"
+          <div className="mt-4 flex flex-wrap gap-2">
+            {WORLD_RULES_PRESETS.map((preset) => {
+              const active = inferModulePresetId(runConfig) === preset;
+              return (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => applyPreset(preset)}
+                  className={`rounded-md border px-4 py-2 text-sm font-medium capitalize ${
+                    active
+                      ? 'border-accent bg-accent/10 text-accent'
+                      : 'border-border bg-surface text-ink hover:border-accent/40'
+                  }`}
+                >
+                  {preset}
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-4 rounded-md bg-surface px-3 py-2 text-sm text-muted">
+            {summarizeWorldRules(runConfig)}
+            {inferModulePresetId(runConfig) === 'custom' ? ' · custom toggles' : null}
+          </p>
+          <button
+            type="button"
+            onClick={() => setModulesSheetOpen(true)}
             className="mt-4 inline-flex text-sm font-medium text-accent hover:underline"
           >
             Open world rules & module toggles
-          </Link>
+          </button>
         </section>
       ) : null}
 
@@ -454,6 +519,12 @@ export function CreatePageClient() {
           {step === 4 ? 'Continue to job offers' : 'Next step'}
         </button>
       </div>
+      <WorldRulesBottomSheet
+        open={modulesSheetOpen}
+        onClose={() => setModulesSheetOpen(false)}
+        config={runConfig}
+        onSave={handleSaveModules}
+      />
     </CharacterSetupWizard>
   );
 }

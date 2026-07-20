@@ -3,91 +3,28 @@
 import {
   V1_DIFFICULTY_OPTIONS,
   V1_HOUSE_POOR_SEVERITY_OPTIONS,
-  applyModulePreset,
-  type ModulePresetId,
   type V1RunConfig,
 } from '@fad/shared';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
-import { ModuleToggleSection } from '../../../components/create/ModuleToggleSection';
-import { SegmentedControl } from '../../../components/create/SegmentedControl';
-import { ToggleRow } from '../../../components/create/ToggleRow';
-import { loadCharacterDraft } from '../../../lib/character-draft';
-import { loadOrCreateRunConfig, saveRunConfig } from '../../../lib/run-config';
+import { ModuleToggleSection } from './ModuleToggleSection';
+import { SegmentedControl } from './SegmentedControl';
+import { ToggleRow } from './ToggleRow';
 
-export function ModulesPageClient() {
-  const router = useRouter();
-  const [ready, setReady] = useState(false);
-  const [config, setConfig] = useState<V1RunConfig | null>(null);
+interface WorldRulesPanelProps {
+  config: V1RunConfig;
+  onConfigChange: (config: V1RunConfig) => void;
+}
 
-  useEffect(() => {
-    const draft = loadCharacterDraft();
-    if (!draft) {
-      router.replace('/create');
-      return;
-    }
-    setConfig(loadOrCreateRunConfig());
-    setReady(true);
-  }, [router]);
-
-  const updateConfig = useCallback((patch: Partial<V1RunConfig>) => {
-    setConfig((current) => {
-      if (!current) return current;
-      const next = { ...current, ...patch };
-      saveRunConfig(next);
-      return next;
-    });
-  }, []);
-
-  const updateModules = useCallback(
-    (updater: (modules: V1RunConfig['modules']) => V1RunConfig['modules']) => {
-      setConfig((current) => {
-        if (!current) return current;
-        const next = { ...current, modules: updater(current.modules) };
-        saveRunConfig(next);
-        return next;
-      });
-    },
-    [],
-  );
-
-  const handleContinue = () => {
-    if (!config) return;
-    saveRunConfig(config);
-    router.push('/create/rental');
+export function WorldRulesPanel({ config, onConfigChange }: WorldRulesPanelProps) {
+  const updateConfig = (patch: Partial<V1RunConfig>) => {
+    onConfigChange({ ...config, ...patch });
   };
 
-  if (!ready || !config) {
-    return (
-      <div className="rounded-lg border border-border bg-card p-6 text-muted shadow-sm">
-        Loading module settings…
-      </div>
-    );
-  }
+  const updateModules = (updater: (modules: V1RunConfig['modules']) => V1RunConfig['modules']) => {
+    onConfigChange({ ...config, modules: updater(config.modules) });
+  };
 
   return (
     <div className="space-y-6">
-      <ModuleToggleSection
-        title="Module preset"
-        description="Guided, Realistic, Volatile, Harsh, or Custom. Presets set toggles you can still edit."
-      >
-        <div className="flex flex-wrap gap-2">
-          {(['guided', 'realistic', 'volatile', 'harsh', 'custom'] as ModulePresetId[]).map(
-            (preset) => (
-              <button
-                key={preset}
-                type="button"
-                onClick={() => updateConfig(applyModulePreset(preset))}
-                className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium capitalize text-ink hover:border-accent/40"
-              >
-                {preset}
-              </button>
-            ),
-          )}
-        </div>
-      </ModuleToggleSection>
-
       <ModuleToggleSection
         title="Economy"
         description="Macro shocks and market variability shape recessions and portfolio swings."
@@ -356,22 +293,6 @@ export function ModulesPageClient() {
           onChange={(noHints) => updateConfig({ hintsEnabled: !noHints })}
         />
       </ModuleToggleSection>
-
-      <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
-        <Link
-          href="/create/job-offer"
-          className="inline-flex items-center justify-center rounded-md border border-border bg-card px-5 py-2.5 text-sm font-medium text-ink hover:border-accent/40 hover:text-accent"
-        >
-          Back to job offers
-        </Link>
-        <button
-          type="button"
-          onClick={handleContinue}
-          className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90"
-        >
-          Continue to rental search
-        </button>
-      </div>
     </div>
   );
 }

@@ -67,7 +67,7 @@ export function JobOfferPageClient() {
       jobOfferSelection: selection,
     };
     saveCharacterDraft(nextDraft);
-    router.push('/create/modules');
+    router.push('/create/rental');
   };
 
   if (!draft) {
@@ -81,7 +81,7 @@ export function JobOfferPageClient() {
   return (
     <div className="space-y-6">
       <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-        <p className="text-sm font-medium text-accent">Onboarding · Step 3</p>
+        <p className="text-sm font-medium text-accent">Onboarding · Job offer</p>
         <h2 className="mt-1 font-serif text-2xl text-ink">Choose your job offer</h2>
         <p className="mt-3 text-sm text-muted">
           Three W2 offers landed in your inbox. This choice sets salary, commute, and 401(k) match
@@ -188,7 +188,7 @@ export function JobOfferPageClient() {
 
       <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
         <Link
-          href="/create"
+          href="/create?step=world-rules"
           className="inline-flex items-center justify-center rounded-md border border-border bg-card px-5 py-2.5 text-sm font-medium text-ink hover:border-accent/40 hover:text-accent"
         >
           Back to character setup
@@ -198,7 +198,7 @@ export function JobOfferPageClient() {
           onClick={handleContinue}
           className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90"
         >
-          Continue to module toggles
+          Continue to rental search
         </button>
       </div>
     </div>

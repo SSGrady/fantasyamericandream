@@ -47,7 +47,7 @@ function parseTab(value: string | null): ChapterCloseTab {
 export function ChapterShell({ runId, chapterNumber }: ChapterShellProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { session, ready, setSession } = usePlaySession({ redirectTo: '/create/modules' });
+  const { session, ready, setSession } = usePlaySession({ redirectTo: '/create' });
 
   const urlStage = parseStage(searchParams.get('stage'));
   const urlTab = parseTab(searchParams.get('tab'));

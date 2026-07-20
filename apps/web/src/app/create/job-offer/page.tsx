@@ -7,7 +7,7 @@ export default function JobOfferPage() {
     <PageShell
       title="Choose your offer"
       subtitle="Pick compensation, commute, and remote policy before starting life setup."
-      backHref="/create"
+      backHref="/create?step=world-rules"
       backLabel="Character setup"
     >
       <Suspense

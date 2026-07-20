@@ -12,7 +12,7 @@ export function LegacyPlayRedirect() {
   useEffect(() => {
     const session = loadPlaySession();
     if (!session) {
-      router.replace('/create/modules');
+      router.replace('/create');
       return;
     }
     const target = legacyRouteToShell(

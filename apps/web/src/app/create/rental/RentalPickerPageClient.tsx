@@ -133,10 +133,10 @@ export function RentalPickerPageClient() {
 
       <div className="flex flex-col-reverse gap-3 border-t border-border/60 pt-6 sm:flex-row sm:justify-between">
         <Link
-          href="/create/modules"
+          href="/create/job-offer"
           className="inline-flex items-center justify-center rounded-md border border-border bg-card px-5 py-2.5 text-sm font-medium text-ink hover:border-accent/40 hover:text-accent"
         >
-          Back to modules
+          Back to job offers
         </Link>
         <button
           type="button"

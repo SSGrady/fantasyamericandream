@@ -7,8 +7,8 @@ export default function CreateRentalPage() {
     <PageShell
       title="Find a rental"
       subtitle="Browse synthetic listings calibrated to your state and pick a lease before the simulation starts."
-      backHref="/create/modules"
-      backLabel="Module toggles"
+      backHref="/create/job-offer"
+      backLabel="Job offers"
     >
       <Suspense
         fallback={
