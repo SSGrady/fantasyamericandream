@@ -1,7 +1,7 @@
 ---
 id: T016
 title: Fix briefing metrics definitions
-status: open
+status: done
 type: bug
 priority: P1
 epic: E002
@@ -32,3 +32,7 @@ User reported savings rate ~52% in CA is misleading: current `computeSavingsRate
 ## Notes
 
 See [housing-rent-system.md](../../docs/specifications/housing-rent-system.md) Phase V1.1.
+
+## Completion
+
+2026-07-19: Added `docs/schema/metrics-definitions.md`, `packages/ledger/src/metrics.ts`, `periodNetPayCents` on `AuditSnapshot`, fixed savings rate / ribbon DTI and housing burden. Golden fixture updated.

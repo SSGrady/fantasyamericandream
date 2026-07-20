@@ -19,7 +19,7 @@ const METRIC_ITEMS: {
   },
   {
     key: 'takeHomePayMonthly',
-    label: 'Take-home / mo',
+    label: 'Net pay / mo',
     format: (m) => formatMoney(m.takeHomePayMonthly),
   },
   {

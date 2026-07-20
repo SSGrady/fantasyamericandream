@@ -190,23 +190,27 @@ export function buildPendingDecisions(
 export function computeRibbonMetrics(
   audit: AuditSnapshot,
   gameState: GameState,
+  periodMonths = 6,
 ): RibbonMetrics {
-  const grossMonthly = gameState.career.baseSalaryAnnual / 12;
-  const incomeLine = audit.waterfall.find((line) => line.category === 'income');
+  const periodNetPay = audit.periodNetPayCents;
+  const monthlyNetPay = periodNetPay > 0 ? periodNetPay / periodMonths : 0;
+
   const rentLine = audit.waterfall.find((line) => line.label === 'Rent');
-  const periodGross = incomeLine?.amount ?? grossMonthly * 6;
-  const takeHomePayMonthly = periodGross > 0 ? periodGross / 6 : grossMonthly * 0.72;
-  const rentTotal = rentLine ? Math.abs(rentLine.amount) : gameState.location.rentPaymentMonthly * 6;
-  const housingBurdenPct = periodGross > 0 ? rentTotal / periodGross : 0;
+  const periodRent = rentLine
+    ? Math.abs(rentLine.amount)
+    : gameState.location.rentPaymentMonthly * periodMonths;
+  const monthlyRentShare = periodRent / periodMonths;
+  const housingBurdenPct = monthlyNetPay > 0 ? monthlyRentShare / monthlyNetPay : 0;
+
   const monthlyDebt =
     gameState.debts.creditCards.reduce((sum, card) => sum + card.minimumPayment, 0) +
     gameState.debts.studentLoans.reduce((sum, loan) => sum + loan.minimumPayment, 0);
-  const dti = grossMonthly > 0 ? monthlyDebt / grossMonthly : 0;
+  const dti = monthlyNetPay > 0 ? monthlyDebt / monthlyNetPay : 0;
 
   return {
     netWorth: audit.netWorth,
     netWorthDelta: audit.netWorthDelta,
-    takeHomePayMonthly,
+    takeHomePayMonthly: monthlyNetPay,
     savingsRate: audit.savingsRate,
     emergencyRunwayMonths: audit.emergencyRunwayMonths,
     housingBurdenPct,

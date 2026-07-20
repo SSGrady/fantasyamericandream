@@ -35,3 +35,10 @@ export {
   monthKeyAdd,
 } from './audit.js';
 export type { SixMonthTickInput, SixMonthTickResult } from './audit.js';
+export {
+  computePeriodNetPay,
+  computeSavingsInflows,
+  computeSavingsRate,
+  SAVINGS_ACCOUNT_IDS,
+} from './metrics.js';
+export type { SavingsAccountId } from './metrics.js';

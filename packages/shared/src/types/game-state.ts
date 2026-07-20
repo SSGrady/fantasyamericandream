@@ -144,6 +144,8 @@ export interface AuditSnapshot {
   netWorth: MoneyCents;
   netWorthDelta: MoneyCents;
   waterfall: NetWorthWaterfallLine[];
+  /** Net pay deposited to checking from W2 payroll over the audit period. */
+  periodNetPayCents: MoneyCents;
   savingsRate: number;
   emergencyRunwayMonths: number;
   contributionProgress: Record<string, ContributionProgress>;

@@ -84,7 +84,8 @@
           "amount": -67606
         }
       ],
-      "savingsRate": 0.5139362666666667,
+      "savingsRate": 0.08409259603935085,
+      "periodNetPayCents": 2675622,
       "emergencyRunwayMonths": 6.5755888958277975,
       "contributionProgress": {
         "traditional401k": {

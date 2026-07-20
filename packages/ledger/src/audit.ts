@@ -13,6 +13,7 @@ import type {
 import { applySingleTransaction } from './apply-transaction.js';
 import { cloneAccounts, cloneDebts } from './clone-state.js';
 import { applyMonthlyTick, type MonthlyTickInput } from './monthly-tick.js';
+import { computePeriodNetPay, computeSavingsRate } from './metrics.js';
 import { netWorth } from './net-worth.js';
 
 export interface SixMonthTickInput {
@@ -145,30 +146,6 @@ function sumNominalDebits(transactions: LedgerTransaction[], accountId: string):
   }, 0);
 }
 
-function sumIncomeCredits(transactions: LedgerTransaction[]): MoneyCents {
-  return transactions.reduce((sum, tx) => {
-    const lineSum = tx.lines
-      .filter((line) => line.accountId === 'income:salary')
-      .reduce((lineTotal, line) => lineTotal + line.creditCents, 0);
-    return sum + lineSum;
-  }, 0);
-}
-
-function computeSavingsRate(transactions: LedgerTransaction[]): number {
-  const grossIncome = sumIncomeCredits(transactions);
-  if (grossIncome <= 0) {
-    return 0;
-  }
-
-  const withholding = sumNominalDebits(transactions, 'expense:federalWithholding');
-  const fica = sumNominalDebits(transactions, 'expense:fica');
-  const rent = sumNominalDebits(transactions, 'expense:rent');
-  const ccInterest = sumNominalDebits(transactions, 'expense:creditCardInterest');
-  const slInterest = sumNominalDebits(transactions, 'expense:studentLoanInterest');
-  const outflows = withholding + fica + rent + ccInterest + slInterest;
-
-  return Math.max(0, (grossIncome - outflows) / grossIncome);
-}
 
 function computeEmergencyRunwayMonths(
   accounts: Accounts,
@@ -240,6 +217,7 @@ export function buildAuditSnapshot(input: {
     netWorth: endNetWorth,
     netWorthDelta: endNetWorth - startNetWorth,
     waterfall: buildWaterfallFromTransactions(input.transactions),
+    periodNetPayCents: computePeriodNetPay(input.transactions),
     savingsRate: computeSavingsRate(input.transactions),
     emergencyRunwayMonths: computeEmergencyRunwayMonths(input.endAccounts, input.transactions, months),
     contributionProgress: buildContributionProgress(input.endAccounts),

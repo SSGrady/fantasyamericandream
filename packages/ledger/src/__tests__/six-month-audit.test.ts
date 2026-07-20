@@ -54,6 +54,7 @@ describe('tickSixMonths', () => {
     expect(result.audit.netWorthDelta).toBe(fixture.expected.audit.netWorthDelta);
     expect(result.audit.waterfall).toEqual(fixture.expected.audit.waterfall);
     expect(result.audit.contributionProgress).toEqual(fixture.expected.audit.contributionProgress);
+    expect(result.audit.periodNetPayCents).toBe(fixture.expected.audit.periodNetPayCents);
     expect(result.audit.savingsRate).toBeCloseTo(fixture.expected.audit.savingsRate, 10);
     expect(result.audit.emergencyRunwayMonths).toBeCloseTo(
       fixture.expected.audit.emergencyRunwayMonths,

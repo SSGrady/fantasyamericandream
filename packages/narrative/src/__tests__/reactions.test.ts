@@ -7,6 +7,7 @@ const baseAudit: AuditSnapshot = {
   netWorth: 45_000_00,
   netWorthDelta: 3_500_00,
   waterfall: [],
+  periodNetPayCents: 26_757_00,
   savingsRate: 0.18,
   emergencyRunwayMonths: 4.5,
   contributionProgress: {

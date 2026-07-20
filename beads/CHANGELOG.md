@@ -4,6 +4,7 @@ Aggregated progress log. Append dated entries when closing tickets.
 
 ## 2026-07-19 (continued)
 
+- **T016** - Briefing metrics: savings rate over net pay, periodNetPayCents on audit, metrics-definitions doc, ribbon labels.
 - **S005** - V1 metrics and housing fixes sprint opened (T016-T019 planning, housing-rent-system spec).
 - **E003** - V2 Household Simulator epic opened; S006 foundation sprint started.
 - **T020** - Dual-income household stub: HouseholdState, partner payroll, character creator field, tests.
