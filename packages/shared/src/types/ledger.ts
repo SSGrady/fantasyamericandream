@@ -16,7 +16,8 @@ export type AssetAccountId =
   | 'hysa'
   | 'brokerage'
   | 'rothIra'
-  | 'traditional401k';
+  | 'traditional401k'
+  | 'plan529';
 
 export type LiabilityAccountId = `creditCard:${string}` | `studentLoan:${string}`;
 

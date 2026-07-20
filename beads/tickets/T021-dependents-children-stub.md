@@ -1,7 +1,7 @@
 ---
 id: T021
 title: Dependents / children stub
-status: open
+status: done
 type: feature
 priority: P2
 epic: E003
@@ -23,3 +23,12 @@ Stub dependents count and baseline childcare expense bands. Full fertility/paren
 ## Notes
 
 See feature-set H (Children, childcare, 529).
+
+## Completion (2026-07-19)
+
+- `dependentsCount` wired from character creator (0-3) when married/partnered or single with children planned
+- Monthly tick posts `expense:childcare` at $800/mo per dependent
+- `Accounts.plan529` stub bucket in build-game-state
+- `parental_leave_stub` event in V1 expansion registry
+- Vitest: `packages/ledger/src/__tests__/childcare-dependents.test.ts`
+- Docs: `docs/schema/state-model.md`, `docs/schema/event-schema.md`

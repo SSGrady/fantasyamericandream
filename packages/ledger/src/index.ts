@@ -16,6 +16,7 @@ export {
   buildMonthlyTransactions,
   buildCreditCardInterestTransactions,
   buildRentTransaction,
+  buildChildcareTransaction,
   buildStudentLoanPaymentTransaction,
   buildStudentLoanPaymentTransactions,
   monthlyInterestCents,

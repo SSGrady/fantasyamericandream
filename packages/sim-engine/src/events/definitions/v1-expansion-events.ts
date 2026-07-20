@@ -176,6 +176,17 @@ export const V1_EXPANSION_EVENT_DEFINITIONS: EventDefinition[] = [
     ],
     calibration: { source: 'FTC fraud reports', confidence: 'low' },
   },
+  {
+    id: 'parental_leave_stub',
+    title: 'Parental Leave Planning',
+    category: 'children',
+    eligibility: { employmentType: 'w2', minTenureMonths: 6 },
+    baseProbabilityPerMonth: 0.005,
+    severity: { distribution: 'fixed', outcomes: [{ id: 'planning', weight: 1 }] },
+    interruptsHalfYearPacing: false,
+    cooldownMonths: 24,
+    calibration: { source: 'FMLA unpaid leave stub', confidence: 'low' },
+  },
 ];
 
 export const V1_EXPANSION_EVENT_IDS = V1_EXPANSION_EVENT_DEFINITIONS.map((event) => event.id);

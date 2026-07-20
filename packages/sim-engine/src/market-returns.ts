@@ -1,8 +1,8 @@
-import type { Accounts, AssetAccountId, LedgerTransaction, MacroRegime } from '@fad/shared';
+import type { Accounts, LedgerTransaction, MacroRegime } from '@fad/shared';
 import { REGIME_DEFINITIONS } from './macro-regimes.js';
 import { randomNormal } from './rng.js';
 
-const INVESTMENT_ACCOUNTS: AssetAccountId[] = ['brokerage', 'traditional401k', 'rothIra'];
+const INVESTMENT_ACCOUNTS = ['brokerage', 'traditional401k', 'rothIra'] as const;
 
 export function sampleMonthlyReturn(regime: MacroRegime, rng: () => number): number {
   const def = REGIME_DEFINITIONS[regime];

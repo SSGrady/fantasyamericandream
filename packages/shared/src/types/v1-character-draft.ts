@@ -43,6 +43,10 @@ export interface V1CharacterDraft {
   relationshipSimulation: boolean;
   /** Annual partner W2 salary in cents; 0 when single or no partner income. */
   partnerIncomeAnnual: MoneyCents;
+  /** Dependents count (0-3). Childcare expense posts when > 0. */
+  dependentsCount: number;
+  /** When single, enable dependents planning in character creator. */
+  childrenPlanned: boolean;
   habits: {
     deliveryFrequency: V1DeliveryFrequency;
     cookingSkill: V1CookingSkill;
@@ -200,6 +204,8 @@ export function getDefaultV1CharacterDraft(scenarioId: V1StarterScenarioId): V1C
     maritalStatus: overrides.maritalStatus ?? 'single',
     relationshipSimulation: false,
     partnerIncomeAnnual: 0,
+    dependentsCount: 0,
+    childrenPlanned: false,
     habits: overrides.habits ?? { deliveryFrequency: 'low', cookingSkill: 1 },
     balanceSheet: { ...DEFAULT_BALANCE, ...balanceOverrides },
   };

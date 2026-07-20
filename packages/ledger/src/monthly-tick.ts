@@ -8,6 +8,7 @@ import type {
   MoneyCents,
   TermDebt,
 } from '@fad/shared';
+import { childcareMonthlyCents } from '@fad/shared';
 import { applyTransactions, type ApplyTransactionsResult } from './apply-transaction.js';
 import { buildPayrollFromCareer } from './payroll.js';
 
@@ -17,7 +18,7 @@ export interface MonthlyTickInput {
   debts: Debts;
   career: Pick<CareerState, 'employmentType' | 'baseSalaryAnnual'>;
   location: Pick<LocationState, 'rentPaymentMonthly'>;
-  household?: Pick<HouseholdState, 'partner'>;
+  household?: Pick<HouseholdState, 'partner' | 'dependentsCount'>;
   deferral401kRate?: number;
 }
 
@@ -73,6 +74,26 @@ export function buildRentTransaction(
     lines: [
       { accountId: 'expense:rent', debitCents: rentPaymentMonthly, creditCents: 0 },
       { accountId: 'checking', debitCents: 0, creditCents: rentPaymentMonthly },
+    ],
+  };
+}
+
+export function buildChildcareTransaction(
+  monthKey: string,
+  dependentsCount: number,
+): LedgerTransaction | null {
+  const amount = childcareMonthlyCents(dependentsCount);
+  if (amount <= 0) {
+    return null;
+  }
+
+  return {
+    id: `tx-${monthKey}-childcare`,
+    description: `Childcare (${dependentsCount} dependent${dependentsCount === 1 ? '' : 's'})`,
+    source: 'expense',
+    lines: [
+      { accountId: 'expense:childcare', debitCents: amount, creditCents: 0 },
+      { accountId: 'checking', debitCents: 0, creditCents: amount },
     ],
   };
 }
@@ -173,6 +194,14 @@ export function buildMonthlyTransactions(input: MonthlyTickInput): LedgerTransac
 
   if (input.location.rentPaymentMonthly > 0) {
     transactions.push(buildRentTransaction(input.monthKey, input.location.rentPaymentMonthly));
+  }
+
+  const childcare = buildChildcareTransaction(
+    input.monthKey,
+    input.household?.dependentsCount ?? 0,
+  );
+  if (childcare) {
+    transactions.push(childcare);
   }
 
   transactions.push(...buildStudentLoanPaymentTransactions(input.monthKey, input.debts));

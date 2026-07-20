@@ -2,6 +2,7 @@
 
 import {
   getV1StarterScenario,
+  MAX_DEPENDENTS_COUNT,
   V1_AGE_BAND_OPTIONS,
   V1_CAREER_OPTIONS,
   V1_COOKING_OPTIONS,
@@ -139,9 +140,62 @@ export function CreatePageClient() {
             relationshipSimulation:
               maritalStatus === 'married' ? draft.relationshipSimulation : false,
             partnerIncomeAnnual: maritalStatus === 'single' ? 0 : draft.partnerIncomeAnnual,
+            childrenPlanned: maritalStatus === 'single' ? draft.childrenPlanned : false,
+            dependentsCount:
+              maritalStatus === 'single' && !draft.childrenPlanned ? 0 : draft.dependentsCount,
           })
         }
       />
+
+      {draft.maritalStatus === 'single' ? (
+        <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={draft.childrenPlanned}
+              onChange={(event) =>
+                updateDraft({
+                  childrenPlanned: event.target.checked,
+                  dependentsCount: event.target.checked ? Math.max(1, draft.dependentsCount) : 0,
+                })
+              }
+              className="mt-1 h-4 w-4 rounded border-border text-accent focus:ring-accent"
+            />
+            <span>
+              <span className="block font-medium text-ink">Children planned</span>
+              <span className="mt-1 block text-sm text-muted">
+                Model future dependents and childcare costs before starting a household.
+              </span>
+            </span>
+          </label>
+        </section>
+      ) : null}
+
+      {draft.maritalStatus !== 'single' ||
+      (draft.maritalStatus === 'single' && draft.childrenPlanned) ? (
+        <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
+          <h2 className="font-serif text-xl text-ink">Dependents</h2>
+          <p className="mt-1 text-sm text-muted">
+            Number of children or dependents. Each posts $800/mo childcare in the household stub.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {Array.from({ length: MAX_DEPENDENTS_COUNT + 1 }, (_, count) => (
+              <button
+                key={count}
+                type="button"
+                onClick={() => updateDraft({ dependentsCount: count })}
+                className={`rounded-md border px-4 py-2 text-sm font-medium transition-colors ${
+                  draft.dependentsCount === count
+                    ? 'border-accent bg-accent/10 text-accent'
+                    : 'border-border bg-surface text-ink hover:border-accent/40'
+                }`}
+              >
+                {count}
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {draft.maritalStatus === 'partnered' || draft.maritalStatus === 'married' ? (
         <section className="rounded-lg border border-border bg-card p-5 shadow-sm">

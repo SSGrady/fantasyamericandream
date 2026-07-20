@@ -60,6 +60,11 @@ export function buildInitialGameState(
       balance: draft.balanceSheet.traditional401k,
       taxYearContributions: 0,
     },
+    plan529: {
+      id: '529',
+      balance: 0,
+      taxYearContributions: 0,
+    },
   };
 
   const creditBalance = draft.balanceSheet.creditCard;
@@ -114,6 +119,7 @@ export function buildInitialGameState(
     household: buildHouseholdFromDraft({
       maritalStatus: draft.maritalStatus,
       partnerIncomeAnnual: draft.partnerIncomeAnnual,
+      dependentsCount: draft.dependentsCount,
     }),
     location: { ...fixture.location },
     accounts,

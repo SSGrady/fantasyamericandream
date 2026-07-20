@@ -84,7 +84,11 @@ interface HouseholdState {
 }
 ```
 
-`GameState.household` is required in V2 foundation (T020). V1 character draft maps `partnerIncomeAnnual` to `household.partner`.
+`GameState.household` is required in V2 foundation (T020). V1 character draft maps `partnerIncomeAnnual` to `household.partner` and `dependentsCount` to `household.dependentsCount`.
+
+Childcare stub (T021): when `dependentsCount > 0`, monthly tick posts `expense:childcare` at **$800/mo per dependent** (`CHILDCARE_MONTHLY_PER_CHILD_CENTS` in `packages/shared/src/types/household-state.ts`). Character creator exposes count 0-3 when married/partnered, or when single with "Children planned" enabled.
+
+529 stub: `Accounts.plan529` optional tax-advantaged bucket (balance 0, no contributions in stub).
 
 ## CareerState
 
@@ -127,6 +131,7 @@ interface Accounts {
   rothIra: TaxAdvantagedBucket;
   traditional401k: TaxAdvantagedBucket;
   hsa?: TaxAdvantagedBucket;
+  plan529?: TaxAdvantagedBucket;  // V2 stub, no contributions yet
   sinkingFunds: Record<string, AccountBucket>;
 }
 ```

@@ -15,10 +15,21 @@ const ASSET_IDS: AssetAccountId[] = [
   'brokerage',
   'rothIra',
   'traditional401k',
+  'plan529',
 ];
 
 function isAssetAccountId(id: LedgerAccountId): id is AssetAccountId {
   return (ASSET_IDS as string[]).includes(id);
+}
+
+function getAssetBucket(accounts: Accounts, id: AssetAccountId) {
+  if (id === 'plan529') {
+    if (!accounts.plan529) {
+      throw new Error('529 account not initialized');
+    }
+    return accounts.plan529;
+  }
+  return accounts[id];
 }
 
 function applyAssetDelta(
@@ -27,7 +38,7 @@ function applyAssetDelta(
   delta: MoneyCents,
   source?: LedgerTransaction['source'],
 ): void {
-  const bucket = accounts[id];
+  const bucket = getAssetBucket(accounts, id);
   const next = bucket.balance + delta;
   if (next < 0) {
     throw new Error(`Insufficient balance in ${id}: ${bucket.balance} + ${delta}`);

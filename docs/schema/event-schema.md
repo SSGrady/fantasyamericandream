@@ -82,3 +82,11 @@ interface ResolvedEvent {
 20. `promotion_review`
 
 Implementations live in `packages/sim-engine/src/events/definitions/`. TypeScript types in `packages/shared/src/types/event-definition.ts`. Registry: `packages/sim-engine/src/events/registry.ts`.
+
+## V2 Household Stubs (S006)
+
+| Event ID | Category | Notes |
+|----------|----------|-------|
+| `parental_leave_stub` | children | FMLA planning stub; no ledger effects yet |
+
+Full fertility and paid-leave flows deferred to later V2 tickets.

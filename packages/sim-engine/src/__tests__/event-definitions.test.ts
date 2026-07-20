@@ -47,6 +47,7 @@ const EXPECTED_V1_EVENT_IDS = [
   'mortgage_rate_spike',
   'roommate_moves_out',
   'phishing_scam_attempt',
+  'parental_leave_stub',
 ] as const;
 
 describe('V0 event definitions', () => {
@@ -72,11 +73,11 @@ describe('V0 event definitions', () => {
 });
 
 describe('V1 event expansion', () => {
-  it('registers 12 additional V1 events for 32 total', () => {
-    expect(V1_EXPANSION_EVENT_DEFINITIONS).toHaveLength(12);
+  it('registers 13 additional V1 events for 33 total', () => {
+    expect(V1_EXPANSION_EVENT_DEFINITIONS).toHaveLength(13);
     expect(V1_EXPANSION_EVENT_IDS).toEqual([...EXPECTED_V1_EVENT_IDS]);
-    expect(ALL_EVENT_DEFINITIONS).toHaveLength(32);
-    expect(listEventDefinitions()).toHaveLength(32);
+    expect(ALL_EVENT_DEFINITIONS).toHaveLength(33);
+    expect(listEventDefinitions()).toHaveLength(33);
   });
 
   it('samples events deterministically for a fixed seed', () => {

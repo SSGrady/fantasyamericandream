@@ -27,7 +27,7 @@ function totalCredits(lines: LedgerLine[]): MoneyCents {
 }
 
 function assetDebitCents(lines: LedgerLine[]): MoneyCents {
-  const assetIds = new Set(['checking', 'hysa', 'brokerage', 'rothIra', 'traditional401k']);
+  const assetIds = new Set(['checking', 'hysa', 'brokerage', 'rothIra', 'traditional401k', 'plan529']);
   return lines
     .filter((line) => assetIds.has(line.accountId))
     .reduce((sum, line) => sum + line.debitCents, 0);

@@ -35,7 +35,7 @@ export interface SixMonthTickResult {
   audit: AuditSnapshot;
 }
 
-const ASSET_IDS = new Set(['checking', 'hysa', 'brokerage', 'rothIra', 'traditional401k']);
+const ASSET_IDS = new Set(['checking', 'hysa', 'brokerage', 'rothIra', 'traditional401k', 'plan529']);
 
 function isAssetAccountId(accountId: string): boolean {
   return ASSET_IDS.has(accountId);
@@ -65,6 +65,9 @@ function waterfallKey(tx: LedgerTransaction): { label: string; category: NetWort
   }
   if (tx.id.includes('-rent')) {
     return { label: 'Rent', category: 'expense' };
+  }
+  if (tx.id.includes('-childcare')) {
+    return { label: 'Childcare', category: 'expense' };
   }
   if (tx.source === 'interest_expense') {
     return { label: 'Credit card interest', category: 'expense' };
@@ -153,6 +156,7 @@ function computeEmergencyRunwayMonths(
   months: number,
 ): number {
   const rent = sumNominalDebits(transactions, 'expense:rent');
+  const childcare = sumNominalDebits(transactions, 'expense:childcare');
   const withholding = sumNominalDebits(transactions, 'expense:federalWithholding');
   const fica = sumNominalDebits(transactions, 'expense:fica');
   const ccInterest = sumNominalDebits(transactions, 'expense:creditCardInterest');
@@ -166,7 +170,7 @@ function computeEmergencyRunwayMonths(
       return sum + principal;
     }, 0);
 
-  const monthlyBurn = (rent + withholding + fica + ccInterest + slInterest + slPrincipal) / months;
+  const monthlyBurn = (rent + childcare + withholding + fica + ccInterest + slInterest + slPrincipal) / months;
   if (monthlyBurn <= 0) {
     return Infinity;
   }

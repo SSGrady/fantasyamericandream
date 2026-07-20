@@ -89,6 +89,8 @@ export interface Accounts {
   brokerage: AccountBucket;
   rothIra: TaxAdvantagedBucket;
   traditional401k: TaxAdvantagedBucket;
+  /** 529 education savings stub (V2 household). No contributions in stub. */
+  plan529?: TaxAdvantagedBucket;
 }
 
 export interface CreditCardDebt {
