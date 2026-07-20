@@ -74,6 +74,36 @@ Requires [ADR-010 game loop and consequence pipeline](./docs/adr/010-game-loop-a
 - Monte Carlo lab read-only with fan chart (skill-gated)
 - Template narrative complete; LLM optional enhancement
 
+## V1.6: Continuity Pass
+
+**Goal:** Close the gap between "financial documents workflow" and "living through a chapter." V1.5 built the pipeline; V1.6 adds continuity, causality, and interaction density.
+
+**North star:** One persistent chapter shell, strict chronology, canonical metrics everywhere, live planning and timeline simulation, tabbed Chapter Close.
+
+| Priority | Area | Beads |
+|----------|------|-------|
+| P0 | Trust and data integrity | [E012](./beads/epics/E012-trust-data-integrity-v16.md) / [S015](./beads/sprints/S015-trust-data-integrity/sprint.md) |
+| P1 | RunState and selectors | [E020](./beads/epics/E020-run-state-selector-layer.md) / S015-S016 |
+| P1 | Persistent chapter shell | [E013](./beads/epics/E013-persistent-chapter-shell.md) / [S016](./beads/sprints/S016-chapter-shell/sprint.md) |
+| P2 | Interactive planning | [E014](./beads/epics/E014-interactive-planning.md) / [S017](./beads/sprints/S017-interactive-planning/sprint.md) |
+| P3 | Live timeline simulation | [E015](./beads/epics/E015-live-chapter-simulation.md) / [S018](./beads/sprints/S018-live-timeline-simulation/sprint.md) |
+| P4 | Visual semantics and layout | [E016](./beads/epics/E016-visual-semantics-layout.md) / [S019](./beads/sprints/S019-visual-semantics-layout/sprint.md) |
+| P5 | Life priorities and compass | [E017](./beads/epics/E017-life-priorities-compass.md) / [S020](./beads/sprints/S020-life-priorities-compass/sprint.md) |
+| P2 | Onboarding and World Rules | [E018](./beads/epics/E018-onboarding-world-rules.md) / [S021](./beads/sprints/S021-onboarding-world-rules/sprint.md) |
+| P2 | DreamHome actionability | [E019](./beads/epics/E019-dreamhome-actionability.md) / [S022](./beads/sprints/S022-dreamhome-actionability/sprint.md) |
+
+Requires [ADR-014 chapter shell and chronology](./docs/adr/014-chapter-shell-and-chronology.md).
+
+**Sequencing:** S015 (trust) first, then S016 (shell), then S017-S018 (plan + live sim). S019-S022 can overlap once shell exists.
+
+**Exit criteria:**
+
+- CA engineer chapter playable in single shell route end to end
+- Chronology and attribution invariants pass CI
+- Chapter Close replaces serial impact/reactions/counterfactual/audit navigation
+- Plan stage has commit CTA; Live stage shows month rail with RTO interrupt
+- DreamHome shows viable CA buckets with primary blocker and mini lab
+
 ## V2: Household Simulator
 
 Partner income, children, homeownership, relocation, term life, disability, dental, pets, gig work, divorce toggle, full state tax tables.

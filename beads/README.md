@@ -73,3 +73,5 @@ When completing a ticket:
 - **Epic (household, parallel):** [E003 - V2 Household Simulator](./epics/E003-v2-household-simulator.md) / [S006](./sprints/S006-v2-household-foundation/sprint.md)
 
 Full V1.5 sequencing: E004 → E005/E011 → E006 → E007/E008/E009 → E010. See [ADR-010](../docs/adr/010-game-loop-and-consequence-pipeline.md) and [PLAN.md](../PLAN.md) V1.5.
+
+**V1.6 Continuity Pass:** E012 (trust) → E020/E013 (shell) → E014-E019. See [ADR-014](../docs/adr/014-chapter-shell-and-chronology.md) and [PLAN.md](../PLAN.md) V1.6. Active sprint: [S015](./sprints/S015-trust-data-integrity/sprint.md).

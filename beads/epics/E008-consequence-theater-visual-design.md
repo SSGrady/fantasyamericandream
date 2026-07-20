@@ -50,5 +50,7 @@ Make consequences **felt** through editorial presentation, semantic design token
 
 ## Related
 
+- [E016](./E016-visual-semantics-layout.md) - V1.6 chapter-native layout extends E008 tokens
 - [ADR 007](../../docs/adr/007-ui-consequence-pipeline.md)
 - [ADR 010](../../docs/adr/010-game-loop-and-consequence-pipeline.md)
+- [ADR 014](../../docs/adr/014-chapter-shell-and-chronology.md)

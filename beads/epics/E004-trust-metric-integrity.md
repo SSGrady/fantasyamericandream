@@ -47,4 +47,6 @@ Restore player trust in numbers before expanding the game loop. Fix misleading m
 
 - [E002](./E002-v1-playable-game.md) - V1 baseline (complete)
 - [E005](./E005-action-command-system.md) - blocked until trust fixes land
+- [E012](./E012-trust-data-integrity-v16.md) - V1.6 continuity pass extends E004 trust work
 - [ADR 010](../../docs/adr/010-game-loop-and-consequence-pipeline.md)
+- [ADR 014](../../docs/adr/014-chapter-shell-and-chronology.md)

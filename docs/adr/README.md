@@ -21,6 +21,7 @@ Architecture Decision Records (ADRs) for **Fantasy American Dream** - a personal
 | [011](./011-action-command-system.md) | Action Command System | Accepted | 2026-07-20 |
 | [012](./012-package-restructure.md) | Package Restructure for V1.5 Platform | Accepted | 2026-07-20 |
 | [013](./013-chapter-workflow.md) | Chapter Workflow and XState Orchestration | Accepted | 2026-07-20 |
+| [014](./014-chapter-shell-and-chronology.md) | Chapter Shell and Chronology | Proposed | 2026-07-20 |
 
 ---
 
@@ -77,3 +78,7 @@ Versioned rulesets (`Federal Ruleset 2026.1`, per-state stubs). Calibration from
 ### ADR 010 - Game Loop and Consequence Pipeline
 
 V1.5 north star: chapter-based consequence pipeline with persistent action commands, trust-first metric attribution, Monte Carlo lab, consequence theater UI, and optional local LLM narrative. Phases: briefing → planning → simulating → consequence → counterfactual → audit → dashboard. Beads epics E004-E011.
+
+### ADR 014 - Chapter Shell and Chronology
+
+V1.6 Continuity Pass: persistent chapter route, four-stage shell (openingBriefing → planning → simulating → chapterClose), ChapterPeriod lifecycle, RunState + selector layer, tabbed Chapter Close merge. Addresses playthrough feedback that V1.5 still feels like financial documents, not living through a chapter. Beads epics E012-E020, sprints S015-S022.

@@ -2,6 +2,10 @@
 
 Aggregated progress log. Append dated entries when closing tickets.
 
+## 2026-07-20 (continuity pass planning)
+
+- **Planning** - V1.6 Continuity Pass beads: epics E012-E020, sprints S015-S022, tickets T079-T128 (grill-with-me). ADR-014 proposed. PLAN.md V1.6 section. Cross-links from E004, E008.
+
 ## 2026-07-20 (playthrough)
 
 - **T078** - Playthrough feedback: impact API loop fix and server cache, CA rental realism, transportation mode and ledger-backed events, briefing editorial/luck attribution, counterfactual CRN comparison, DreamHome polish, debounced command preview.
