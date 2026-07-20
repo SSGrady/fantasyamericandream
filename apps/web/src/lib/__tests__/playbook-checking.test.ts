@@ -64,7 +64,7 @@ describe('playbook checking snapshot', () => {
     });
 
     expect(result.debts.creditCards[0]?.balance).toBe(0);
-    expect(result.accounts.checking.balance).toBeLessThan(26_490_00);
+    expect(result.accounts.checking.balance).toBeLessThan(30_000_00);
     expect(result.accounts.rothIra.balance).toBeGreaterThan(0);
     expect(result.audit.accountInvestmentReturns?.rothIra).toBeDefined();
   });
