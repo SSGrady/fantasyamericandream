@@ -1,7 +1,7 @@
 ---
 id: T076
 title: Dexie persistence layer
-status: open
+status: done
 type: feature
 priority: P2
 epic: E011

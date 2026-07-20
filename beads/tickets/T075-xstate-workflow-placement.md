@@ -1,7 +1,7 @@
 ---
 id: T075
 title: XState workflow placement
-status: open
+status: done
 type: spike
 priority: P1
 epic: E011

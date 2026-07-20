@@ -1,7 +1,7 @@
 ---
 id: T074
 title: ADR package restructure
-status: open
+status: done
 type: adr
 priority: P1
 epic: E011

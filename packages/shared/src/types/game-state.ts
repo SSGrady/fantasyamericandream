@@ -1,5 +1,7 @@
 /** Integer cents - display formatting happens at UI boundary */
 export type MoneyCents = number;
+export type { BrandedMoneyCents, BrandedBasisPoints, BrandedTaxYear } from './branded.js';
+export { moneyCents, basisPoints, taxYear, parseMoneyCents, unwrapMoneyCents } from './branded.js';
 
 import type { HouseholdState } from './household-state.js';
 import type { V1HousingArrangement } from './housing-rent.js';

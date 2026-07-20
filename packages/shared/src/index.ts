@@ -9,4 +9,5 @@ export * from './types/v1-character-draft.js';
 export * from './types/v1-run-config.js';
 export * from './types/housing-rent.js';
 export * from './types/insurance-state.js';
+export * from './types/branded.js';
 export * from './types/action-command.js';

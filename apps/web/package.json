@@ -15,6 +15,7 @@
     "@fad/shared": "workspace:*",
     "@fad/sim-engine": "workspace:*",
     "@tailwindcss/postcss": "^4.3.3",
+    "dexie": "^4.4.4",
     "next": "^15.0.0",
     "postcss": "^8.5.20",
     "react": "^19.0.0",

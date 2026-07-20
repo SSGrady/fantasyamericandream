@@ -19,6 +19,7 @@ Architecture Decision Records (ADRs) for **Fantasy American Dream** - a personal
 | [009](./009-metro-rent-multipliers.md) | Metro Rent Multipliers (Stub) | Accepted | 2026-07-20 |
 | [010](./010-game-loop-and-consequence-pipeline.md) | Game Loop and Consequence Pipeline | Proposed | 2026-07-20 |
 | [011](./011-action-command-system.md) | Action Command System | Accepted | 2026-07-20 |
+| [012](./012-package-restructure.md) | Package Restructure for V1.5 Platform | Accepted | 2026-07-20 |
 
 ---
 
