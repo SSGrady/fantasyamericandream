@@ -791,6 +791,30 @@ export function validateCommandDraftEffect(session: PlaySession): {
   };
 }
 
+/** Whether Decision day can dispatch the six-month sim for this chapter period. */
+export function canSubmitDecisionDayCommands(session: PlaySession): {
+  ok: boolean;
+  reason?: string;
+} {
+  if (session.chapterPeriod.status === 'in_progress') {
+    return { ok: false, reason: 'Simulation is already running for this chapter.' };
+  }
+
+  if (session.chapterPeriod.status === 'closed') {
+    return { ok: false, reason: 'This chapter period is closed.' };
+  }
+
+  if (session.commandCapacityError) {
+    return { ok: false, reason: session.commandCapacityError };
+  }
+
+  if (session.chapterPeriod.status !== 'planned') {
+    return { ok: false, reason: 'Cannot submit commands for this chapter period.' };
+  }
+
+  return { ok: true };
+}
+
 export function beginNextChapterPeriod(session: PlaySession): PlaySession {
   const next: PlaySession = {
     ...session,

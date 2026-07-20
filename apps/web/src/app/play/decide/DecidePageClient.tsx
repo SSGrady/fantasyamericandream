@@ -9,6 +9,7 @@ import { LiveMonthRail } from '../../../components/play/LiveMonthRail';
 import { PriorityDeltaBadges } from '../../../components/play/PriorityDeltaBadges';
 import { formatMoney } from '../../../lib/format-money';
 import {
+  canSubmitDecisionDayCommands,
   commitCommandDraft,
   computeImpactCacheKey,
   getDeferralFromCommands,
@@ -149,7 +150,11 @@ export function DecidePageClient() {
     );
   }
 
-  const canSubmit = commandEffect.hasEffect && !previewLoading;
+  const submitGate = useMemo(
+    () => (session ? canSubmitDecisionDayCommands(session) : { ok: false }),
+    [session],
+  );
+  const canSubmit = submitGate.ok;
 
   const handleContinue = () => {
     if (!canSubmit) return;
@@ -282,14 +287,19 @@ export function DecidePageClient() {
         >
           Back to planning
         </button>
-        <button
-          type="button"
-          onClick={handleContinue}
-          disabled={!canSubmit}
-          className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
-        >
-          Submit commands
-        </button>
+        <div className="flex flex-col items-stretch gap-2 sm:items-end">
+          {!canSubmit && submitGate.reason ? (
+            <p className="text-sm text-muted">{submitGate.reason}</p>
+          ) : null}
+          <button
+            type="button"
+            onClick={handleContinue}
+            disabled={!canSubmit}
+            className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
+          >
+            Submit commands
+          </button>
+        </div>
       </div>
     </div>
   );
