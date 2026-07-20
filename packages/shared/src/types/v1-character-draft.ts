@@ -1,4 +1,10 @@
-import type { CareerSector, HousingMode, MoneyCents, UsStateCode } from './game-state.js';
+import type {
+  CareerSector,
+  HousingMode,
+  MoneyCents,
+  TransportationMode,
+  UsStateCode,
+} from './game-state.js';
 import type { V1HousingArrangement, V1MaritalStatus } from './housing-rent.js';
 import {
   defaultHousingArrangement,
@@ -68,6 +74,8 @@ export interface V1CharacterDraft {
   housingArrangement: V1HousingArrangement;
   /** Rent vs own stub; own posts PITI instead of rent on monthly tick. */
   housingMode: HousingMode;
+  /** Car vs transit affects monthly costs and hazard events. */
+  transportationMode?: TransportationMode;
   relationshipSimulation: boolean;
   /** Annual partner W2 salary in cents; 0 when single or no partner income. */
   partnerIncomeAnnual: MoneyCents;
@@ -82,8 +90,22 @@ export interface V1CharacterDraft {
     cookingSkill: V1CookingSkill;
   };
   balanceSheet: V1BalanceSheetDraft;
+  /** Chosen during onboarding (/create/job-offer); applied at game start. */
+  jobOfferSelection?: V1JobOfferSelection;
   /** Set when the player picks a lease on /create/rental. */
   rentalSelection?: V1RentalListingSelection;
+}
+
+/** Preset id from chapter content, or `custom` with optional overrides. */
+export interface V1JobOfferSelection {
+  offerId: string;
+  custom?: {
+    employer: string;
+    title: string;
+    baseSalaryAnnual: MoneyCents;
+    commuteMinutes: number;
+    remoteDaysPerWeek: number;
+  };
 }
 
 export interface TraitOption<T extends string | number> {
@@ -158,6 +180,12 @@ export const V1_DELIVERY_OPTIONS: readonly TraitOption<V1DeliveryFrequency>[] = 
   { value: 'low', label: 'Occasionally', modifier: 'Small convenience tax' },
   { value: 'medium', label: 'Weekly', modifier: 'Noticeable monthly drag' },
   { value: 'high', label: 'Most nights', modifier: 'Major discretionary leak' },
+] as const;
+
+export const V1_TRANSPORTATION_OPTIONS: readonly TraitOption<TransportationMode>[] = [
+  { value: 'car', label: 'Car owner', modifier: 'Insurance, gas, parking, repair risk' },
+  { value: 'transit', label: 'Public transit', modifier: 'Monthly pass, commute time, transit hazards' },
+  { value: 'mixed', label: 'Mixed', modifier: 'Occasional rideshare plus partial transit pass' },
 ] as const;
 
 export const V1_COOKING_OPTIONS: readonly TraitOption<V1CookingSkill>[] = [
@@ -265,6 +293,7 @@ export function getDefaultV1CharacterDraft(scenarioId: V1StarterScenarioId): V1C
     housingArrangement:
       overrides.housingArrangement ?? defaultHousingArrangement(overrides.maritalStatus ?? 'single'),
     housingMode: overrides.housingMode ?? 'rent',
+    transportationMode: overrides.transportationMode ?? 'mixed',
     relationshipSimulation: false,
     partnerIncomeAnnual: 0,
     dependentsCount: 0,

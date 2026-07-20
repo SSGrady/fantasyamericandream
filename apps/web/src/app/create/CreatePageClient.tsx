@@ -10,6 +10,7 @@ import {
   V1_EDUCATION_OPTIONS,
   V1_MARITAL_OPTIONS,
   V1_STATE_OPTIONS,
+  V1_TRANSPORTATION_OPTIONS,
   centsToDollars,
   defaultHousingArrangement,
   dollarsToCents,
@@ -58,7 +59,7 @@ export function CreatePageClient() {
   const handleContinue = () => {
     if (!draft) return;
     saveCharacterDraft(draft);
-    router.push('/create/modules');
+    router.push('/create/job-offer');
   };
 
   const scenario = scenarioId ? getV1StarterScenario(scenarioId) : undefined;
@@ -218,6 +219,15 @@ export function CreatePageClient() {
               maritalStatus === 'single' && !draft.childrenPlanned ? 0 : draft.dependentsCount,
           });
         }}
+      />
+
+      <TraitGrid
+        label="Transportation"
+        description="Car ownership vs transit affects monthly costs and hazard events."
+        options={V1_TRANSPORTATION_OPTIONS}
+        value={draft.transportationMode ?? 'mixed'}
+        onChange={(transportationMode) => updateDraft({ transportationMode })}
+        columns={3}
       />
 
       <TraitGrid
@@ -390,7 +400,7 @@ export function CreatePageClient() {
           onClick={handleContinue}
           className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90"
         >
-          Continue to module toggles
+          Continue to job offers
         </button>
       </div>
     </div>

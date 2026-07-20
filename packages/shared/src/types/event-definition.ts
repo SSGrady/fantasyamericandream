@@ -1,4 +1,4 @@
-import type { CareerSector, Difficulty, MacroRegime } from './game-state.js';
+import type { CareerSector, Difficulty, MacroRegime, TransportationMode } from './game-state.js';
 import type { V1MaritalStatus } from './housing-rent.js';
 import type { LiteracySkillId } from './literacy-skills.js';
 
@@ -45,6 +45,7 @@ export interface EventDefinition {
     sectors?: CareerSector[];
     employmentType?: 'w2' | 'contractor' | 'unemployed' | 'student';
     housingMode?: 'rent' | 'own';
+    transportationMode?: TransportationMode[];
     /** Module id from SimulationRun.enabledModules (e.g. life.divorce). */
     requiredModule?: string;
     maritalStatus?: V1MaritalStatus[];

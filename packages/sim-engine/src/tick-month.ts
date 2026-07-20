@@ -16,10 +16,11 @@ import type {
 } from '@fad/shared';
 import { DEFAULT_COMMAND_STATE } from '@fad/shared';
 import { scheduleCommandsForMonth } from './commands/scheduler.js';
+import { buildEventTransactions, buildTransportationCostTransaction } from './events/event-effects.js';
+import { rollEventsForMonth } from './events/roll-events.js';
 import { rollLayoff } from './layoff.js';
 import { maybeTransitionRegime, syncMacroToRegime } from './macro-regimes.js';
 import { buildInvestmentReturnTransactions, sampleMonthlyReturn } from './market-returns.js';
-import { rollEventsForMonth } from './events/roll-events.js';
 import { createRng } from './rng.js';
 
 export interface TickMonthInput {
@@ -37,6 +38,7 @@ export interface TickMonthInput {
   enabledModules?: string[];
   activeCommands?: ActionCommand[];
   weeklyCapacityHours?: number;
+  difficulty?: Difficulty;
 }
 
 export interface TickMonthResult {
@@ -91,7 +93,11 @@ export function tickMonthWithSimulation(input: TickMonthInput): TickMonthResult 
   let macro = syncMacroToRegime(input.macro, nextRegime);
 
   const layoffResult = rollLayoff(input.career, macro, rng);
-  const monthlyReturn = sampleMonthlyReturn(macro.regime, rng);
+  const spVariabilityEnabled = (input.enabledModules ?? []).includes('economy.sp_variability');
+  const monthlyReturn = sampleMonthlyReturn(macro.regime, rng, {
+    difficulty: input.difficulty,
+    spVariabilityEnabled,
+  });
 
   const commandSchedule = scheduleCommandsForMonth({
     monthKey: input.monthKey,
@@ -243,10 +249,40 @@ export function tickMonthsWithSimulation(input: TickMonthsInput): TickMonthsResu
       enabledModules: input.enabledModules,
       activeCommands: input.activeCommands,
       weeklyCapacityHours: input.weeklyCapacityHours,
+      difficulty: input.difficulty,
     });
 
-    accounts = tick.accounts;
-    debts = tick.debts;
+    let monthAccounts = tick.accounts;
+    let monthDebts = tick.debts;
+    const eventTransactions: LedgerTransaction[] = [];
+
+    const transportMode = input.location.transportationMode;
+    if (transportMode) {
+      const transportTx = buildTransportationCostTransaction(monthKey, transportMode);
+      if (transportTx) {
+        eventTransactions.push(transportTx);
+      }
+    }
+
+    for (const occurrence of monthEvents) {
+      eventTransactions.push(
+        ...buildEventTransactions(occurrence, {
+          career,
+          location: input.location,
+          difficulty,
+        }),
+      );
+    }
+
+    if (eventTransactions.length > 0) {
+      const appliedEvents = applyTransactions(monthAccounts, monthDebts, eventTransactions);
+      monthAccounts = appliedEvents.accounts;
+      monthDebts = appliedEvents.debts;
+      transactions.push(...eventTransactions);
+    }
+
+    accounts = monthAccounts;
+    debts = monthDebts;
     career = tick.career;
     macro = tick.macro;
     transactions.push(...tick.transactions);

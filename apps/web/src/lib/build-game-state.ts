@@ -1,4 +1,5 @@
 import { buildV0ScenarioFixture, MORTGAGE_RATES_2026 } from '@fad/data';
+import { CA_ENGINEER_2026, deferralRateFromOffer, resolveJobOffer } from '@fad/domain';
 import { computeMortgagePitiStub } from '@fad/ledger';
 import {
   buildHouseholdFromDraft,
@@ -46,6 +47,7 @@ export interface InitialPlaySetup {
   gameState: GameState;
   deferral401kRate: number;
   startingRothBalance: number;
+  selectedJobOfferId: string;
 }
 
 export function buildInitialGameState(
@@ -58,6 +60,15 @@ export function buildInitialGameState(
     stateCode: draft.stateCode,
     randomSeed: deterministicSeed(draft),
   });
+
+  const chapter = CA_ENGINEER_2026;
+  const offerSelection = draft.jobOfferSelection ?? { offerId: chapter.defaultOfferId };
+  const jobOffer = resolveJobOffer(
+    chapter,
+    offerSelection.offerId,
+    offerSelection.custom,
+  );
+  const deferral401kRate = deferralRateFromOffer(jobOffer);
 
   const accounts = {
     checking: { id: 'checking', balance: draft.balanceSheet.checking },
@@ -165,7 +176,11 @@ export function buildInitialGameState(
       includeEmployerHealthPlan: draft.includeEmployerHealthPlan,
       riskTolerance: 'moderate',
     },
-    career: { ...fixture.career },
+    career: {
+      ...fixture.career,
+      title: jobOffer.title,
+      baseSalaryAnnual: jobOffer.baseSalaryAnnual,
+    },
     household: buildHouseholdFromDraft({
       maritalStatus: draft.maritalStatus,
       partnerIncomeAnnual: draft.partnerIncomeAnnual,
@@ -174,6 +189,7 @@ export function buildInitialGameState(
     location: {
       ...fixture.location,
       housingMode,
+      transportationMode: draft.transportationMode ?? 'mixed',
       marketRentMonthly,
       rentPaymentMonthly: playerRentShareMonthly,
       housingArrangement,
@@ -187,7 +203,8 @@ export function buildInitialGameState(
 
   return {
     gameState,
-    deferral401kRate: fixture.deferral401kRate,
+    deferral401kRate,
     startingRothBalance: draft.balanceSheet.rothIra,
+    selectedJobOfferId: jobOffer.id,
   };
 }

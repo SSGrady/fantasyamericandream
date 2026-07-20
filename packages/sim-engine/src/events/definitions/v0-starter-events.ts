@@ -6,7 +6,7 @@ export const V0_STARTER_EVENT_DEFINITIONS: EventDefinition[] = [
     id: 'quiet_month',
     title: 'Quiet Month',
     category: 'quiet',
-    baseProbabilityPerMonth: 0.35,
+    baseProbabilityPerMonth: 0,
     severity: { distribution: 'fixed', outcomes: [{ id: 'none', weight: 1 }] },
     interruptsHalfYearPacing: false,
   },
@@ -150,7 +150,8 @@ export const V0_STARTER_EVENT_DEFINITIONS: EventDefinition[] = [
     id: 'medical_er_visit',
     title: 'Emergency Room Visit',
     category: 'health',
-    baseProbabilityPerMonth: 0.005,
+    eligibility: { requiredModule: 'health.er_visits' },
+    baseProbabilityPerMonth: 0.008,
     severity: {
       distribution: 'weighted',
       outcomes: [
@@ -168,7 +169,8 @@ export const V0_STARTER_EVENT_DEFINITIONS: EventDefinition[] = [
     id: 'car_repair',
     title: 'Unexpected Car Repair',
     category: 'transportation',
-    baseProbabilityPerMonth: 0.025,
+    eligibility: { transportationMode: ['car', 'mixed'] },
+    baseProbabilityPerMonth: 0.03,
     severity: {
       distribution: 'weighted',
       outcomes: [

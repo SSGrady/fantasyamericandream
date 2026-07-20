@@ -1,13 +1,25 @@
-import type { Accounts, LedgerTransaction, MacroRegime } from '@fad/shared';
+import type { Accounts, LedgerTransaction, MacroRegime, Difficulty } from '@fad/shared';
 import { REGIME_DEFINITIONS } from './macro-regimes.js';
 import { randomNormal } from './rng.js';
 
 const INVESTMENT_ACCOUNTS = ['brokerage', 'traditional401k', 'rothIra'] as const;
 
-export function sampleMonthlyReturn(regime: MacroRegime, rng: () => number): number {
+export function sampleMonthlyReturn(
+  regime: MacroRegime,
+  rng: () => number,
+  options?: { difficulty?: Difficulty; spVariabilityEnabled?: boolean },
+): number {
   const def = REGIME_DEFINITIONS[regime];
-  const monthlyMean = def.annualReturnMean / 12;
-  const monthlyStd = def.annualReturnStdDev / Math.sqrt(12);
+  let realismScale = 1;
+  if (options?.spVariabilityEnabled) {
+    if (options.difficulty === 'medium' || options.difficulty === undefined) {
+      realismScale = 0.55;
+    } else if (options.difficulty === 'easy') {
+      realismScale = 0.7;
+    }
+  }
+  const monthlyMean = (def.annualReturnMean * realismScale) / 12;
+  const monthlyStd = (def.annualReturnStdDev * realismScale) / Math.sqrt(12);
   return monthlyMean + monthlyStd * randomNormal(rng);
 }
 

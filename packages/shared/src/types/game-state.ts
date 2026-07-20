@@ -76,9 +76,13 @@ export interface CareerState {
 
 export type HousingMode = 'rent' | 'own';
 
+export type TransportationMode = 'car' | 'transit' | 'mixed';
+
 export interface LocationState {
   stateCode: UsStateCode;
   metroId: string;
+  /** Car ownership vs public transit affects monthly costs and event eligibility. */
+  transportationMode?: TransportationMode;
   housingMode: HousingMode;
   /** Full market rent before roommate or partner split. */
   marketRentMonthly: MoneyCents;

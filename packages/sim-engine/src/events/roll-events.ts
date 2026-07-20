@@ -41,6 +41,12 @@ function isEligible(definition: EventDefinition, context: EventRollContext): boo
   if (eligibility.housingMode && eligibility.housingMode !== context.location.housingMode) {
     return false;
   }
+  if (eligibility.transportationMode) {
+    const mode = context.location.transportationMode ?? 'mixed';
+    if (!eligibility.transportationMode.includes(mode)) {
+      return false;
+    }
+  }
   if (eligibility.sectors && !eligibility.sectors.includes(context.career.sector)) {
     return false;
   }
@@ -136,24 +142,6 @@ export function rollEventsForMonth(
   const definitions = listEventDefinitions().filter((definition) => isEligible(definition, context));
   const quiet = definitions.find((definition) => definition.id === 'quiet_month');
 
-  if (quiet) {
-    const quietProbability = effectiveProbability(quiet, context);
-    if (rng() < quietProbability) {
-      return [
-        {
-          eventId: quiet.id,
-          title: quiet.title,
-          category: quiet.category,
-          monthIndex: context.monthIndex,
-          monthKey: context.monthKey,
-          monthDate: addMonthsToIsoDate(context.startDate, context.monthIndex),
-          severityId: pickSeverityId(quiet, rng),
-          interruptsHalfYearPacing: quiet.interruptsHalfYearPacing ?? false,
-        },
-      ];
-    }
-  }
-
   const occurrences: SampledEventOccurrence[] = [];
 
   for (const definition of definitions) {
@@ -177,6 +165,21 @@ export function rollEventsForMonth(
     if (definition.cooldownMonths) {
       context.cooldowns.set(definition.id, definition.cooldownMonths);
     }
+  }
+
+  if (occurrences.length === 0 && quiet) {
+    return [
+      {
+        eventId: quiet.id,
+        title: quiet.title,
+        category: quiet.category,
+        monthIndex: context.monthIndex,
+        monthKey: context.monthKey,
+        monthDate: addMonthsToIsoDate(context.startDate, context.monthIndex),
+        severityId: pickSeverityId(quiet, rng),
+        interruptsHalfYearPacing: quiet.interruptsHalfYearPacing ?? false,
+      },
+    ];
   }
 
   return occurrences;

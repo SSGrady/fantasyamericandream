@@ -177,6 +177,29 @@ export const V1_EXPANSION_EVENT_DEFINITIONS: EventDefinition[] = [
     calibration: { source: 'FTC fraud reports', confidence: 'low' },
   },
   {
+    id: 'transit_assault_er_visit',
+    title: 'Transit Incident and ER Visit',
+    category: 'health',
+    eligibility: {
+      transportationMode: ['transit', 'mixed'],
+      requiredModule: 'health.er_visits',
+    },
+    baseProbabilityPerMonth: 0.006,
+    severity: {
+      distribution: 'weighted',
+      outcomes: [
+        { id: 'minor', weight: 0.65 },
+        { id: 'major', weight: 0.35 },
+      ],
+    },
+    interruptsHalfYearPacing: true,
+    choices: [
+      { id: 'payment_plan', label: 'Set up a payment plan' },
+      { id: 'pay_minimum', label: 'Pay minimum due now' },
+    ],
+    calibration: { source: 'Transit assault hazard stub', confidence: 'low' },
+  },
+  {
     id: 'parental_leave_stub',
     title: 'Parental Leave Planning',
     category: 'children',
