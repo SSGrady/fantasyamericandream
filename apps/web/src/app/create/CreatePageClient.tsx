@@ -24,6 +24,8 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { BalanceSheetForm } from '../../components/create/BalanceSheetForm';
+import { CharacterSetupWizard } from '../../components/create/CharacterSetupWizard';
+import { OnboardingPreviewRail } from '../../components/create/OnboardingPreviewRail';
 import { TraitGrid } from '../../components/create/TraitGrid';
 import {
   loadOrCreateCharacterDraft,
@@ -37,6 +39,7 @@ export function CreatePageClient() {
   const scenarioParam = searchParams.get('scenario') as V1StarterScenarioId | null;
   const [scenarioId, setScenarioId] = useState<V1StarterScenarioId | null>(scenarioParam);
   const [draft, setDraft] = useState<V1CharacterDraft | null>(null);
+  const [step, setStep] = useState(1);
 
   useEffect(() => {
     const resolvedScenario =
@@ -58,8 +61,20 @@ export function CreatePageClient() {
 
   const handleContinue = () => {
     if (!draft) return;
+    if (step < 4) {
+      setStep(step + 1);
+      return;
+    }
     saveCharacterDraft(draft);
     router.push('/create/job-offer');
+  };
+
+  const handleBack = () => {
+    if (step > 1) {
+      setStep(step - 1);
+      return;
+    }
+    router.push('/scenarios');
   };
 
   const scenario = scenarioId ? getV1StarterScenario(scenarioId) : undefined;
@@ -82,19 +97,32 @@ export function CreatePageClient() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
-        <p className="text-sm font-medium text-accent">Selected scenario</p>
-        {scenario ? (
-          <>
-            <h2 className="mt-1 font-serif text-2xl text-ink">{scenario.title}</h2>
-            <p className="mt-2 text-sm text-muted">{scenario.description}</p>
-          </>
-        ) : (
-          <h2 className="mt-1 font-serif text-2xl text-ink">{scenarioId}</h2>
-        )}
-      </div>
+    <CharacterSetupWizard
+      step={step}
+      onStepChange={setStep}
+      preview={<OnboardingPreviewRail draft={draft} step={step} />}
+    >
+      {step === 1 ? (
+        <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
+          <p className="text-sm font-medium text-accent">Selected scenario</p>
+          {scenario ? (
+            <>
+              <h2 className="mt-1 font-serif text-2xl text-ink">{scenario.title}</h2>
+              <p className="mt-2 text-sm text-muted">{scenario.description}</p>
+            </>
+          ) : (
+            <h2 className="mt-1 font-serif text-2xl text-ink">{scenarioId}</h2>
+          )}
+          <div className="mt-4">
+            <Link href="/scenarios" className="text-sm font-medium text-accent hover:underline">
+              Change scenario
+            </Link>
+          </div>
+        </div>
+      ) : null}
 
+      {step === 2 ? (
+        <>
       <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
         <h2 className="font-serif text-xl text-ink">Setup mode</h2>
         <p className="mt-1 text-sm text-muted">
@@ -376,7 +404,11 @@ export function CreatePageClient() {
           </span>
         </label>
       </section>
+        </>
+      ) : null}
 
+      {step === 3 ? (
+        <>
       <BalanceSheetForm
         value={draft.balanceSheet}
         onChange={(balanceSheet) => updateDraft({ balanceSheet })}
@@ -384,25 +416,44 @@ export function CreatePageClient() {
 
       {advanced ? null : (
         <p className="text-sm text-muted">
-          Balance sheet uses scenario defaults in slim mode. Switch to Advanced to edit accounts.
+          Balance sheet uses scenario defaults in slim mode. Switch to Advanced on step 2 to edit household fields.
         </p>
       )}
+        </>
+      ) : null}
+
+      {step === 4 ? (
+        <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
+          <h2 className="font-serif text-xl text-ink">World rules</h2>
+          <p className="mt-2 text-sm text-muted">
+            Module presets (Guided, Realistic, Volatile, Harsh) set macro and hazard toggles. You can
+            fine-tune on the next screen; defaults favor Guided for first-time players.
+          </p>
+          <Link
+            href="/create/modules"
+            className="mt-4 inline-flex text-sm font-medium text-accent hover:underline"
+          >
+            Open world rules & module toggles
+          </Link>
+        </section>
+      ) : null}
 
       <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
-        <Link
-          href="/scenarios"
+        <button
+          type="button"
+          onClick={handleBack}
           className="inline-flex items-center justify-center rounded-md border border-border bg-card px-5 py-2.5 text-sm font-medium text-ink hover:border-accent/40 hover:text-accent"
         >
-          Back to scenarios
-        </Link>
+          {step === 1 ? 'Back to scenarios' : 'Back'}
+        </button>
         <button
           type="button"
           onClick={handleContinue}
           className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90"
         >
-          Continue to job offers
+          {step === 4 ? 'Continue to job offers' : 'Next step'}
         </button>
       </div>
-    </div>
+    </CharacterSetupWizard>
   );
 }

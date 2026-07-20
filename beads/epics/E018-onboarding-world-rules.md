@@ -1,7 +1,7 @@
 ---
 id: E018
 title: Onboarding and World Rules UX
-status: open
+status: done
 priority: P2
 sprints:
   - S021

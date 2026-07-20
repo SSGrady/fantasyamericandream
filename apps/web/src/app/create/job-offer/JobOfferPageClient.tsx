@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { JobOfferPicker } from '../../../components/create/JobOfferPicker';
+import { JobOfferTradeoffMatrix } from '../../../components/create/JobOfferTradeoffMatrix';
 import { loadCharacterDraft, saveCharacterDraft } from '../../../lib/character-draft';
 
 const DEFAULT_CUSTOM = {
@@ -88,6 +89,12 @@ export function JobOfferPageClient() {
           interrupt fires.
         </p>
       </div>
+
+      <JobOfferTradeoffMatrix
+        offers={offers}
+        selectedOfferId={selectedOfferId}
+        onSelect={setSelectedOfferId}
+      />
 
       <JobOfferPicker
         offers={offers}

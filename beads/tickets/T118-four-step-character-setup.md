@@ -1,7 +1,7 @@
 ---
 id: T118
 title: 4-step character setup
-status: open
+status: done
 type: feature
 priority: P2
 epic: E018

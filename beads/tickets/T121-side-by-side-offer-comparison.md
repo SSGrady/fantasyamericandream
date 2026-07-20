@@ -1,7 +1,7 @@
 ---
 id: T121
 title: Side-by-side offer comparison
-status: open
+status: done
 type: feature
 priority: P2
 epic: E018

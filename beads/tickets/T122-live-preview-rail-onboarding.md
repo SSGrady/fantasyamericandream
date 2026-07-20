@@ -1,7 +1,7 @@
 ---
 id: T122
 title: Live preview rail onboarding
-status: open
+status: done
 type: feature
 priority: P2
 epic: E018
