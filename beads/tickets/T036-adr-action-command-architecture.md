@@ -1,7 +1,7 @@
 ---
 id: T036
 title: ADR action command architecture
-status: open
+status: done
 type: adr
 priority: P1
 epic: E005

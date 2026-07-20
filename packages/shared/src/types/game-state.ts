@@ -261,4 +261,6 @@ export interface GameState {
   accounts: Accounts;
   debts: Debts;
   macro: MacroState;
+  /** Active persistent commands for the current chapter (replay). */
+  commandState?: import('./action-command.js').CommandState;
 }

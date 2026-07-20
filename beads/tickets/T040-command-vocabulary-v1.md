@@ -1,7 +1,7 @@
 ---
 id: T040
 title: Command vocabulary v1 (~15 actions)
-status: open
+status: done
 type: feature
 priority: P1
 epic: E005

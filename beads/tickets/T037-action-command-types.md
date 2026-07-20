@@ -1,7 +1,7 @@
 ---
 id: T037
 title: ActionCommand discriminated union
-status: open
+status: done
 type: feature
 priority: P1
 epic: E005

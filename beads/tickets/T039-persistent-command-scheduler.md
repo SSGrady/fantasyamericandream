@@ -1,7 +1,7 @@
 ---
 id: T039
 title: Persistent command scheduler
-status: open
+status: done
 type: feature
 priority: P1
 epic: E005

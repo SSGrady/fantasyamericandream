@@ -1,5 +1,22 @@
-import type { AuditSnapshot, GameState, LiteracySkillId, LiteracyProgress, SampledEventOccurrence, SimulationEndReason } from '@fad/shared';
-import { createDefaultLiteracyProgress, DEFAULT_HOUSEHOLD, LITERACY_SKILL_STUBS } from '@fad/shared';
+import type {
+  ActionCommand,
+  AuditSnapshot,
+  CommandState,
+  GameState,
+  LiteracySkillId,
+  LiteracyProgress,
+  SampledEventOccurrence,
+  SimulationEndReason,
+  V1CharacterDraft,
+  V1RunConfig,
+} from '@fad/shared';
+import {
+  createDefaultLiteracyProgress,
+  DEFAULT_COMMAND_STATE,
+  DEFAULT_HOUSEHOLD,
+  LITERACY_SKILL_STUBS,
+  validateCommandCapacity,
+} from '@fad/shared';
 import { netWorth } from '@fad/ledger';
 import type {
   EmergencyRunwayBreakdown,
@@ -8,7 +25,6 @@ import type {
   SavingsRateBreakdown,
 } from '@fad/ledger';
 import type { TickSixMonthsResult } from '@fad/sim-engine';
-import type { V1CharacterDraft, V1RunConfig } from '@fad/shared';
 import { buildInitialGameState } from './build-game-state';
 import { loadCharacterDraft } from './character-draft';
 import { loadRunConfig } from './run-config';
@@ -54,6 +70,8 @@ export interface PlaySession {
   currentAudit: AuditSnapshot | null;
   /** Counterfactual impact preview from submitted player action. */
   impactPreview: ImpactPreview | null;
+  commandDraft: ActionCommand[];
+  commandCapacityError: string | null;
   pendingDecisions: PendingDecision[];
   playerAction: string;
   periodIndex: number;
@@ -215,6 +233,8 @@ function normalizeSession(parsed: PlaySession): PlaySession {
     dreamHomeChoiceId: parsed.dreamHomeChoiceId ?? null,
     dreamHomeBlocked: parsed.dreamHomeBlocked ?? false,
     impactPreview: parsed.impactPreview ?? null,
+    commandDraft: parsed.commandDraft ?? parsed.gameState.commandState?.activeCommands ?? [],
+    commandCapacityError: parsed.commandCapacityError ?? null,
   };
 }
 
@@ -259,6 +279,8 @@ export function initializePlaySession(
     startingRothBalance,
     currentAudit: null,
     impactPreview: null,
+    commandDraft: [],
+    commandCapacityError: null,
     pendingDecisions: [],
     playerAction: '',
     periodIndex: 0,
@@ -367,6 +389,8 @@ export interface SimTickRequest {
   player: Pick<GameState['player'], 'habits' | 'includeEmployerHealthPlan'> & { ageYears?: number };
   macro: GameState['macro'];
   deferral401kRate: number;
+  activeCommands?: ActionCommand[];
+  weeklyCapacityHours?: number;
   difficulty: GameState['run']['difficulty'];
   enabledModules: GameState['run']['enabledModules'];
 }
@@ -548,6 +572,41 @@ export function unlockLiteracySkill(
 
 export function hasUnlockedSkill(session: PlaySession, skillId: LiteracySkillId): boolean {
   return session.literacyProgress[skillId]?.mastery === 'mastered';
+}
+
+export function commitCommandDraft(session: PlaySession): PlaySession {
+  const weeklyCapacityHours =
+    session.gameState.commandState?.weeklyCapacityHours ?? DEFAULT_COMMAND_STATE.weeklyCapacityHours;
+  const validation = validateCommandCapacity({
+    commands: session.commandDraft,
+    weeklyCapacityHours,
+  });
+
+  if (!validation.ok) {
+    const next = {
+      ...session,
+      commandCapacityError: `Capacity exceeded: ${validation.used}h of ${validation.limit}h weekly budget.`,
+    };
+    savePlaySession(next);
+    return next;
+  }
+
+  const commandState: CommandState = {
+    schemaVersion: DEFAULT_COMMAND_STATE.schemaVersion,
+    activeCommands: session.commandDraft,
+    weeklyCapacityHours,
+  };
+
+  const next: PlaySession = {
+    ...session,
+    commandCapacityError: null,
+    gameState: {
+      ...session.gameState,
+      commandState,
+    },
+  };
+  savePlaySession(next);
+  return next;
 }
 
 export function formatPeriodLabel(currentDate: string): string {

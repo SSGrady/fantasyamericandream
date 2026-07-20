@@ -13,6 +13,7 @@ import {
   type V1CharacterDraft,
   type V1HousingArrangement,
   type V1RunConfig,
+  DEFAULT_COMMAND_STATE,
 } from '@fad/shared';
 
 const SIMULATION_VERSION = 'v0.1.0';
@@ -181,6 +182,7 @@ export function buildInitialGameState(
     accounts,
     debts,
     macro: { ...DEFAULT_MACRO },
+    commandState: { ...DEFAULT_COMMAND_STATE },
   };
 
   return {

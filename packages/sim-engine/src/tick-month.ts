@@ -1,6 +1,7 @@
 import { applyMonthlyTick, applyTransactions, addMonthsToIsoDate, monthKeyAdd, monthKeyFromIsoDate, buildAuditSnapshot } from '@fad/ledger';
 import type {
   Accounts,
+  ActionCommand,
   AuditSnapshot,
   CareerState,
   Debts,
@@ -13,6 +14,8 @@ import type {
   PlayerState,
   SampledEventOccurrence,
 } from '@fad/shared';
+import { DEFAULT_COMMAND_STATE } from '@fad/shared';
+import { scheduleCommandsForMonth } from './commands/scheduler.js';
 import { rollLayoff } from './layoff.js';
 import { maybeTransitionRegime, syncMacroToRegime } from './macro-regimes.js';
 import { buildInvestmentReturnTransactions, sampleMonthlyReturn } from './market-returns.js';
@@ -32,6 +35,8 @@ export interface TickMonthInput {
   macro: MacroState;
   deferral401kRate?: number;
   enabledModules?: string[];
+  activeCommands?: ActionCommand[];
+  weeklyCapacityHours?: number;
 }
 
 export interface TickMonthResult {
@@ -58,6 +63,8 @@ export interface TickMonthsInput {
   deferral401kRate?: number;
   difficulty?: Difficulty;
   enabledModules?: string[];
+  activeCommands?: ActionCommand[];
+  weeklyCapacityHours?: number;
 }
 
 export interface TickMonthsResult {
@@ -86,6 +93,29 @@ export function tickMonthWithSimulation(input: TickMonthInput): TickMonthResult 
   const layoffResult = rollLayoff(input.career, macro, rng);
   const monthlyReturn = sampleMonthlyReturn(macro.regime, rng);
 
+  const commandSchedule = scheduleCommandsForMonth({
+    monthKey: input.monthKey,
+    activeCommands: input.activeCommands ?? [],
+    weeklyCapacityHours: input.weeklyCapacityHours ?? DEFAULT_COMMAND_STATE.weeklyCapacityHours,
+  });
+  const effects = commandSchedule.effects;
+
+  const player = input.player
+    ? {
+        ...input.player,
+        habits: {
+          ...input.player.habits,
+          ...(effects.deliveryFrequency
+            ? { deliveryFrequency: effects.deliveryFrequency }
+            : {}),
+          ...(effects.cookingSkill !== undefined ? { cookingSkill: effects.cookingSkill } : {}),
+          subscriptionLoad: effects.subscriptionAudit
+            ? Math.max(0, input.player.habits.subscriptionLoad - 50_00)
+            : input.player.habits.subscriptionLoad,
+        },
+      }
+    : input.player;
+
   const baseTick = applyMonthlyTick({
     monthKey: input.monthKey,
     accounts: input.accounts,
@@ -93,9 +123,16 @@ export function tickMonthWithSimulation(input: TickMonthInput): TickMonthResult 
     career: layoffResult.career,
     location: input.location,
     household: input.household,
-    player: input.player,
-    deferral401kRate: input.deferral401kRate,
+    player,
+    deferral401kRate: effects.deferral401kRate ?? input.deferral401kRate,
     enabledModules: input.enabledModules,
+    savingsTransfers: {
+      hysaCents: effects.hysaTransferMonthlyCents,
+      brokerageCents: effects.brokerageTransferMonthlyCents,
+      rothIraCents: effects.rothContributionMonthlyCents,
+      studentLoanExtraCents: effects.studentLoanExtraCents,
+      creditCardExtraCents: effects.creditCardExtraCents,
+    },
   });
 
   const returnTransactions = buildInvestmentReturnTransactions(
@@ -204,6 +241,8 @@ export function tickMonthsWithSimulation(input: TickMonthsInput): TickMonthsResu
       macro,
       deferral401kRate: input.deferral401kRate,
       enabledModules: input.enabledModules,
+      activeCommands: input.activeCommands,
+      weeklyCapacityHours: input.weeklyCapacityHours,
     });
 
     accounts = tick.accounts;

@@ -5,6 +5,7 @@ Aggregated progress log. Append dated entries when closing tickets.
 ## 2026-07-20
 
 - **S007 / E004** - Trust metric fixes complete (T028-T035): split savings ribbon (401k deferral, cash surplus, total), net-worth attribution (contributions vs returns vs choice/luck), chapter calendar framing, rental COL calibration unification, DreamHome aspiration buckets, impact counterfactual API, single-player reaction gating.
+- **S008 / E005** - Action command foundation (T036-T041): ADR-011, ActionCommand Zod union (15 types), weekly capacity, sim scheduler, transfer postings, CommandCenter UI.
 - **Planning** - V1.5 game loop beads: epics E004-E011, sprints S007-S014, tickets T028-T077 (grill-with-me). ADR-010 proposed. PLAN.md V1.5 section, product thesis north star updated.
 - **Rename** - Product branding updated from Life Ledger to Fantasy American Dream across UI, docs, and beads.
 - **T019** - Metro rent brackets: top 25 GDP metros in `metros.ts`, ADR-009, multiplier wired into COL-tier rent sampling.

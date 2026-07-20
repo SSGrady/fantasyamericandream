@@ -1,7 +1,7 @@
 ---
 id: E005
 title: Action Command System
-status: open
+status: done
 priority: P1
 sprints:
   - S008

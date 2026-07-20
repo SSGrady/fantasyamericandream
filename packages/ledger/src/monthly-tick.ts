@@ -33,6 +33,14 @@ export interface MonthlyTickInput {
   player?: Pick<PlayerState, 'habits' | 'includeEmployerHealthPlan'> & { ageYears?: number };
   deferral401kRate?: number;
   enabledModules?: string[];
+  /** Post-payday savings and debt commands from action scheduler. */
+  savingsTransfers?: {
+    hysaCents?: number;
+    brokerageCents?: number;
+    rothIraCents?: number;
+    studentLoanExtraCents?: number;
+    creditCardExtraCents?: number;
+  };
 }
 
 export interface MonthlyTickResult extends ApplyTransactionsResult {
@@ -281,6 +289,52 @@ export function buildMonthlyTransactions(input: MonthlyTickInput): LedgerTransac
   }
 
   transactions.push(...buildStudentLoanPaymentTransactions(input.monthKey, input.debts));
+
+  const transfers = input.savingsTransfers;
+  if (transfers?.hysaCents && transfers.hysaCents > 0) {
+    transactions.push({
+      id: `tx-${input.monthKey}-transfer-hysa`,
+      description: 'HYSA auto-transfer',
+      source: 'transfer',
+      lines: [
+        { accountId: 'hysa', debitCents: transfers.hysaCents, creditCents: 0 },
+        { accountId: 'checking', debitCents: 0, creditCents: transfers.hysaCents },
+      ],
+    });
+  }
+  if (transfers?.brokerageCents && transfers.brokerageCents > 0) {
+    transactions.push({
+      id: `tx-${input.monthKey}-transfer-brokerage`,
+      description: 'Brokerage auto-transfer',
+      source: 'transfer',
+      lines: [
+        { accountId: 'brokerage', debitCents: transfers.brokerageCents, creditCents: 0 },
+        { accountId: 'checking', debitCents: 0, creditCents: transfers.brokerageCents },
+      ],
+    });
+  }
+  if (transfers?.rothIraCents && transfers.rothIraCents > 0) {
+    transactions.push({
+      id: `tx-${input.monthKey}-transfer-roth`,
+      description: 'Roth IRA contribution transfer',
+      source: 'transfer',
+      lines: [
+        { accountId: 'rothIra', debitCents: transfers.rothIraCents, creditCents: 0 },
+        { accountId: 'checking', debitCents: 0, creditCents: transfers.rothIraCents },
+      ],
+    });
+  }
+  if (transfers?.creditCardExtraCents && transfers.creditCardExtraCents > 0 && primaryCard) {
+    transactions.push({
+      id: `tx-${input.monthKey}-cc-extra-${primaryCard.id}`,
+      description: 'Extra credit card paydown',
+      source: 'debt_payment',
+      lines: [
+        { accountId: 'checking', debitCents: 0, creditCents: transfers.creditCardExtraCents },
+        { accountId: `creditCard:${primaryCard.id}`, debitCents: transfers.creditCardExtraCents, creditCents: 0 },
+      ],
+    });
+  }
 
   return transactions.sort((a, b) => a.id.localeCompare(b.id));
 }

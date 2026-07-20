@@ -1,0 +1,13 @@
+{
+  "weeklyCapacityHoursDefault": 14,
+  "passiveFinanceCommandTypes": [
+    "set_401k_deferral_rate",
+    "set_roth_contribution_monthly",
+    "set_hysa_auto_transfer",
+    "set_brokerage_auto_transfer",
+    "set_emergency_fund_target",
+    "set_student_loan_extra",
+    "set_credit_card_paydown",
+    "set_coast_mode"
+  ]
+}

@@ -27,6 +27,8 @@ interface TickRequestBody {
   deferral401kRate?: number;
   difficulty?: Difficulty;
   enabledModules?: string[];
+  activeCommands?: import('@fad/shared').ActionCommand[];
+  weeklyCapacityHours?: number;
 }
 
 function isIsoDate(value: unknown): value is IsoDate {
@@ -68,6 +70,9 @@ function parseTickRequest(body: unknown): TickRequestBody | null {
     enabledModules: Array.isArray(body.enabledModules)
       ? body.enabledModules.filter((id): id is string => typeof id === 'string')
       : undefined,
+    activeCommands: Array.isArray(body.activeCommands) ? (body.activeCommands as import('@fad/shared').ActionCommand[]) : undefined,
+    weeklyCapacityHours:
+      typeof body.weeklyCapacityHours === 'number' ? body.weeklyCapacityHours : undefined,
   };
 }
 

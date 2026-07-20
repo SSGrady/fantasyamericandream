@@ -55,6 +55,8 @@ export function BriefingPageClient() {
           deferral401kRate: session!.deferral401kRate,
           difficulty: session!.gameState.run.difficulty,
           enabledModules: session!.gameState.run.enabledModules,
+          activeCommands: session!.gameState.commandState?.activeCommands,
+          weeklyCapacityHours: session!.gameState.commandState?.weeklyCapacityHours,
         });
 
         if (cancelled) return;

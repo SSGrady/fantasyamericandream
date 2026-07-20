@@ -33,5 +33,12 @@ export {
   listEventDefinitions,
 } from './events/registry.js';
 export { rollEventsForMonth, rollEventsForPeriod } from './events/roll-events.js';
+export {
+  scheduleCommandsForMonth,
+  resolveCommandEffects,
+  validateCommandCapacity,
+  COMMAND_REGISTRY_V1,
+  assertCommandRegistryV1,
+} from './commands/index.js';
 export { tickSixMonths, exportAuditJson } from '@fad/ledger';
 export type { SixMonthTickInput, SixMonthTickResult } from '@fad/ledger';
