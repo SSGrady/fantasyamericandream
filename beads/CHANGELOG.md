@@ -2,6 +2,12 @@
 
 Aggregated progress log. Append dated entries when closing tickets.
 
+## 2026-07-20
+
+- **T027** - Roth IRA balance breakdown footnote (starting + contributions + returns); credit card pay-in-full autopay for playbook card spend.
+- **T018** - COL-tier stochastic rent ranges in `packages/data/src/calibration/housing/col-tiers.ts`; v0-rent-only and rental picker use seeded tier sampling.
+- **T022** - Homeownership engine stub: `housingMode` rent/own, `MortgageDebt`, PITI monthly posting when own.
+
 ## 2026-07-19 (continued)
 
 - **T026** - Baseline living expenses stub: health insurance, utilities, groceries, subscriptions on monthly tick; cooking/delivery modifiers; employer health plan toggle; runway and waterfall updated.

@@ -1,7 +1,7 @@
 ---
 id: T022
 title: Homeownership stub
-status: open
+status: done
 type: feature
 priority: P2
 epic: E003

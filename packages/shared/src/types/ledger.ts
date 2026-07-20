@@ -19,7 +19,10 @@ export type AssetAccountId =
   | 'traditional401k'
   | 'plan529';
 
-export type LiabilityAccountId = `creditCard:${string}` | `studentLoan:${string}`;
+export type LiabilityAccountId =
+  | `creditCard:${string}`
+  | `studentLoan:${string}`
+  | `mortgage:${string}`;
 
 export type NominalAccountId = `income:${string}` | `expense:${string}`;
 

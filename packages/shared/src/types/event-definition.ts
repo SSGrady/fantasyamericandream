@@ -43,7 +43,7 @@ export interface EventDefinition {
     minTenureMonths?: number;
     sectors?: CareerSector[];
     employmentType?: 'w2' | 'contractor' | 'unemployed' | 'student';
-    housingMode?: 'rent';
+    housingMode?: 'rent' | 'own';
   };
   baseProbabilityPerMonth?: number;
   modifiers?: {

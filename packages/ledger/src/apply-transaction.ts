@@ -76,6 +76,20 @@ function applyLiabilityDelta(debts: Debts, accountId: LedgerAccountId, delta: Mo
       throw new Error(`Student loan ${loanId} principal cannot go negative`);
     }
     loan.principal = next;
+    return;
+  }
+
+  if (accountId.startsWith('mortgage:')) {
+    const mortgageId = accountId.slice('mortgage:'.length);
+    const mortgage = debts.mortgages?.find((m) => m.id === mortgageId);
+    if (!mortgage) {
+      throw new Error(`Unknown mortgage: ${mortgageId}`);
+    }
+    const next = mortgage.principal + delta;
+    if (next < 0) {
+      throw new Error(`Mortgage ${mortgageId} principal cannot go negative`);
+    }
+    mortgage.principal = next;
   }
 }
 

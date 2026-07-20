@@ -1,4 +1,4 @@
-import type { CareerSector, MoneyCents, UsStateCode } from './game-state.js';
+import type { CareerSector, HousingMode, MoneyCents, UsStateCode } from './game-state.js';
 import type { V1HousingArrangement, V1MaritalStatus } from './housing-rent.js';
 import {
   defaultHousingArrangement,
@@ -61,6 +61,8 @@ export interface V1CharacterDraft {
   maritalStatus: V1MaritalStatus;
   /** Rent and utilities split applied to market rent at game start. */
   housingArrangement: V1HousingArrangement;
+  /** Rent vs own stub; own posts PITI instead of rent on monthly tick. */
+  housingMode: HousingMode;
   relationshipSimulation: boolean;
   /** Annual partner W2 salary in cents; 0 when single or no partner income. */
   partnerIncomeAnnual: MoneyCents;
@@ -255,6 +257,7 @@ export function getDefaultV1CharacterDraft(scenarioId: V1StarterScenarioId): V1C
     maritalStatus: overrides.maritalStatus ?? 'single',
     housingArrangement:
       overrides.housingArrangement ?? defaultHousingArrangement(overrides.maritalStatus ?? 'single'),
+    housingMode: overrides.housingMode ?? 'rent',
     relationshipSimulation: false,
     partnerIncomeAnnual: 0,
     dependentsCount: 0,

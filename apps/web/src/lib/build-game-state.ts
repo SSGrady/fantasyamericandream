@@ -1,4 +1,5 @@
-import { buildV0ScenarioFixture } from '@fad/data';
+import { buildV0ScenarioFixture, MORTGAGE_RATES_2026 } from '@fad/data';
+import { computeMortgagePitiStub } from '@fad/ledger';
 import {
   buildHouseholdFromDraft,
   defaultHousingArrangement,
@@ -6,6 +7,7 @@ import {
   isHousingArrangementAllowed,
   playerRentShare,
   type GameState,
+  type HousingMode,
   type IsoDate,
   type MacroState,
   type V1CharacterDraft,
@@ -34,9 +36,15 @@ function deterministicSeed(draft: V1CharacterDraft): string {
   return `v1-${draft.scenarioId}-${draft.careerSector}-${draft.stateCode}-${draft.name.trim() || 'anon'}`;
 }
 
+/** Stub home value when switching to own: 200x monthly market rent. */
+function stubHomeValueFromRent(marketRentMonthly: number): number {
+  return Math.round(marketRentMonthly * 200);
+}
+
 export interface InitialPlaySetup {
   gameState: GameState;
   deferral401kRate: number;
+  startingRothBalance: number;
 }
 
 export function buildInitialGameState(
@@ -74,6 +82,29 @@ export function buildInitialGameState(
   const creditBalance = draft.balanceSheet.creditCard;
   const loanPrincipal = draft.balanceSheet.studentLoan;
 
+  const housingMode: HousingMode = draft.housingMode ?? 'rent';
+  const housingArrangement: V1HousingArrangement = isHousingArrangementAllowed(
+    draft.housingArrangement,
+    draft.maritalStatus,
+  )
+    ? draft.housingArrangement
+    : defaultHousingArrangement(draft.maritalStatus);
+
+  const marketRentMonthly =
+    draft.rentalSelection?.marketRentMonthly ?? fixture.location.marketRentMonthly;
+  const playerRentShareMonthly =
+    housingMode === 'rent' ? playerRentShare(marketRentMonthly, housingArrangement) : 0;
+
+  const homeValueCents =
+    housingMode === 'own' ? stubHomeValueFromRent(marketRentMonthly) : undefined;
+  const mortgageStub =
+    housingMode === 'own' && homeValueCents
+      ? computeMortgagePitiStub({
+          homeValueCents,
+          apr: MORTGAGE_RATES_2026.baseRate,
+        })
+      : null;
+
   const debts = {
     creditCards: [
       {
@@ -92,18 +123,20 @@ export function buildInitialGameState(
         minimumPayment: Math.max(Math.round(loanPrincipal * 0.011), 28_00),
       },
     ],
+    mortgages: mortgageStub
+      ? [
+          {
+            id: 'mtg1',
+            principal: mortgageStub.principal,
+            homeValue: homeValueCents!,
+            apr: MORTGAGE_RATES_2026.baseRate,
+            termMonths: 360,
+            monthlyPiti: mortgageStub.monthlyPiti,
+            pmiMonthly: mortgageStub.pmiMonthly,
+          },
+        ]
+      : [],
   };
-
-  const housingArrangement: V1HousingArrangement = isHousingArrangementAllowed(
-    draft.housingArrangement,
-    draft.maritalStatus,
-  )
-    ? draft.housingArrangement
-    : defaultHousingArrangement(draft.maritalStatus);
-
-  const marketRentMonthly =
-    draft.rentalSelection?.marketRentMonthly ?? fixture.location.marketRentMonthly;
-  const playerRentShareMonthly = playerRentShare(marketRentMonthly, housingArrangement);
 
   const gameState: GameState = {
     run: {
@@ -139,14 +172,20 @@ export function buildInitialGameState(
     }),
     location: {
       ...fixture.location,
+      housingMode,
       marketRentMonthly,
       rentPaymentMonthly: playerRentShareMonthly,
       housingArrangement,
+      homeValueCents,
     },
     accounts,
     debts,
     macro: { ...DEFAULT_MACRO },
   };
 
-  return { gameState, deferral401kRate: fixture.deferral401kRate };
+  return {
+    gameState,
+    deferral401kRate: fixture.deferral401kRate,
+    startingRothBalance: draft.balanceSheet.rothIra,
+  };
 }

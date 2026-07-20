@@ -17,7 +17,8 @@ export function totalAssets(accounts: Accounts): MoneyCents {
 export function totalLiabilities(debts: Debts): MoneyCents {
   const cc = debts.creditCards.reduce((sum, c) => sum + c.balance, 0);
   const sl = debts.studentLoans.reduce((sum, l) => sum + l.principal, 0);
-  return cc + sl;
+  const mtg = (debts.mortgages ?? []).reduce((sum, m) => sum + m.principal, 0);
+  return cc + sl + mtg;
 }
 
 export function netWorth(accounts: Accounts, debts: Debts): MoneyCents {

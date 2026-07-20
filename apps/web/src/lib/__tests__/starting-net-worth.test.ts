@@ -13,6 +13,7 @@ const USER_DRAFT: V1CharacterDraft = {
   careerSector: 'tech',
   maritalStatus: 'single',
   housingArrangement: 'solo',
+  housingMode: 'rent',
   relationshipSimulation: false,
   partnerIncomeAnnual: 0,
   dependentsCount: 0,

@@ -18,5 +18,6 @@ export function cloneDebts(debts: Debts): Debts {
   return {
     creditCards: debts.creditCards.map((c) => ({ ...c })),
     studentLoans: debts.studentLoans.map((l) => ({ ...l })),
+    mortgages: (debts.mortgages ?? []).map((m) => ({ ...m })),
   };
 }
