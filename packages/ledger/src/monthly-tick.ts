@@ -10,12 +10,13 @@ import type {
   TermDebt,
   V1HousingArrangement,
 } from '@fad/shared';
-import { childcareMonthlyCents } from '@fad/shared';
+import { childcareMonthlyCents, V1_MODULE_IDS } from '@fad/shared';
 import { applyTransactions, type ApplyTransactionsResult } from './apply-transaction.js';
 import {
   buildCreditCardAutopayTransaction,
   buildLivingExpenseTransactions,
 } from './living-expenses.js';
+import { buildInsurancePremiumTransactions } from './insurance-premiums.js';
 import { buildMortgagePitiTransaction } from './mortgage.js';
 import { buildPayrollFromCareer } from './payroll.js';
 
@@ -29,8 +30,9 @@ export interface MonthlyTickInput {
     'rentPaymentMonthly' | 'housingArrangement' | 'housingMode' | 'homeValueCents'
   >;
   household?: Pick<HouseholdState, 'partner' | 'dependentsCount'>;
-  player?: Pick<PlayerState, 'habits' | 'includeEmployerHealthPlan'>;
+  player?: Pick<PlayerState, 'habits' | 'includeEmployerHealthPlan'> & { ageYears?: number };
   deferral401kRate?: number;
+  enabledModules?: string[];
 }
 
 export interface MonthlyTickResult extends ApplyTransactionsResult {
@@ -261,6 +263,21 @@ export function buildMonthlyTransactions(input: MonthlyTickInput): LedgerTransac
   );
   if (childcare) {
     transactions.push(childcare);
+  }
+
+  const enabledModules = input.enabledModules ?? [];
+  const termLifeEnabled = enabledModules.includes(V1_MODULE_IDS.insuranceTermLife);
+  const disabilityEnabled = enabledModules.includes(V1_MODULE_IDS.insuranceDisability);
+  if (termLifeEnabled || disabilityEnabled) {
+    transactions.push(
+      ...buildInsurancePremiumTransactions({
+        monthKey: input.monthKey,
+        ageYears: input.player?.ageYears ?? 25,
+        career: input.career,
+        termLifeEnabled,
+        disabilityEnabled,
+      }),
+    );
   }
 
   transactions.push(...buildStudentLoanPaymentTransactions(input.monthKey, input.debts));

@@ -3,6 +3,7 @@ import type {
   CareerState,
   Difficulty,
   EventDefinition,
+  HouseholdState,
   IsoDate,
   LocationState,
   MacroState,
@@ -20,6 +21,8 @@ export interface EventRollContext {
   macro: MacroState;
   difficulty: Difficulty;
   cooldowns: Map<string, number>;
+  enabledModules?: string[];
+  household?: Pick<HouseholdState, 'maritalStatus' | 'relationshipHealth'>;
 }
 
 function isEligible(definition: EventDefinition, context: EventRollContext): boolean {
@@ -40,6 +43,36 @@ function isEligible(definition: EventDefinition, context: EventRollContext): boo
   }
   if (eligibility.sectors && !eligibility.sectors.includes(context.career.sector)) {
     return false;
+  }
+  if (
+    eligibility.requiredModule &&
+    !(context.enabledModules ?? []).includes(eligibility.requiredModule)
+  ) {
+    return false;
+  }
+  if (eligibility.maritalStatus) {
+    if (!context.household) {
+      return false;
+    }
+    if (!eligibility.maritalStatus.includes(context.household.maritalStatus)) {
+      return false;
+    }
+  }
+  if (eligibility.maxRelationshipHealth !== undefined) {
+    if (!context.household) {
+      return false;
+    }
+    if (context.household.relationshipHealth > eligibility.maxRelationshipHealth) {
+      return false;
+    }
+  }
+  if (eligibility.minRelationshipHealth !== undefined) {
+    if (!context.household) {
+      return false;
+    }
+    if (context.household.relationshipHealth < eligibility.minRelationshipHealth) {
+      return false;
+    }
   }
 
   const cooldownRemaining = context.cooldowns.get(definition.id);
@@ -157,6 +190,8 @@ export interface RollEventsInput {
   location: LocationState;
   macro: MacroState;
   difficulty: Difficulty;
+  enabledModules?: string[];
+  household?: Pick<HouseholdState, 'maritalStatus' | 'relationshipHealth'>;
 }
 
 export function rollEventsForPeriod(input: RollEventsInput): SampledEventOccurrence[] {
@@ -182,6 +217,8 @@ export function rollEventsForPeriod(input: RollEventsInput): SampledEventOccurre
       macro: input.macro,
       difficulty: input.difficulty,
       cooldowns,
+      enabledModules: input.enabledModules,
+      household: input.household,
     };
 
     const monthEvents = rollEventsForMonth(context, rng);

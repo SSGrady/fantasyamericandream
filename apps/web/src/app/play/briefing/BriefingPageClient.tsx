@@ -49,10 +49,12 @@ export function BriefingPageClient() {
           player: {
             habits: session!.gameState.player.habits,
             includeEmployerHealthPlan: session!.gameState.player.includeEmployerHealthPlan,
+            ageYears: session!.gameState.player.ageYears,
           },
           macro: session!.gameState.macro,
           deferral401kRate: session!.deferral401kRate,
           difficulty: session!.gameState.run.difficulty,
+          enabledModules: session!.gameState.run.enabledModules,
         });
 
         if (cancelled) return;

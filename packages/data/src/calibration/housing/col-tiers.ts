@@ -1,4 +1,5 @@
 import type { MoneyCents, UsStateCode } from '@fad/shared';
+import { getMetroRentMultiplier } from './metros.js';
 
 export type ColTier = 'VHCOL' | 'HCOL' | 'MCOL' | 'LCOL';
 
@@ -59,7 +60,11 @@ export function sampleMarketRentMonthly(stateCode: UsStateCode, seed: string): M
   const band = COL_TIER_RENT_BANDS[tier];
   const u = seededUniform(seed, `col-rent-${stateCode}`);
   const raw = band.minMonthlyCents + u * (band.maxMonthlyCents - band.minMonthlyCents);
-  return Math.max(50_00, Math.round(raw / 25_00) * 25_00);
+  const stateBaseline = Math.max(50_00, Math.round(raw / 25_00) * 25_00);
+  const metroId = metroIdForState(stateCode);
+  const multiplier = getMetroRentMultiplier(metroId);
+  const adjusted = stateBaseline * multiplier;
+  return Math.max(50_00, Math.round(adjusted / 25_00) * 25_00);
 }
 
 export function metroIdForState(stateCode: UsStateCode): string {

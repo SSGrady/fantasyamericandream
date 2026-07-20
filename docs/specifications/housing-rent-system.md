@@ -52,9 +52,37 @@ No housing UI changes in this phase.
 
 ### V2 - Metro depth (T019)
 
-- Top 25 GDP metro ZORI-style anchors
-- `metroId → rentMultiplier` vs state baseline
-- ADR stub; full metro picker UI post-V2
+Top 25 GDP metros documented in `packages/data/src/calibration/housing/metros.ts` with ZORI-style monthly USD anchors. See [ADR-009](../adr/009-metro-rent-multipliers.md).
+
+| Rank | Metro | metroId | ZORI (USD/mo) | State |
+|------|-------|---------|---------------|-------|
+| 1 | New York City | new_york_city | 2442.50 | NY |
+| 2 | Los Angeles | los_angeles | 1354.70 | CA |
+| 3 | Chicago | chicago | 1650.00 | IL |
+| 4 | Dallas-Fort Worth | dallas_fort_worth | 1420.00 | TX |
+| 5 | Houston | houston | 1280.00 | TX |
+| 6 | Washington DC | washington_dc | 1980.00 | VA |
+| 7 | Philadelphia | philadelphia | 1520.00 | PA |
+| 8 | Miami | miami | 2100.00 | FL |
+| 9 | Atlanta | atlanta | 1580.00 | GA |
+| 10 | Boston | boston | 2250.00 | MA |
+| 11 | Phoenix | phoenix | 1380.00 | AZ |
+| 12 | San Francisco | san_francisco | 2100.00 | CA |
+| 13 | Seattle | seattle | 1950.00 | WA |
+| 14 | Detroit | detroit | 1180.00 | MI |
+| 15 | Minneapolis | minneapolis | 1320.00 | MN |
+| 16 | San Diego | san_diego | 1750.00 | CA |
+| 17 | Tampa | tampa | 1680.00 | FL |
+| 18 | Denver | denver | 1720.00 | CO |
+| 19 | Baltimore | baltimore | 1450.00 | MD |
+| 20 | Charlotte | charlotte | 1380.00 | NC |
+| 21 | Orlando | orlando | 1550.00 | FL |
+| 22 | San Antonio | san_antonio | 1180.00 | TX |
+| 23 | Portland | portland | 1520.00 | OR |
+| 24 | Sacramento | sacramento | 1450.00 | CA |
+| 25 | Austin | austin | 1520.00 | TX |
+
+`metroId → rentMultiplierVsState` applied in `sampleMarketRentMonthly()`. Full metro picker UI post-V2.
 
 ---
 
@@ -112,11 +140,11 @@ Sector salary variability remains in `v0-rent-only` career profiles; document th
 
 ---
 
-## Metro Rent Anchors (T019 stub)
+## Metro Rent Anchors (T019)
 
 User-provided ZORI-style values treated as **monthly USD** (verified: NY $2442.50 and LA $1354.70 are plausible metro medians, not thousands).
 
-Schema:
+Implementation: `packages/data/src/calibration/housing/metros.ts` (25 metros). ADR: [009-metro-rent-multipliers.md](../adr/009-metro-rent-multipliers.md).
 
 ```typescript
 interface MetroRentAnchor {
@@ -129,16 +157,7 @@ interface MetroRentAnchor {
 }
 ```
 
-Example anchors (monthly USD, illustrative):
-
-| Metro | metroId | ZORI anchor | Notes |
-|-------|---------|-------------|-------|
-| New York | new_york_city | 2442.50 | VHCOL |
-| Los Angeles | los_angeles | 1354.70 | VHCOL |
-| San Francisco | san_francisco | 2100.00 | placeholder |
-| Chicago | chicago | 1650.00 | placeholder |
-
-Full top-25 table deferred to T019 implementation. Multiplier applied when metro depth enabled:
+Multiplier applied when metro depth enabled:
 
 ```
 effectiveRent = stateBaselineRent * metro.rentMultiplierVsState

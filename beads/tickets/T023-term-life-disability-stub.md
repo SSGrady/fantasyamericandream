@@ -1,7 +1,7 @@
 ---
 id: T023
 title: Term life / disability stub
-status: open
+status: done
 type: feature
 priority: P3
 epic: E003

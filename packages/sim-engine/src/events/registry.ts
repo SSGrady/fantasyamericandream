@@ -2,11 +2,13 @@ import type { EventDefinition } from '@fad/shared';
 import {
   V0_STARTER_EVENT_DEFINITIONS,
   V1_EXPANSION_EVENT_DEFINITIONS,
+  V2_HOUSEHOLD_EVENT_DEFINITIONS,
 } from './definitions/index.js';
 
 export const ALL_EVENT_DEFINITIONS: EventDefinition[] = [
   ...V0_STARTER_EVENT_DEFINITIONS,
   ...V1_EXPANSION_EVENT_DEFINITIONS,
+  ...V2_HOUSEHOLD_EVENT_DEFINITIONS,
 ];
 
 const byId = new Map<string, EventDefinition>(

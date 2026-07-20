@@ -28,9 +28,10 @@ export interface TickMonthInput {
   career: CareerState;
   location: LocationState;
   household?: HouseholdState;
-  player?: Pick<PlayerState, 'habits' | 'includeEmployerHealthPlan'>;
+  player?: Pick<PlayerState, 'habits' | 'includeEmployerHealthPlan'> & { ageYears?: number };
   macro: MacroState;
   deferral401kRate?: number;
+  enabledModules?: string[];
 }
 
 export interface TickMonthResult {
@@ -52,10 +53,11 @@ export interface TickMonthsInput {
   career: CareerState;
   location: LocationState;
   household?: HouseholdState;
-  player?: Pick<PlayerState, 'habits' | 'includeEmployerHealthPlan'>;
+  player?: Pick<PlayerState, 'habits' | 'includeEmployerHealthPlan'> & { ageYears?: number };
   macro: MacroState;
   deferral401kRate?: number;
   difficulty?: Difficulty;
+  enabledModules?: string[];
 }
 
 export interface TickMonthsResult {
@@ -93,6 +95,7 @@ export function tickMonthWithSimulation(input: TickMonthInput): TickMonthResult 
     household: input.household,
     player: input.player,
     deferral401kRate: input.deferral401kRate,
+    enabledModules: input.enabledModules,
   });
 
   const returnTransactions = buildInvestmentReturnTransactions(
@@ -176,6 +179,13 @@ export function tickMonthsWithSimulation(input: TickMonthsInput): TickMonthsResu
         macro,
         difficulty,
         cooldowns: eventCooldowns,
+        enabledModules: input.enabledModules,
+        household: input.household
+          ? {
+              maritalStatus: input.household.maritalStatus,
+              relationshipHealth: input.household.relationshipHealth,
+            }
+          : undefined,
       },
       eventRng,
     );
@@ -193,6 +203,7 @@ export function tickMonthsWithSimulation(input: TickMonthsInput): TickMonthsResu
       player: input.player,
       macro,
       deferral401kRate: input.deferral401kRate,
+      enabledModules: input.enabledModules,
     });
 
     accounts = tick.accounts;

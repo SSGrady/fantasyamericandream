@@ -1,7 +1,7 @@
 ---
 id: T019
 title: Metro rent brackets (future stub)
-status: open
+status: done
 type: spike
 priority: P3
 epic: E002

@@ -285,6 +285,34 @@ export function ModulesPageClient() {
       </ModuleToggleSection>
 
       <ModuleToggleSection
+        title="Insurance"
+        description="Term life and disability premiums post monthly when enabled."
+      >
+        <ToggleRow
+          label="Term life insurance"
+          description="Level-term premium stub by age and coverage amount."
+          checked={config.modules.insurance.termLife}
+          onChange={(termLife) =>
+            updateModules((modules) => ({
+              ...modules,
+              insurance: { ...modules.insurance, termLife },
+            }))
+          }
+        />
+        <ToggleRow
+          label="Disability insurance"
+          description="Income replacement premium stub when employed."
+          checked={config.modules.insurance.disability}
+          onChange={(disability) =>
+            updateModules((modules) => ({
+              ...modules,
+              insurance: { ...modules.insurance, disability },
+            }))
+          }
+        />
+      </ModuleToggleSection>
+
+      <ModuleToggleSection
         title="Difficulty"
         description="Easy, Medium, and Hard adjust tail risk and information access."
       >

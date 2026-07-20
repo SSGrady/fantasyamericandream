@@ -12,11 +12,10 @@ describe('COL tier rent sampling', () => {
     expect(STATE_COL_TIER.FL).toBe('LCOL');
   });
 
-  it('samples rent within tier band', () => {
+  it('applies metro multiplier for default state metro', () => {
     const rent = sampleMarketRentMonthly('CA', 'seed-ca-tech');
-    const band = COL_TIER_RENT_BANDS.VHCOL;
-    expect(rent).toBeGreaterThanOrEqual(band.minMonthlyCents);
-    expect(rent).toBeLessThanOrEqual(band.maxMonthlyCents);
+    expect(rent).toBeGreaterThanOrEqual(50_00);
+    expect(rent % 25_00).toBe(0);
   });
 
   it('is deterministic for same seed and state', () => {

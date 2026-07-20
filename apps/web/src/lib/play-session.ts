@@ -341,10 +341,11 @@ export interface SimTickRequest {
   career: GameState['career'];
   location: GameState['location'];
   household: GameState['household'];
-  player: Pick<GameState['player'], 'habits' | 'includeEmployerHealthPlan'>;
+  player: Pick<GameState['player'], 'habits' | 'includeEmployerHealthPlan'> & { ageYears?: number };
   macro: GameState['macro'];
   deferral401kRate: number;
   difficulty: GameState['run']['difficulty'];
+  enabledModules: GameState['run']['enabledModules'];
 }
 
 export async function runSimTick(input: SimTickRequest): Promise<TickSixMonthsResult> {

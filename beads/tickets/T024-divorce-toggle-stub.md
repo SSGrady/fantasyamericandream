@@ -1,7 +1,7 @@
 ---
 id: T024
 title: Divorce toggle stub
-status: open
+status: done
 type: feature
 priority: P3
 epic: E003

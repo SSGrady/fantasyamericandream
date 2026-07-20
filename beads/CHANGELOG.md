@@ -4,6 +4,10 @@ Aggregated progress log. Append dated entries when closing tickets.
 
 ## 2026-07-20
 
+- **Rename** - Product branding updated from Life Ledger to Fantasy American Dream across UI, docs, and beads.
+- **T019** - Metro rent brackets: top 25 GDP metros in `metros.ts`, ADR-009, multiplier wired into COL-tier rent sampling.
+- **T023** - Term life / disability insurance premium stubs on monthly tick; module toggles gate posting.
+- **T024** - Divorce toggle stub: warning and fallout events, relationshipHealth gating, `divorce-fallout.ts`.
 - **T027** - Roth IRA balance breakdown footnote (starting + contributions + returns); credit card pay-in-full autopay for playbook card spend.
 - **T018** - COL-tier stochastic rent ranges in `packages/data/src/calibration/housing/col-tiers.ts`; v0-rent-only and rental picker use seeded tier sampling.
 - **T022** - Homeownership engine stub: `housingMode` rent/own, `MortgageDebt`, PITI monthly posting when own.

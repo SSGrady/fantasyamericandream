@@ -1,4 +1,5 @@
 import type { CareerSector, Difficulty, MacroRegime } from './game-state.js';
+import type { V1MaritalStatus } from './housing-rent.js';
 import type { LiteracySkillId } from './literacy-skills.js';
 
 export type EventCategory =
@@ -44,6 +45,11 @@ export interface EventDefinition {
     sectors?: CareerSector[];
     employmentType?: 'w2' | 'contractor' | 'unemployed' | 'student';
     housingMode?: 'rent' | 'own';
+    /** Module id from SimulationRun.enabledModules (e.g. life.divorce). */
+    requiredModule?: string;
+    maritalStatus?: V1MaritalStatus[];
+    maxRelationshipHealth?: number;
+    minRelationshipHealth?: number;
   };
   baseProbabilityPerMonth?: number;
   modifiers?: {

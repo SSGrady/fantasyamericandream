@@ -9,6 +9,14 @@ export {
 } from './calibration/housing/col-tiers.js';
 export type { ColTier, ColTierRentBand } from './calibration/housing/col-tiers.js';
 export {
+  DEFAULT_METRO_RENT_MULTIPLIER,
+  METRO_RENT_ANCHORS,
+  getMetroRentAnchor,
+  getMetroRentMultiplier,
+  listMetroRentAnchors,
+} from './calibration/housing/metros.js';
+export type { MetroRentAnchor } from './calibration/housing/metros.js';
+export {
   V0_SCENARIO_CAREERS,
   V0_SCENARIO_MATRIX,
   V0_SCENARIO_STATES,

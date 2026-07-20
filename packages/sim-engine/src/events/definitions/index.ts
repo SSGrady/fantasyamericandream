@@ -6,3 +6,7 @@ export {
   V1_EXPANSION_EVENT_DEFINITIONS,
   V1_EXPANSION_EVENT_IDS,
 } from './v1-expansion-events.js';
+export {
+  V2_HOUSEHOLD_EVENT_DEFINITIONS,
+  V2_HOUSEHOLD_EVENT_IDS,
+} from './v2-household-events.js';

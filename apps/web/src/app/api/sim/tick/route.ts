@@ -22,10 +22,11 @@ interface TickRequestBody {
   career: CareerState;
   location: LocationState;
   household: HouseholdState;
-  player: Pick<PlayerState, 'habits' | 'includeEmployerHealthPlan'>;
+  player: Pick<PlayerState, 'habits' | 'includeEmployerHealthPlan'> & { ageYears?: number };
   macro: MacroState;
   deferral401kRate?: number;
   difficulty?: Difficulty;
+  enabledModules?: string[];
 }
 
 function isIsoDate(value: unknown): value is IsoDate {
@@ -56,11 +57,17 @@ function parseTickRequest(body: unknown): TickRequestBody | null {
     career: body.career as unknown as CareerState,
     location: body.location as unknown as LocationState,
     household: body.household as unknown as HouseholdState,
-    player: body.player as unknown as Pick<PlayerState, 'habits' | 'includeEmployerHealthPlan'>,
+    player: body.player as unknown as Pick<
+      PlayerState,
+      'habits' | 'includeEmployerHealthPlan' | 'ageYears'
+    >,
     macro: body.macro as unknown as MacroState,
     deferral401kRate:
       typeof body.deferral401kRate === 'number' ? body.deferral401kRate : undefined,
     difficulty: isDifficulty(body.difficulty) ? body.difficulty : undefined,
+    enabledModules: Array.isArray(body.enabledModules)
+      ? body.enabledModules.filter((id): id is string => typeof id === 'string')
+      : undefined,
   };
 }
 

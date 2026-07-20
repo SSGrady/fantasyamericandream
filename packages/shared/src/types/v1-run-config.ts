@@ -18,6 +18,8 @@ export const V1_MODULE_IDS = {
   healthErVisits: 'health.er_visits',
   gigRideshare: 'gig.rideshare',
   taxIrsAudits: 'tax.irs_audits',
+  insuranceTermLife: 'insurance.term_life',
+  insuranceDisability: 'insurance.disability',
   hintsEnabled: 'hints.enabled',
   hintsDisabled: 'hints.disabled',
 } as const;
@@ -58,6 +60,10 @@ export interface V1ModuleToggles {
   tax: {
     irsAudits: boolean;
   };
+  insurance: {
+    termLife: boolean;
+    disability: boolean;
+  };
 }
 
 /** Pre-run settings persisted from the module toggles screen. */
@@ -95,6 +101,7 @@ const DEFAULT_MODULES: V1ModuleToggles = {
   health: { erVisits: true },
   gig: { rideshareFulfillment: true },
   tax: { irsAudits: true },
+  insurance: { termLife: false, disability: false },
 };
 
 export function getDefaultV1RunConfig(): V1RunConfig {
@@ -110,6 +117,7 @@ export function getDefaultV1RunConfig(): V1RunConfig {
       health: { ...DEFAULT_MODULES.health },
       gig: { ...DEFAULT_MODULES.gig },
       tax: { ...DEFAULT_MODULES.tax },
+      insurance: { ...DEFAULT_MODULES.insurance },
     },
   };
 }
@@ -140,6 +148,8 @@ export function enabledModulesFromV1RunConfig(config: V1RunConfig): string[] {
   if (modules.health.erVisits) enabled.push(V1_MODULE_IDS.healthErVisits);
   if (modules.gig.rideshareFulfillment) enabled.push(V1_MODULE_IDS.gigRideshare);
   if (modules.tax.irsAudits) enabled.push(V1_MODULE_IDS.taxIrsAudits);
+  if (modules.insurance.termLife) enabled.push(V1_MODULE_IDS.insuranceTermLife);
+  if (modules.insurance.disability) enabled.push(V1_MODULE_IDS.insuranceDisability);
   enabled.push(
     config.hintsEnabled ? V1_MODULE_IDS.hintsEnabled : V1_MODULE_IDS.hintsDisabled,
   );

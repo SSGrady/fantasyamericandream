@@ -88,5 +88,7 @@ Implementations live in `packages/sim-engine/src/events/definitions/`. TypeScrip
 | Event ID | Category | Notes |
 |----------|----------|-------|
 | `parental_leave_stub` | children | FMLA planning stub; no ledger effects yet |
+| `divorce_warning_signs` | relationship | Requires `life.divorce` module; `relationshipHealth <= 50` |
+| `divorce_fallout_stub` | legal | Asset split and alimony band stub; `relationshipHealth <= 25` |
 
-Full fertility and paid-leave flows deferred to later V2 tickets.
+Full fertility, paid-leave, and divorce ledger flows deferred to later V2 tickets. Fallout transactions: `packages/ledger/src/divorce-fallout.ts`.

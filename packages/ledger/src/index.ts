@@ -27,6 +27,20 @@ export type {
   MonthlyLivingExpenseAmounts,
 } from './living-expenses.js';
 export {
+  buildInsurancePremiumTransactions,
+  buildTermLifePremiumTransaction,
+  buildDisabilityPremiumTransaction,
+  INSURANCE_EXPENSE_ACCOUNT_IDS,
+} from './insurance-premiums.js';
+export type { InsurancePremiumInput } from './insurance-premiums.js';
+export {
+  buildAlimonyTransaction,
+  computeDivorceFallout,
+  householdEligibleForDivorce,
+  DIVORCE_LEGAL_FEES_CENTS,
+} from './divorce-fallout.js';
+export type { DivorceFalloutInput, DivorceFalloutResult } from './divorce-fallout.js';
+export {
   applyMonthlyTick,
   buildMonthlyTransactions,
   buildCreditCardInterestTransactions,
