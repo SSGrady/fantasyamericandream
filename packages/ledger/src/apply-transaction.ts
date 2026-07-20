@@ -59,24 +59,27 @@ function applyLiabilityDelta(debts: Debts, accountId: LedgerAccountId, delta: Mo
   }
 }
 
-function lineDelta(line: LedgerLine): MoneyCents {
+function lineDeltaAsset(line: LedgerLine): MoneyCents {
   return line.debitCents - line.creditCents;
+}
+
+function lineDeltaLiability(line: LedgerLine): MoneyCents {
+  return line.creditCents - line.debitCents;
 }
 
 function applyLine(accounts: Accounts, debts: Debts, line: LedgerLine): void {
   const { accountId } = line;
-  const delta = lineDelta(line);
 
   if (accountId.startsWith('income:') || accountId.startsWith('expense:')) {
     return;
   }
 
   if (isAssetAccountId(accountId)) {
-    applyAssetDelta(accounts, accountId, delta);
+    applyAssetDelta(accounts, accountId, lineDeltaAsset(line));
     return;
   }
 
-  applyLiabilityDelta(debts, accountId, delta);
+  applyLiabilityDelta(debts, accountId, lineDeltaLiability(line));
 }
 
 export function applySingleTransaction(
