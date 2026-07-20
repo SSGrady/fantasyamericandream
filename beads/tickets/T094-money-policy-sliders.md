@@ -1,7 +1,7 @@
 ---
 id: T094
 title: Money policy sliders
-status: open
+status: done
 type: feature
 priority: P2
 epic: E014

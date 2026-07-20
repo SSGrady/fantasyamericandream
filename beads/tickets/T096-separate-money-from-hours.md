@@ -1,7 +1,7 @@
 ---
 id: T096
 title: Separate money from hours
-status: open
+status: done
 type: bug
 priority: P2
 epic: E014

@@ -11,7 +11,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { JobOfferPicker } from '../../../components/create/JobOfferPicker';
-import { CommandCenter } from '../../../components/play/CommandCenter';
+import { InteractivePlanningPanel } from '../../../components/play/InteractivePlanningPanel';
 import { formatMoney } from '../../../lib/format-money';
 import {
   acceptJobOffer,
@@ -28,7 +28,6 @@ export function PlanningPageClient() {
 
   const chapter = CA_ENGINEER_2026;
   const offers = chapter.jobOffers;
-
   const planningMode = session ? resolveSessionPlanningMode(session) : 'recurringPlan';
 
   useEffect(() => {
@@ -69,34 +68,39 @@ export function PlanningPageClient() {
     ? `Plan ${formatSimWindowRange(session.chapterPeriod)}`
     : 'Plan next six months';
 
-  const effectiveMonthKey = session?.chapterPeriod.openingDate.slice(0, 7) ?? '2026-01';
+  const planDirty = useMemo(() => {
+    if (!session) return false;
+    const active = session.gameState.commandState?.activeCommands ?? [];
+    if (session.commandDraft.length !== active.length) return true;
+    const draftSig = session.commandDraft.map((c) => JSON.stringify(c)).sort().join('|');
+    const activeSig = active.map((c) => JSON.stringify(c)).sort().join('|');
+    return draftSig !== activeSig;
+  }, [session]);
 
-  const handleContinue = () => {
-    if (!session) return;
-
-    if (planningMode === 'interruptJobOffer' || planningMode === 'initialPlan') {
-      if (!selectedOfferId) return;
-      const withOffer = acceptJobOffer(session, selectedOfferId);
-      const committed = commitCommandDraft(withOffer);
-      const staged = setChapterStage(committed, 'simulating');
-      setSession(staged);
-      router.push(
-        chapterShellPathWithStage(session.gameState.run.id, session.periodIndex + 1, 'simulating'),
-      );
-      return;
-    }
-
-    const committed = commitCommandDraft({
-      ...session,
-      commandCapacityError: null,
-    });
-    setSession(committed);
-    if (committed.commandCapacityError) return;
-    const staged = setChapterStage(committed, 'simulating');
+  const goToSimulating = (nextSession: typeof session) => {
+    if (!nextSession) return;
+    const staged = setChapterStage(nextSession, 'simulating');
     setSession(staged);
     router.push(
-      chapterShellPathWithStage(session.gameState.run.id, session.periodIndex + 1, 'simulating'),
+      chapterShellPathWithStage(nextSession.gameState.run.id, nextSession.periodIndex + 1, 'simulating'),
     );
+  };
+
+  const handleOfferContinue = () => {
+    if (!session || !selectedOfferId) return;
+    const withOffer = acceptJobOffer(session, selectedOfferId);
+    const committed = commitCommandDraft(withOffer);
+    setSession(committed);
+    if (committed.commandCapacityError) return;
+    goToSimulating(committed);
+  };
+
+  const handleCommitPlan = () => {
+    if (!session) return;
+    const committed = commitCommandDraft({ ...session, commandCapacityError: null });
+    setSession(committed);
+    if (committed.commandCapacityError) return;
+    goToSimulating(committed);
   };
 
   if (!ready || !session) {
@@ -115,7 +119,9 @@ export function PlanningPageClient() {
             {planningMode === 'interruptJobOffer' ? 'Competing offer' : chapter.title}
           </p>
           <h2 className="mt-1 font-serif text-2xl text-ink">
-            {planningMode === 'interruptJobOffer' ? 'Respond to the counter-offer' : 'Confirm your starting offer'}
+            {planningMode === 'interruptJobOffer'
+              ? 'Respond to the counter-offer'
+              : 'Confirm your starting offer'}
           </h2>
           <p className="mt-3 text-muted">
             {planningMode === 'interruptJobOffer'
@@ -135,7 +141,7 @@ export function PlanningPageClient() {
         <div className="flex justify-end border-t border-border pt-6">
           <button
             type="button"
-            onClick={handleContinue}
+            onClick={handleOfferContinue}
             disabled={!selectedOfferId}
             className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
           >
@@ -150,51 +156,22 @@ export function PlanningPageClient() {
     <div className="space-y-6">
       <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <p className="text-sm font-medium text-accent">{planLabel}</p>
-        <h2 className="mt-1 font-serif text-2xl text-ink">Set chapter commands</h2>
+        <h2 className="mt-1 font-serif text-2xl text-ink">Interactive chapter plan</h2>
         <p className="mt-3 text-muted">
           {selectedOffer
             ? `${selectedOffer.employer} · ${formatMoney(selectedOffer.baseSalaryAnnual)}/yr · ${Math.round(deferralRateFromOffer(selectedOffer) * 100)}% deferral`
-            : 'Configure persistent actions before decision day.'}
+            : 'Configure money and time policies before living the chapter.'}
         </p>
       </div>
 
-      <CommandCenter
-        effectiveMonthKey={effectiveMonthKey}
-        commands={session.commandDraft}
-        capacityError={session.commandCapacityError}
-        onChange={(commands) =>
-          setSession({
-            ...session,
-            commandDraft: commands,
-            commandCapacityError: null,
-          })
+      <InteractivePlanningPanel
+        session={session}
+        dirty={planDirty}
+        onCommandsChange={(commands) =>
+          setSession({ ...session, commandDraft: commands, commandCapacityError: null })
         }
+        onCommit={handleCommitPlan}
       />
-
-      <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
-        <button
-          type="button"
-          onClick={() =>
-            router.push(
-              chapterShellPathWithStage(
-                session.gameState.run.id,
-                session.periodIndex + 1,
-                'openingBriefing',
-              ),
-            )
-          }
-          className="inline-flex items-center justify-center rounded-md border border-border bg-card px-5 py-2.5 text-sm font-medium text-ink hover:border-accent/40 hover:text-accent"
-        >
-          Back to briefing
-        </button>
-        <button
-          type="button"
-          onClick={handleContinue}
-          className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90"
-        >
-          Continue to decision day
-        </button>
-      </div>
     </div>
   );
 }

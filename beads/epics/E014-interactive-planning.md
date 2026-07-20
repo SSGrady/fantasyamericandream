@@ -1,7 +1,7 @@
 ---
 id: E014
 title: Interactive Planning
-status: open
+status: done
 priority: P2
 sprints:
   - S017

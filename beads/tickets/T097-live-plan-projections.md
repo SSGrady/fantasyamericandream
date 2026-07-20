@@ -1,7 +1,7 @@
 ---
 id: T097
 title: Live plan projections
-status: open
+status: done
 type: feature
 priority: P2
 epic: E014
