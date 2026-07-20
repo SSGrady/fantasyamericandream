@@ -27,11 +27,17 @@ A **life-path RPG** where:
 
 ## Core Loop
 
+**V1 (shipped):** configure character, run six-month sim, read audit reports.
+
+**V1.5 north star (consequence-driven):**
+
 ```
-Briefing → Decision → Analysis → Reactions → Audit → (repeat)
+Briefing → Planning → Simulating → Consequence → Counterfactual → Audit → Dashboard
 ```
 
-Inspired by Fantasy President Career’s consequence pipeline, with original branding and mechanics.
+Players set **persistent action commands** (401k rate, job search intensity, delivery cap) on Decision Day. Authored **chapters** deliver interrupts and stakes. **Attribution** separates contributions, lifestyle leakage, and macro luck. Presentation is **consequence theater**, not spreadsheet export.
+
+Inspired by Fantasy President Career’s consequence pipeline, with original branding and mechanics. See [ADR-010](../adr/010-game-loop-and-consequence-pipeline.md).
 
 ## Design Principles
 
@@ -49,11 +55,11 @@ Inspired by Fantasy President Career’s consequence pipeline, with original bra
 
 ## North-Star Moment
 
-After six months in-game, the player sees:
+After six months in-game, the player sees an editorial headline and forensic breakdown:
 
-> Net worth increased $4,200 - but $2,800 came from contributions, only $400 from market growth. Your delivery habit cost $1,650. A recruiter offer would raise salary 18% but add 7 commute hours weekly.
+> Net worth up $4,200: $2,800 from your contributions, $400 from markets, $1,650 lost to delivery. The offer you declined would have paid 18% more but cost 7 commute hours weekly.
 
-They **feel** the first-$100K lesson without a YouTube lecture.
+They **feel** the first-$100K lesson because they **chose** commands, survived interrupts, and compared counterfactuals, not because they read a static report.
 
 ## Related Docs
 

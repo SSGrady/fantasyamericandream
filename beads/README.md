@@ -65,7 +65,11 @@ When completing a ticket:
 
 ## Current Active Work
 
-- **Epic (metrics/housing):** [E002 - V1 Playable Game](./epics/E002-v1-playable-game.md) follow-on fixes
-- **Sprint (metrics/housing):** [S005 - V1 Metrics and Housing Fixes](./sprints/S005-v1-metrics-housing-fixes/sprint.md) (T016-T019, planning only)
-- **Epic (household):** [E003 - V2 Household Simulator](./epics/E003-v2-household-simulator.md)
-- **Sprint (household):** [S006 - V2 Household Foundation](./sprints/S006-v2-household-foundation/sprint.md) (T020 in progress)
+- **Epic (V1.5 game loop):** [E004 - Trust and Metric Integrity](./epics/E004-trust-metric-integrity.md) (P0)
+- **Sprint (P0 trust):** [S007 - Trust and Metric Fixes](./sprints/S007-trust-metric-fixes/sprint.md) (T028-T035)
+- **Epic (V1.5 commands):** [E005 - Action Command System](./epics/E005-action-command-system.md) / [S008](./sprints/S008-action-commands-foundation/sprint.md)
+- **Epic (V1.5 chapter):** [E006 - Chapter Vertical Slice](./epics/E006-chapter-vertical-slice.md) / [S009](./sprints/S009-chapter-vertical-slice/sprint.md)
+- **Epic (architecture):** [E011 - Platform Architecture Foundation](./epics/E011-platform-architecture-foundation.md) / [S014](./sprints/S014-platform-architecture/sprint.md)
+- **Epic (household, parallel):** [E003 - V2 Household Simulator](./epics/E003-v2-household-simulator.md) / [S006](./sprints/S006-v2-household-foundation/sprint.md)
+
+Full V1.5 sequencing: E004 → E005/E011 → E006 → E007/E008/E009 → E010. See [ADR-010](../docs/adr/010-game-loop-and-consequence-pipeline.md) and [PLAN.md](../PLAN.md) V1.5.

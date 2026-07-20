@@ -17,6 +17,7 @@ Architecture Decision Records (ADRs) for **Fantasy American Dream** - a personal
 | [007](./007-ui-consequence-pipeline.md) | UI: President-Simulator Consequence Pipeline | Accepted | 2026-07-19 |
 | [008](./008-data-calibration-strategy.md) | Data Calibration and Versioned Rulesets | Accepted | 2026-07-19 |
 | [009](./009-metro-rent-multipliers.md) | Metro Rent Multipliers (Stub) | Accepted | 2026-07-20 |
+| [010](./010-game-loop-and-consequence-pipeline.md) | Game Loop and Consequence Pipeline | Proposed | 2026-07-20 |
 
 ---
 
@@ -69,3 +70,7 @@ Map political stakeholders to: partner, future self, recruiter, lender, fee-only
 ### ADR 008 - Data Calibration Strategy
 
 Versioned rulesets (`Federal Ruleset 2026.1`, per-state stubs). Calibration from IRS, BLS, FRED, FHFA, KFF, College Scorecard, Tax Foundation. Every run stores `simulationVersion`, `dataSnapshot`, `taxYear`, `randomSeed`.
+
+### ADR 010 - Game Loop and Consequence Pipeline
+
+V1.5 north star: chapter-based consequence pipeline with persistent action commands, trust-first metric attribution, Monte Carlo lab, consequence theater UI, and optional local LLM narrative. Phases: briefing → planning → simulating → consequence → counterfactual → audit → dashboard. Beads epics E004-E011.

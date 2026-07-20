@@ -47,6 +47,6 @@ Prove monthly ledger + six-month audit loop with seeded replay before UI polish.
 
 | Epic | Scope | Status |
 |------|-------|--------|
-| [E002](../epics/E002-v1-playable-game.md) | V1 Playable Game (UI consequence pipeline) | In progress |
-| E003 | V2 Household Simulator | Planned |
-| E004 | V3 Platform | Planned |
+| [E002](../epics/E002-v1-playable-game.md) | V1 Playable Game (UI consequence pipeline) | Done |
+| [E003](../epics/E003-v2-household-simulator.md) | V2 Household Simulator | In progress |
+| [E004](../epics/E004-trust-metric-integrity.md) | V1.5 Trust and Metric Integrity | Open |

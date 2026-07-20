@@ -46,4 +46,5 @@ From [PLAN.md](../../PLAN.md) V2 and [feature-set.md](../../docs/vision/feature-
 | Epic | Scope |
 |------|-------|
 | E002 | V1 Playable Game (complete) |
-| E004 | V3 Platform (planned) |
+| E004 | V1.5 Trust and Metric Integrity |
+| E005-E010 | V1.5 Game Loop (commands, chapter, lab, theater, onboarding, LLM) |

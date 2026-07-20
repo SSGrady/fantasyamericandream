@@ -49,6 +49,7 @@ Requires [ADR-007 UI interaction pattern](../../docs/adr/007-ui-consequence-pipe
 
 | Sprint / Epic | Scope |
 |---------------|-------|
-| [S005](../sprints/S005-v1-metrics-housing-fixes/sprint.md) | Metrics fix + housing/rent depth (T016-T019) |
+| [S005](../sprints/S005-v1-metrics-housing-fixes/sprint.md) | Metrics fix + housing/rent depth (T016-T019, T025) |
+| [E004](./E004-trust-metric-integrity.md) | V1.5 P0 trust and metric integrity |
+| [E005-E010](./E005-action-command-system.md) | V1.5 consequence-driven game loop |
 | [E003](./E003-v2-household-simulator.md) | V2 Household Simulator |
-| E004 | V3 Platform (planned) |

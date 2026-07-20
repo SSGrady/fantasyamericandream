@@ -4,6 +4,7 @@ Aggregated progress log. Append dated entries when closing tickets.
 
 ## 2026-07-20
 
+- **Planning** - V1.5 game loop beads: epics E004-E011, sprints S007-S014, tickets T028-T077 (grill-with-me). ADR-010 proposed. PLAN.md V1.5 section, product thesis north star updated.
 - **Rename** - Product branding updated from Life Ledger to Fantasy American Dream across UI, docs, and beads.
 - **T019** - Metro rent brackets: top 25 GDP metros in `metros.ts`, ADR-009, multiplier wired into COL-tier rent sampling.
 - **T023** - Term life / disability insurance premium stubs on monthly tick; module toggles gate posting.
