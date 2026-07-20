@@ -1,24 +1,12 @@
-import { Suspense } from 'react';
-import { PageShell } from '../../../components/ui/PageShell';
-import { ReactionsPageClient } from './ReactionsPageClient';
+'use client';
 
-export default function ReactionsPage() {
+import { Suspense } from 'react';
+import { LegacyPlayRedirect } from '../../../lib/LegacyPlayRedirect';
+
+export default function ReactionsRedirectPage() {
   return (
-    <PageShell
-      title="Stakeholder reactions"
-      subtitle="Partner, future self, recruiter, and planner perspectives."
-      backHref="/play/analysis"
-      backLabel="Impact analysis"
-    >
-      <Suspense
-        fallback={
-          <div className="rounded-lg border border-border bg-card p-6 text-muted shadow-sm">
-            Loading stakeholder reactions…
-          </div>
-        }
-      >
-        <ReactionsPageClient />
-      </Suspense>
-    </PageShell>
+    <Suspense fallback={<div className="p-6 text-muted">Redirecting…</div>}>
+      <LegacyPlayRedirect />
+    </Suspense>
   );
 }

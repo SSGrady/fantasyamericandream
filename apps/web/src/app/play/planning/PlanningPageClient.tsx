@@ -3,6 +3,7 @@
 import {
   CA_ENGINEER_2026,
   canAccessPlanning,
+  chapterShellPathWithStage,
   deferralRateFromOffer,
   formatSimWindowRange,
   resolveJobOffer,
@@ -16,6 +17,7 @@ import {
   acceptJobOffer,
   commitCommandDraft,
   resolveSessionPlanningMode,
+  setChapterStage,
 } from '../../../lib/play-session';
 import { usePlaySession } from '../../../lib/use-play-session';
 
@@ -32,7 +34,13 @@ export function PlanningPageClient() {
   useEffect(() => {
     if (!ready || !session) return;
     if (session.currentAudit || !canAccessPlanning(session.chapterPeriod.status)) {
-      router.replace(session.currentAudit ? '/play/audit' : '/play/briefing');
+      router.replace(
+        chapterShellPathWithStage(
+          session.gameState.run.id,
+          session.periodIndex + 1,
+          session.currentAudit ? 'chapterClose' : 'openingBriefing',
+        ),
+      );
     }
   }, [ready, session, router]);
 
@@ -70,8 +78,11 @@ export function PlanningPageClient() {
       if (!selectedOfferId) return;
       const withOffer = acceptJobOffer(session, selectedOfferId);
       const committed = commitCommandDraft(withOffer);
-      setSession(committed);
-      router.push('/play/decide');
+      const staged = setChapterStage(committed, 'simulating');
+      setSession(staged);
+      router.push(
+        chapterShellPathWithStage(session.gameState.run.id, session.periodIndex + 1, 'simulating'),
+      );
       return;
     }
 
@@ -81,7 +92,11 @@ export function PlanningPageClient() {
     });
     setSession(committed);
     if (committed.commandCapacityError) return;
-    router.push('/play/decide');
+    const staged = setChapterStage(committed, 'simulating');
+    setSession(staged);
+    router.push(
+      chapterShellPathWithStage(session.gameState.run.id, session.periodIndex + 1, 'simulating'),
+    );
   };
 
   if (!ready || !session) {
@@ -159,7 +174,15 @@ export function PlanningPageClient() {
       <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
         <button
           type="button"
-          onClick={() => router.push('/play/briefing')}
+          onClick={() =>
+            router.push(
+              chapterShellPathWithStage(
+                session.gameState.run.id,
+                session.periodIndex + 1,
+                'openingBriefing',
+              ),
+            )
+          }
           className="inline-flex items-center justify-center rounded-md border border-border bg-card px-5 py-2.5 text-sm font-medium text-ink hover:border-accent/40 hover:text-accent"
         >
           Back to briefing

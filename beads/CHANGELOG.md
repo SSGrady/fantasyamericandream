@@ -2,6 +2,10 @@
 
 Aggregated progress log. Append dated entries when closing tickets.
 
+## 2026-07-20 (S016 chapter shell)
+
+- **S016 / E013 / E020** - Chapter shell (T088-T093): DecisionRecord log, four-stage XState machine, persistent `/play/[runId]/chapter/[n]` route, LifeRail, tabbed Chapter Close, legacy redirects.
+
 ## 2026-07-20 (S015 trust pass)
 
 - **S015 / E012 / E020** - P0 trust and data integrity (T079-T087): chapter chronology fix, RunState model, selector layer, acceptedOfferId persistence, zero-preview gate, attribution invariant test, cross-page metric parity. ADR-014 chapter shell and chronology.

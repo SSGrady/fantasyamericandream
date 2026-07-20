@@ -1,7 +1,7 @@
 ---
 id: T090
 title: Persistent chapter shell route
-status: open
+status: done
 type: feature
 priority: P1
 epic: E013

@@ -16,7 +16,7 @@ import {
   isSimulationComplete,
   isSimulationEnded,
 } from '../../../lib/play-session';
-import { selectRibbonMetrics } from '@fad/domain';
+import { chapterShellPathWithStage, selectRibbonMetrics } from '@fad/domain';
 import { usePlaySession } from '../../../lib/use-play-session';
 
 export function DashboardPageClient() {
@@ -51,7 +51,9 @@ export function DashboardPageClient() {
   const handleContinuePlaying = () => {
     const next = beginNextChapterPeriod(session);
     setSession(next);
-    router.push('/play/briefing');
+    router.push(
+      chapterShellPathWithStage(next.gameState.run.id, next.periodIndex + 1, 'openingBriefing'),
+    );
   };
 
   return (

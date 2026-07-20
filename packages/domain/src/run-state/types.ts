@@ -9,7 +9,8 @@ import type {
   SimulationEndReason,
 } from '@fad/shared';
 import type { ChapterId, ChapterInterrupt } from '../chapter/types.js';
-import type { ChapterPhase } from '../chapter/chapter-machine.js';
+import type { ChapterCloseTab, ChapterPhase, ChapterStage } from '../chapter/chapter-machine.js';
+import type { DecisionRecord } from '../decision-record/types.js';
 
 export const RUN_STATE_SCHEMA_VERSION = 1 as const;
 
@@ -83,6 +84,9 @@ export interface RunState {
   dreamHomeBlocked: boolean;
   chapterId: ChapterId;
   chapterPhase: ChapterPhase;
+  chapterStage: ChapterStage;
+  chapterCloseTab: ChapterCloseTab;
+  decisionLog: DecisionRecord[];
   activeInterrupt: ChapterInterrupt | null;
   chapterLessonUnlock: LiteracySkillId | null;
 }

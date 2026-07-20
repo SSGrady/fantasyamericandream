@@ -1,7 +1,7 @@
 ---
 id: T091
 title: Sticky life rail
-status: open
+status: done
 type: feature
 priority: P1
 epic: E013

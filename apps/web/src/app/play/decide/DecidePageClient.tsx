@@ -1,6 +1,6 @@
 'use client';
 
-import { selectRibbonMetrics } from '@fad/domain';
+import { chapterShellPathWithStage } from '@fad/domain';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { LiteracyQuizStub } from '../../../components/play/LiteracyQuizStub';
@@ -9,9 +9,11 @@ import {
   commitCommandDraft,
   computeImpactCacheKey,
   getDeferralFromCommands,
+  recordDecision,
   resolveChapterInterrupt,
   runImpactPreview,
   savePlaySession,
+  setChapterStage,
   unlockLiteracySkill,
   validateCommandDraftEffect,
   type PendingDecision,
@@ -30,7 +32,13 @@ export function DecidePageClient() {
   useEffect(() => {
     if (!ready || !session) return;
     if (session.currentAudit) {
-      router.replace('/play/audit');
+      router.replace(
+        chapterShellPathWithStage(
+          session.gameState.run.id,
+          session.periodIndex + 1,
+          'chapterClose',
+        ),
+      );
     }
   }, [ready, session, router]);
 
@@ -132,19 +140,26 @@ export function DecidePageClient() {
   const handleContinue = () => {
     if (!canSubmit) return;
 
-    const withAction = {
-      ...session,
-      playerAction: action.trim(),
-      chapterPeriod: { ...session.chapterPeriod, status: 'in_progress' as const },
-      impactPreview: null,
-      impactPreviewCacheKey: null,
-    };
+    const withAction = recordDecision(
+      {
+        ...session,
+        playerAction: action.trim(),
+        chapterPeriod: { ...session.chapterPeriod, status: 'in_progress' as const },
+        impactPreview: null,
+        impactPreviewCacheKey: null,
+      },
+      'commands_submitted',
+      { commands: session.commandDraft, playerAction: action.trim() },
+    );
     const committed = commitCommandDraft(withAction);
-    setSession(committed);
+    const staged = setChapterStage(committed, 'simulating');
+    setSession(staged);
     if (committed.commandCapacityError) {
       return;
     }
-    router.push('/play/processing');
+    router.push(
+      chapterShellPathWithStage(session.gameState.run.id, session.periodIndex + 1, 'simulating'),
+    );
   };
 
   const handleQuizAnswer = (correct: boolean) => {

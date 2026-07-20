@@ -1,6 +1,8 @@
-export { chapterMachine, nextChapterPhase } from './chapter/chapter-machine.js';
-export type { ChapterContext, ChapterEvent, ChapterPhase } from './chapter/chapter-machine.js';
-export { chapterPhaseRoute, routeChapterPhase } from './chapter/routing.js';
+export type { ChapterCloseTab, ChapterContext, ChapterEvent, ChapterPhase, ChapterStage } from './chapter/chapter-machine.js';
+export { chapterMachine, legacyPhaseToStage, nextChapterPhase, nextChapterStage, previousChapterStage, stageToLegacyPhase } from './chapter/chapter-machine.js';
+export { chapterShellPath, chapterShellPathWithStage, legacyRouteToShell, chapterPhaseRoute, routeChapterPhase } from './chapter/routing.js';
+export { appendDecisionRecord, createDecisionRecord, hashDecisionPayload } from './decision-record/append.js';
+export type { DecisionActionType, DecisionRecord } from './decision-record/types.js';
 export { CA_ENGINEER_2026, getChapterDefinition } from './chapter/ca-engineer-2026.js';
 export { evaluateChapterLessonUnlock } from './chapter/lesson-unlocks.js';
 export {
@@ -42,3 +44,4 @@ export {
   selectRibbonMetrics,
   type RibbonMetrics,
 } from './selectors/metrics.js';
+export { selectLifeRailData, type LifeRailData, type LifeRailThread } from './selectors/life-rail.js';

@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { RentalListingCard } from '../../../components/create/RentalListingCard';
 import { loadCharacterDraft, saveCharacterDraft } from '../../../lib/character-draft';
-import { clearPlaySession } from '../../../lib/play-session';
+import { initializePlaySession } from '../../../lib/play-session';
+import { chapterShellPathWithStage } from '@fad/domain';
 import {
   generateRentalListings,
   playerShareForListing,
@@ -54,9 +55,12 @@ export function RentalPickerPageClient() {
     };
 
     saveCharacterDraft(nextDraft);
-    saveRunConfig(loadOrCreateRunConfig());
-    clearPlaySession();
-    router.push('/play/briefing');
+    const config = loadOrCreateRunConfig();
+    saveRunConfig(config);
+    const session = initializePlaySession(nextDraft, config);
+    router.push(
+      chapterShellPathWithStage(session.gameState.run.id, 1, 'openingBriefing'),
+    );
   };
 
   if (!draft) {

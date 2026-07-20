@@ -1,24 +1,12 @@
-import { Suspense } from 'react';
-import { PageShell } from '../../../components/ui/PageShell';
-import { DecidePageClient } from './DecidePageClient';
+'use client';
 
-export default function DecidePage() {
+import { Suspense } from 'react';
+import { LegacyPlayRedirect } from '../../../lib/LegacyPlayRedirect';
+
+export default function DecideRedirectPage() {
   return (
-    <PageShell
-      title="Decision day"
-      subtitle="Required prompts and your open-ended action for the next six months."
-      backHref="/play/briefing"
-      backLabel="Briefing"
-    >
-      <Suspense
-        fallback={
-          <div className="rounded-lg border border-border bg-card p-6 text-muted shadow-sm">
-            Loading decision day…
-          </div>
-        }
-      >
-        <DecidePageClient />
-      </Suspense>
-    </PageShell>
+    <Suspense fallback={<div className="p-6 text-muted">Redirecting…</div>}>
+      <LegacyPlayRedirect />
+    </Suspense>
   );
 }

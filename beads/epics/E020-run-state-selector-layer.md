@@ -1,7 +1,7 @@
 ---
 id: E020
 title: RunState and Selector Layer
-status: open
+status: in_progress
 priority: P1
 sprints:
   - S015

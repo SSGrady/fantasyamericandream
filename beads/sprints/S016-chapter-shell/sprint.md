@@ -1,7 +1,7 @@
 ---
 id: S016
 title: Chapter Shell and Close Merge
-status: open
+status: done
 priority: P1
 epic: E013
 start_date: null

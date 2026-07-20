@@ -1,7 +1,7 @@
 ---
 id: T089
 title: XState chapter flow update
-status: open
+status: done
 type: feature
 priority: P1
 epic: E020

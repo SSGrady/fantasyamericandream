@@ -1,7 +1,7 @@
 ---
 id: T093
 title: Panel-based stage navigation
-status: open
+status: done
 type: feature
 priority: P1
 epic: E013

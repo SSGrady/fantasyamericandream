@@ -1,6 +1,6 @@
 'use client';
 
-import { CA_ENGINEER_2026, formatChapterHeader, formatSimWindowRange, selectRibbonMetrics } from '@fad/domain';
+import { CA_ENGINEER_2026, chapterShellPathWithStage, formatChapterHeader, formatSimWindowRange, selectRibbonMetrics } from '@fad/domain';
 import { netWorth } from '@fad/ledger';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -16,7 +16,14 @@ export function BriefingPageClient() {
   useEffect(() => {
     if (!ready || !session) return;
     if (session.currentAudit) {
-      router.replace('/play/audit');
+      router.replace(
+        chapterShellPathWithStage(
+          session.gameState.run.id,
+          session.periodIndex + 1,
+          'chapterClose',
+          'money',
+        ),
+      );
     }
   }, [ready, session, router]);
 
@@ -80,7 +87,16 @@ export function BriefingPageClient() {
         </Link>
         <button
           type="button"
-          onClick={() => router.push('/play/planning')}
+          onClick={() => {
+            if (!session) return;
+            router.push(
+              chapterShellPathWithStage(
+                session.gameState.run.id,
+                session.periodIndex + 1,
+                'planning',
+              ),
+            );
+          }}
           className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90"
         >
           Continue to planning

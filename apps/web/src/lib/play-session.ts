@@ -15,6 +15,7 @@ import {
   DEFAULT_COMMAND_STATE,
   DEFAULT_HOUSEHOLD,
   LITERACY_SKILL_STUBS,
+  totalWeeklyCapacityUsed,
   validateCommandCapacity,
 } from '@fad/shared';
 import { netWorth } from '@fad/ledger';
@@ -27,15 +28,21 @@ import type {
 import type { TickSixMonthsResult } from '@fad/sim-engine';
 import type { ChapterId, ChapterInterrupt, ChapterPhase } from '@fad/domain';
 import {
+  appendDecisionRecord,
   buildChapterPeriod,
   CA_ENGINEER_2026,
+  createDecisionRecord,
   evaluateChapterLessonUnlock,
+  legacyPhaseToStage,
   rollChapterInterrupt,
   applyInterruptCapacityDelta,
   deferralRateFromOffer,
   resolveJobOffer,
   resolvePlanningMode,
   selectRibbonMetrics,
+  stageToLegacyPhase,
+  type ChapterCloseTab,
+  type ChapterStage,
   type ImpactPreview,
   type PendingDecision,
   type PeriodHistoryEntry,
@@ -206,6 +213,15 @@ function normalizeSession(parsed: PlaySession): PlaySession {
     commandCapacityError: parsed.commandCapacityError ?? null,
     chapterId: parsed.chapterId ?? 'ca_engineer_2026',
     chapterPhase: parsed.chapterPhase ?? 'briefing',
+    chapterStage:
+      parsed.chapterStage ??
+      (parsed.chapterPeriod?.status === 'closed' && parsed.currentAudit
+        ? 'chapterClose'
+        : parsed.chapterPeriod?.status === 'in_progress'
+          ? 'simulating'
+          : legacyPhaseToStage(parsed.chapterPhase ?? 'briefing')),
+    chapterCloseTab: parsed.chapterCloseTab ?? 'story',
+    decisionLog: parsed.decisionLog ?? [],
     activeInterrupt: parsed.activeInterrupt ?? null,
     chapterLessonUnlock: parsed.chapterLessonUnlock ?? null,
   };
@@ -277,6 +293,9 @@ export function initializePlaySession(
     dreamHomeBlocked: false,
     chapterId: 'ca_engineer_2026',
     chapterPhase: 'briefing',
+    chapterStage: 'openingBriefing',
+    chapterCloseTab: 'story',
+    decisionLog: [],
     activeInterrupt: null,
     chapterLessonUnlock: null,
   };
@@ -364,6 +383,9 @@ export function computeRibbonMetrics(
       dreamHomeBlocked: false,
       chapterId: 'ca_engineer_2026',
       chapterPhase: 'audit',
+      chapterStage: 'chapterClose',
+      chapterCloseTab: 'story',
+      decisionLog: [],
       activeInterrupt: null,
       chapterLessonUnlock: null,
     },
@@ -440,6 +462,7 @@ export function applyTickToSession(
     impactPreview: null,
     impactPreviewCacheKey: null,
     chapterPhase: 'consequence',
+    chapterStage: 'chapterClose',
     activeInterrupt:
       rollChapterInterrupt(
         CA_ENGINEER_2026,
@@ -588,6 +611,60 @@ export function applyChapterLessonUnlock(session: PlaySession): PlaySession {
   return { ...next, chapterLessonUnlock: unlock.skillId };
 }
 
+export function recordDecision(
+  session: PlaySession,
+  actionType: Parameters<typeof createDecisionRecord>[0]['actionType'],
+  payload: unknown,
+): PlaySession {
+  const record = createDecisionRecord({
+    timestamp: session.gameState.run.currentDate,
+    chapterNumber: session.periodIndex + 1,
+    actionType,
+    payload,
+    randomSeed: session.gameState.run.randomSeed,
+  });
+  return {
+    ...session,
+    decisionLog: appendDecisionRecord(session.decisionLog ?? [], record),
+  };
+}
+
+export function setChapterStage(
+  session: PlaySession,
+  stage: ChapterStage,
+  closeTab?: ChapterCloseTab,
+): PlaySession {
+  const next: PlaySession = {
+    ...session,
+    chapterStage: stage,
+    chapterPhase: stageToLegacyPhase(stage),
+    chapterCloseTab: closeTab ?? session.chapterCloseTab,
+  };
+  savePlaySession(next);
+  return next;
+}
+
+export function deriveChapterStage(session: PlaySession): ChapterStage {
+  if (session.chapterPeriod.status === 'closed' && session.currentAudit) {
+    return 'chapterClose';
+  }
+  if (session.chapterPeriod.status === 'in_progress') {
+    return 'simulating';
+  }
+  return session.chapterStage ?? legacyPhaseToStage(session.chapterPhase);
+}
+
+export function canAdvanceToStage(session: PlaySession, target: ChapterStage): boolean {
+  const current = deriveChapterStage(session);
+  const order: ChapterStage[] = ['openingBriefing', 'planning', 'simulating', 'chapterClose'];
+  const currentIdx = order.indexOf(current);
+  const targetIdx = order.indexOf(target);
+  if (targetIdx <= currentIdx) return true;
+  if (target === 'simulating' && session.chapterPeriod.status === 'planned') return false;
+  if (target === 'chapterClose' && !session.currentAudit) return false;
+  return targetIdx === currentIdx + 1;
+}
+
 export function resolveSessionPlanningMode(session: PlaySession): PlanningMode {
   return resolvePlanningMode({
     periodIndex: session.periodIndex,
@@ -609,22 +686,26 @@ export function acceptJobOffer(session: PlaySession, offerId: string): PlaySessi
   }
 
   const offer = resolveJobOffer(chapter, offerId);
-  const next: PlaySession = {
-    ...session,
-    acceptedOfferId: offer.id,
-    offerAccepted: true,
-    deferral401kRate: deferralRateFromOffer(offer),
-    gameState: {
-      ...session.gameState,
-      career: {
-        ...session.gameState.career,
-        title: offer.title,
-        baseSalaryAnnual: offer.baseSalaryAnnual,
+  const next: PlaySession = recordDecision(
+    {
+      ...session,
+      acceptedOfferId: offer.id,
+      offerAccepted: true,
+      deferral401kRate: deferralRateFromOffer(offer),
+      gameState: {
+        ...session.gameState,
+        career: {
+          ...session.gameState.career,
+          title: offer.title,
+          baseSalaryAnnual: offer.baseSalaryAnnual,
+        },
       },
+      activeInterrupt:
+        session.activeInterrupt?.type === 'competing_offer' ? null : session.activeInterrupt,
     },
-    activeInterrupt:
-      session.activeInterrupt?.type === 'competing_offer' ? null : session.activeInterrupt,
-  };
+    'offer_accepted',
+    { offerId: offer.id },
+  );
   savePlaySession(next);
   return next;
 }
@@ -644,17 +725,21 @@ export function resolveChapterInterrupt(
     4,
     (session.gameState.commandState?.weeklyCapacityHours ?? 14) + capacityDelta,
   );
-  const next: PlaySession = {
-    ...session,
-    activeInterrupt: null,
-    gameState: {
-      ...session.gameState,
-      commandState: {
-        ...(session.gameState.commandState ?? DEFAULT_COMMAND_STATE),
-        weeklyCapacityHours,
+  const next: PlaySession = recordDecision(
+    {
+      ...session,
+      activeInterrupt: null,
+      gameState: {
+        ...session.gameState,
+        commandState: {
+          ...(session.gameState.commandState ?? DEFAULT_COMMAND_STATE),
+          weeklyCapacityHours,
+        },
       },
     },
-  };
+    'interrupt_resolved',
+    { interruptId: session.activeInterrupt.id, choiceId },
+  );
   savePlaySession(next);
   return next;
 }
@@ -731,14 +816,18 @@ export function commitCommandDraft(session: PlaySession): PlaySession {
     weeklyCapacityHours,
   };
 
-  const next: PlaySession = {
-    ...session,
-    commandCapacityError: null,
-    gameState: {
-      ...session.gameState,
-      commandState,
+  const next: PlaySession = recordDecision(
+    {
+      ...session,
+      commandCapacityError: null,
+      gameState: {
+        ...session.gameState,
+        commandState,
+      },
     },
-  };
+    'plan_committed',
+    { commands: session.commandDraft },
+  );
   savePlaySession(next);
   return next;
 }

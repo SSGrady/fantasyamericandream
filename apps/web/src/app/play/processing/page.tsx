@@ -1,19 +1,12 @@
-import { Suspense } from 'react';
-import { PageShell } from '../../../components/ui/PageShell';
-import { ProcessingPageClient } from './ProcessingPageClient';
+'use client';
 
-export default function ProcessingPage() {
+import { Suspense } from 'react';
+import { LegacyPlayRedirect } from '../../../lib/LegacyPlayRedirect';
+
+export default function ProcessingRedirectPage() {
   return (
-    <PageShell title="Processing" subtitle="Simulating the impact of your decision.">
-      <Suspense
-        fallback={
-          <div className="rounded-lg border border-border bg-card p-6 text-muted shadow-sm">
-            Processing…
-          </div>
-        }
-      >
-        <ProcessingPageClient />
-      </Suspense>
-    </PageShell>
+    <Suspense fallback={<div className="p-6 text-muted">Redirecting…</div>}>
+      <LegacyPlayRedirect />
+    </Suspense>
   );
 }

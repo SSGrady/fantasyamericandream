@@ -1,24 +1,12 @@
-import { Suspense } from 'react';
-import { PageShell } from '../../../components/ui/PageShell';
-import { CounterfactualPageClient } from './CounterfactualPageClient';
+'use client';
 
-export default function CounterfactualPage() {
+import { Suspense } from 'react';
+import { LegacyPlayRedirect } from '../../../lib/LegacyPlayRedirect';
+
+export default function CounterfactualRedirectPage() {
   return (
-    <PageShell
-      title="Counterfactual"
-      subtitle="Chosen path vs alternate offer from this chapter."
-      backHref="/play/reactions"
-      backLabel="Reactions"
-    >
-      <Suspense
-        fallback={
-          <div className="rounded-lg border border-border bg-card p-6 text-muted shadow-sm">
-            Loading counterfactual…
-          </div>
-        }
-      >
-        <CounterfactualPageClient />
-      </Suspense>
-    </PageShell>
+    <Suspense fallback={<div className="p-6 text-muted">Redirecting…</div>}>
+      <LegacyPlayRedirect />
+    </Suspense>
   );
 }

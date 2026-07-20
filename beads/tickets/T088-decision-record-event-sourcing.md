@@ -1,7 +1,7 @@
 ---
 id: T088
 title: DecisionRecord event sourcing
-status: open
+status: done
 type: feature
 priority: P1
 epic: E020

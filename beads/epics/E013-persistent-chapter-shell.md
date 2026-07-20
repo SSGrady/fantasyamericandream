@@ -1,7 +1,7 @@
 ---
 id: E013
 title: Persistent Chapter Shell
-status: open
+status: done
 priority: P1
 sprints:
   - S016

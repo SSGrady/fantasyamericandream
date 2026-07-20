@@ -1,5 +1,6 @@
 'use client';
 
+import { chapterShellPathWithStage } from '@fad/domain';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -21,7 +22,14 @@ export function ProcessingPageClient() {
   useEffect(() => {
     if (!ready || !session) return;
     if (session.currentAudit) {
-      router.replace('/play/analysis');
+      router.replace(
+        chapterShellPathWithStage(
+          session.gameState.run.id,
+          session.periodIndex + 1,
+          'chapterClose',
+          'story',
+        ),
+      );
       return;
     }
     if (inFlightRef.current) return;
@@ -93,7 +101,14 @@ export function ProcessingPageClient() {
         savePlaySession(withPreview);
         const updated = applyTickToSession(withPreview, tick);
         setSession(updated);
-        router.replace('/play/analysis');
+        router.replace(
+          chapterShellPathWithStage(
+            snapshot.gameState.run.id,
+            snapshot.periodIndex + 1,
+            'chapterClose',
+            'story',
+          ),
+        );
       } catch (previewError) {
         if (abortController.signal.aborted) return;
         setError(previewError instanceof Error ? previewError.message : 'Chapter simulation failed');

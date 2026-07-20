@@ -1,7 +1,7 @@
 ---
 id: T092
 title: Chapter Close tabbed merge
-status: open
+status: done
 type: feature
 priority: P1
 epic: E013

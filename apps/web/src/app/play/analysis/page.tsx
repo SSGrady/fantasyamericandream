@@ -1,24 +1,12 @@
-import { Suspense } from 'react';
-import { PageShell } from '../../../components/ui/PageShell';
-import { AnalysisPageClient } from './AnalysisPageClient';
+'use client';
 
-export default function AnalysisPage() {
+import { Suspense } from 'react';
+import { LegacyPlayRedirect } from '../../../lib/LegacyPlayRedirect';
+
+export default function AnalysisRedirectPage() {
   return (
-    <PageShell
-      title="Impact analysis"
-      subtitle="Fiscal, liquidity, and risk cards from your decision."
-      backHref="/play/decide"
-      backLabel="Decision day"
-    >
-      <Suspense
-        fallback={
-          <div className="rounded-lg border border-border bg-card p-6 text-muted shadow-sm">
-            Loading impact analysis…
-          </div>
-        }
-      >
-        <AnalysisPageClient />
-      </Suspense>
-    </PageShell>
+    <Suspense fallback={<div className="p-6 text-muted">Redirecting…</div>}>
+      <LegacyPlayRedirect />
+    </Suspense>
   );
 }
