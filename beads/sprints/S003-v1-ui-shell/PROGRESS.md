@@ -6,11 +6,17 @@ Last updated: 2026-07-19
 
 - [x] **T008** - UI shell + scenario select (Tailwind, landing, `/scenarios`, `/create` stub)
 - [x] **T009** - Character creator
-- [ ] **T010** - Module toggles
+- [x] **T010** - Module toggles
 - [ ] **T011** - Core play loop screens
 - [ ] **T012** - V1 content and endings
 
 ## Notes
+
+### 2026-07-19 (T010)
+
+- Module toggles on `/create/modules`: economy, labor, life, hazards, housing, health, gig, tax, difficulty, hints.
+- `@fad/shared` exports `V1RunConfig`, module IDs, and `enabledModulesFromV1RunConfig`.
+- Session run config via `run-config.ts`; Begin simulation routes to `/play/briefing` stub.
 
 ### 2026-07-19 (T009)
 
@@ -32,4 +38,4 @@ None.
 
 ## Velocity
 
-2/5 tickets done (40%).
+3/5 tickets done (60%).

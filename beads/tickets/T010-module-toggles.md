@@ -1,7 +1,7 @@
 ---
 id: T010
 title: Module toggles
-status: open
+status: done
 type: feature
 priority: P1
 epic: E002
@@ -18,3 +18,10 @@ acceptance:
 ## Description
 
 Fantasy President settings pattern for simulation module toggles per user-journey.md section 3.
+
+## Completion (2026-07-19)
+
+- `/create/modules` grouped toggle panels for all ten module categories.
+- `@fad/shared` `V1RunConfig`, `V1ModuleToggles`, and `enabledModulesFromV1RunConfig`.
+- Session persistence via `run-config.ts`; redirect to `/create` if character draft missing.
+- Begin simulation navigates to `/play/briefing` stub with run config saved.
