@@ -1,7 +1,7 @@
 ---
 id: T106
 title: Wider shell 12-col grid
-status: open
+status: done
 type: feature
 priority: P3
 epic: E016

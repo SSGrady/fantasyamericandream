@@ -1,7 +1,7 @@
 ---
 id: T107
 title: Semantic color tokens v1.6
-status: open
+status: done
 type: feature
 priority: P3
 epic: E016

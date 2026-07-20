@@ -1,7 +1,7 @@
 ---
 id: T108
 title: Distinct card types v1.6
-status: open
+status: done
 type: feature
 priority: P3
 epic: E016

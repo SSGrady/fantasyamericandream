@@ -1,7 +1,7 @@
 ---
 id: T112
 title: Reduced-motion support
-status: open
+status: done
 type: task
 priority: P3
 epic: E016

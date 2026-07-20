@@ -107,7 +107,7 @@ export function ChapterShell({ runId, chapterNumber }: ChapterShellProps) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
+    <div className="shell-container mx-auto max-w-[72rem] px-4 py-6">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <StageIndicator active={stage} lockedAfter={lockedAfter} />
         <p className="text-sm text-muted">

@@ -1,7 +1,7 @@
 ---
 id: T109
 title: Motion continuity
-status: open
+status: done
 type: feature
 priority: P3
 epic: E016

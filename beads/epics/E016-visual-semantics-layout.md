@@ -1,7 +1,7 @@
 ---
 id: E016
 title: Visual Semantics and Layout
-status: open
+status: done
 priority: P4
 sprints:
   - S019
