@@ -9,6 +9,8 @@ import {
   V1_EDUCATION_OPTIONS,
   V1_MARITAL_OPTIONS,
   V1_STATE_OPTIONS,
+  centsToDollars,
+  dollarsToCents,
   type V1CharacterDraft,
   type V1StarterScenarioId,
 } from '@fad/shared';
@@ -136,9 +138,37 @@ export function CreatePageClient() {
             maritalStatus,
             relationshipSimulation:
               maritalStatus === 'married' ? draft.relationshipSimulation : false,
+            partnerIncomeAnnual: maritalStatus === 'single' ? 0 : draft.partnerIncomeAnnual,
           })
         }
       />
+
+      {draft.maritalStatus === 'partnered' || draft.maritalStatus === 'married' ? (
+        <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
+          <h2 className="font-serif text-xl text-ink">Partner income</h2>
+          <p className="mt-1 text-sm text-muted">
+            Second earner W2 salary (annual, before tax). Posts as separate payroll in dual-income
+            households.
+          </p>
+          <div className="mt-4 flex items-center gap-2">
+            <span className="text-muted">$</span>
+            <input
+              type="number"
+              min={0}
+              step={1000}
+              value={centsToDollars(draft.partnerIncomeAnnual) || ''}
+              onChange={(event) =>
+                updateDraft({
+                  partnerIncomeAnnual: dollarsToCents(Number(event.target.value) || 0),
+                })
+              }
+              placeholder="80000"
+              className="w-full max-w-xs rounded-md border border-border bg-surface px-3 py-2 text-ink focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            />
+            <span className="text-sm text-muted">/ year</span>
+          </div>
+        </section>
+      ) : null}
 
       {draft.maritalStatus === 'married' ? (
         <section className="rounded-lg border border-border bg-card p-5 shadow-sm">

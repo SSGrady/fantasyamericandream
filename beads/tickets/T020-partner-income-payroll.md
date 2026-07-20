@@ -1,7 +1,7 @@
 ---
 id: T020
 title: Partner income payroll stub
-status: in_progress
+status: done
 type: feature
 priority: P1
 epic: E003

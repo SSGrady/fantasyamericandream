@@ -21,6 +21,7 @@ export interface SixMonthTickInput {
   debts: Debts;
   career: MonthlyTickInput['career'];
   location: MonthlyTickInput['location'];
+  household?: MonthlyTickInput['household'];
   deferral401kRate?: number;
 }
 
@@ -261,6 +262,7 @@ export function tickSixMonths(input: SixMonthTickInput): SixMonthTickResult {
       debts,
       career: input.career,
       location: input.location,
+      household: input.household,
       deferral401kRate: input.deferral401kRate,
     });
     accounts = tick.accounts;

@@ -2,7 +2,7 @@
 
 ## Tickets
 
-- [ ] T020 - Partner income payroll stub (first slice)
+- [x] T020 - Partner income payroll stub (first slice)
 - [ ] T021 - Dependents / children stub
 - [ ] T022 - Homeownership stub
 - [ ] T023 - Term life / disability stub

@@ -2,6 +2,7 @@ import type {
   Accounts,
   CareerState,
   Debts,
+  HouseholdState,
   LedgerTransaction,
   LocationState,
   MoneyCents,
@@ -16,6 +17,7 @@ export interface MonthlyTickInput {
   debts: Debts;
   career: Pick<CareerState, 'employmentType' | 'baseSalaryAnnual'>;
   location: Pick<LocationState, 'rentPaymentMonthly'>;
+  household?: Pick<HouseholdState, 'partner'>;
   deferral401kRate?: number;
 }
 
@@ -150,6 +152,21 @@ export function buildMonthlyTransactions(input: MonthlyTickInput): LedgerTransac
         input.deferral401kRate ?? 0.06,
       ),
     );
+  }
+
+  const partner = input.household?.partner;
+  if (partner?.employmentType === 'w2' && partner.baseSalaryAnnual > 0) {
+    const partnerPayroll = buildPayrollFromCareer(
+      `${input.monthKey}-partner`,
+      partner.baseSalaryAnnual,
+      input.accounts,
+      partner.deferral401kRate,
+    );
+    transactions.push({
+      ...partnerPayroll,
+      id: `tx-${input.monthKey}-payroll-partner`,
+      description: 'Partner monthly W2 payroll',
+    });
   }
 
   transactions.push(...buildCreditCardInterestTransactions(input.monthKey, input.debts));

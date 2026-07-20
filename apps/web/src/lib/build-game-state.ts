@@ -1,5 +1,6 @@
 import { buildV0ScenarioFixture } from '@fad/data';
 import {
+  buildHouseholdFromDraft,
   enabledModulesFromV1RunConfig,
   type GameState,
   type IsoDate,
@@ -110,6 +111,10 @@ export function buildInitialGameState(
       riskTolerance: 'moderate',
     },
     career: { ...fixture.career },
+    household: buildHouseholdFromDraft({
+      maritalStatus: draft.maritalStatus,
+      partnerIncomeAnnual: draft.partnerIncomeAnnual,
+    }),
     location: { ...fixture.location },
     accounts,
     debts,

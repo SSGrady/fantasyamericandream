@@ -44,6 +44,7 @@ export function BriefingPageClient() {
           debts: session!.gameState.debts,
           career: session!.gameState.career,
           location: session!.gameState.location,
+          household: session!.gameState.household,
           macro: session!.gameState.macro,
           deferral401kRate: session!.deferral401kRate,
           difficulty: session!.gameState.run.difficulty,

@@ -149,10 +149,13 @@ export interface AuditSnapshot {
   contributionProgress: Record<string, ContributionProgress>;
 }
 
+import type { HouseholdState } from './household-state.js';
+
 export interface GameState {
   run: SimulationRun;
   player: PlayerState;
   career: CareerState;
+  household: HouseholdState;
   location: LocationState;
   accounts: Accounts;
   debts: Debts;

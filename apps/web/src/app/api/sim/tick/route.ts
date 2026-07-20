@@ -4,6 +4,7 @@ import type {
   CareerState,
   Debts,
   Difficulty,
+  HouseholdState,
   IsoDate,
   LocationState,
   MacroState,
@@ -19,6 +20,7 @@ interface TickRequestBody {
   debts: Debts;
   career: CareerState;
   location: LocationState;
+  household: HouseholdState;
   macro: MacroState;
   deferral401kRate?: number;
   difficulty?: Difficulty;
@@ -42,6 +44,7 @@ function parseTickRequest(body: unknown): TickRequestBody | null {
   if (typeof body.randomSeed !== 'string' || body.randomSeed.length === 0) return null;
   if (!isObject(body.accounts) || !isObject(body.debts)) return null;
   if (!isObject(body.career) || !isObject(body.location) || !isObject(body.macro)) return null;
+  if (!isObject(body.household)) return null;
 
   return {
     startDate: body.startDate,
@@ -50,6 +53,7 @@ function parseTickRequest(body: unknown): TickRequestBody | null {
     debts: body.debts as unknown as Debts,
     career: body.career as unknown as CareerState,
     location: body.location as unknown as LocationState,
+    household: body.household as unknown as HouseholdState,
     macro: body.macro as unknown as MacroState,
     deferral401kRate:
       typeof body.deferral401kRate === 'number' ? body.deferral401kRate : undefined,

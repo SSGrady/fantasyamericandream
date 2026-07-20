@@ -69,14 +69,22 @@ interface PlayerState {
 ## HouseholdState (V2 expands)
 
 ```typescript
+interface PartnerState {
+  employmentType: 'w2' | 'unemployed';
+  baseSalaryAnnual: MoneyCents;
+  deferral401kRate: number;
+}
+
 interface HouseholdState {
-  maritalStatus: 'single' | 'dating' | 'cohabiting' | 'married' | 'divorced' | 'widowed';
-  dependents: Dependent[];
+  maritalStatus: 'single' | 'partnered' | 'married';
+  dependentsCount: number;
   partner?: PartnerState;
   financeMode: 'individual' | 'joint';
   relationshipHealth: number;  // 0-100, divorce inputs
 }
 ```
+
+`GameState.household` is required in V2 foundation (T020). V1 character draft maps `partnerIncomeAnnual` to `household.partner`.
 
 ## CareerState
 

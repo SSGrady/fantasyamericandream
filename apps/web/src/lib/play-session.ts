@@ -1,5 +1,5 @@
 import type { AuditSnapshot, GameState, LiteracySkillId, LiteracyProgress, SampledEventOccurrence, SimulationEndReason } from '@fad/shared';
-import { createDefaultLiteracyProgress, LITERACY_SKILL_STUBS } from '@fad/shared';
+import { createDefaultLiteracyProgress, DEFAULT_HOUSEHOLD, LITERACY_SKILL_STUBS } from '@fad/shared';
 import type { TickSixMonthsResult } from '@fad/sim-engine';
 import type { V1CharacterDraft, V1RunConfig } from '@fad/shared';
 import { buildInitialGameState } from './build-game-state';
@@ -72,6 +72,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function normalizeSession(parsed: PlaySession): PlaySession {
   return {
     ...parsed,
+    gameState: {
+      ...parsed.gameState,
+      household: parsed.gameState.household ?? DEFAULT_HOUSEHOLD,
+    },
     periodHistory: parsed.periodHistory ?? [],
     endReason: parsed.endReason ?? null,
     endedByDemoLimit: parsed.endedByDemoLimit ?? false,
@@ -217,6 +221,7 @@ export interface SimTickRequest {
   debts: GameState['debts'];
   career: GameState['career'];
   location: GameState['location'];
+  household: GameState['household'];
   macro: GameState['macro'];
   deferral401kRate: number;
   difficulty: GameState['run']['difficulty'];

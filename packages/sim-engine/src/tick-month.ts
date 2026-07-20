@@ -5,6 +5,7 @@ import type {
   CareerState,
   Debts,
   Difficulty,
+  HouseholdState,
   IsoDate,
   LedgerTransaction,
   LocationState,
@@ -25,6 +26,7 @@ export interface TickMonthInput {
   debts: Debts;
   career: CareerState;
   location: LocationState;
+  household?: HouseholdState;
   macro: MacroState;
   deferral401kRate?: number;
 }
@@ -47,6 +49,7 @@ export interface TickMonthsInput {
   debts: Debts;
   career: CareerState;
   location: LocationState;
+  household?: HouseholdState;
   macro: MacroState;
   deferral401kRate?: number;
   difficulty?: Difficulty;
@@ -84,6 +87,7 @@ export function tickMonthWithSimulation(input: TickMonthInput): TickMonthResult 
     debts: input.debts,
     career: layoffResult.career,
     location: input.location,
+    household: input.household,
     deferral401kRate: input.deferral401kRate,
   });
 
@@ -181,6 +185,7 @@ export function tickMonthsWithSimulation(input: TickMonthsInput): TickMonthsResu
       debts,
       career,
       location: input.location,
+      household: input.household,
       macro,
       deferral401kRate: input.deferral401kRate,
     });

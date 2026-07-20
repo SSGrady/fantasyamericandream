@@ -41,6 +41,8 @@ export interface V1CharacterDraft {
   careerSector: CareerSector;
   maritalStatus: V1MaritalStatus;
   relationshipSimulation: boolean;
+  /** Annual partner W2 salary in cents; 0 when single or no partner income. */
+  partnerIncomeAnnual: MoneyCents;
   habits: {
     deliveryFrequency: V1DeliveryFrequency;
     cookingSkill: V1CookingSkill;
@@ -197,6 +199,7 @@ export function getDefaultV1CharacterDraft(scenarioId: V1StarterScenarioId): V1C
     careerSector: overrides.careerSector ?? 'tech',
     maritalStatus: overrides.maritalStatus ?? 'single',
     relationshipSimulation: false,
+    partnerIncomeAnnual: 0,
     habits: overrides.habits ?? { deliveryFrequency: 'low', cookingSkill: 1 },
     balanceSheet: { ...DEFAULT_BALANCE, ...balanceOverrides },
   };
