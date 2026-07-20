@@ -12,7 +12,6 @@ import { ModuleToggleSection } from '../../../components/create/ModuleToggleSect
 import { SegmentedControl } from '../../../components/create/SegmentedControl';
 import { ToggleRow } from '../../../components/create/ToggleRow';
 import { loadCharacterDraft } from '../../../lib/character-draft';
-import { clearPlaySession } from '../../../lib/play-session';
 import { loadOrCreateRunConfig, saveRunConfig } from '../../../lib/run-config';
 
 export function ModulesPageClient() {
@@ -51,11 +50,10 @@ export function ModulesPageClient() {
     [],
   );
 
-  const handleBeginSimulation = () => {
+  const handleContinue = () => {
     if (!config) return;
     saveRunConfig(config);
-    clearPlaySession();
-    router.push('/play/briefing');
+    router.push('/create/rental');
   };
 
   if (!ready || !config) {
@@ -318,10 +316,10 @@ export function ModulesPageClient() {
         </Link>
         <button
           type="button"
-          onClick={handleBeginSimulation}
+          onClick={handleContinue}
           className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90"
         >
-          Begin simulation
+          Continue to rental search
         </button>
       </div>
     </div>

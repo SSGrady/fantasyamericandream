@@ -4,6 +4,8 @@ Aggregated progress log. Append dated entries when closing tickets.
 
 ## 2026-07-19 (continued)
 
+- **T025** - Rental picker: `/create/rental` with synthetic listings, player rent share, draft storage, flow before briefing.
+- **T016c** - Metric breakdown on audit snapshot, impact analysis math display (runway costs, savings numerator), IRS 2026 limits in UI copy.
 - **T017** - Housing arrangement rent split: character creator selector, `housing-rent.ts` fractions, `LocationState.marketRentMonthly`, player share on monthly tick.
 - **T016b** - Savings rate fix: exclude investment returns from numerator; split payroll waterfall; analysis metric breakdown aligned with metrics doc.
 - **T021** - Dependents stub: dependentsCount, childcare expense, plan529 bucket, parental leave event, tests.

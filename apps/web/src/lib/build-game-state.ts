@@ -101,7 +101,8 @@ export function buildInitialGameState(
     ? draft.housingArrangement
     : defaultHousingArrangement(draft.maritalStatus);
 
-  const marketRentMonthly = fixture.location.marketRentMonthly;
+  const marketRentMonthly =
+    draft.rentalSelection?.marketRentMonthly ?? fixture.location.marketRentMonthly;
   const playerRentShareMonthly = playerRentShare(marketRentMonthly, housingArrangement);
 
   const gameState: GameState = {

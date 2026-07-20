@@ -37,6 +37,18 @@ export interface V1BalanceSheetDraft {
   creditCard: MoneyCents;
 }
 
+/** Rental listing chosen on /create/rental before simulation starts. */
+export interface V1RentalListingSelection {
+  listingId: string;
+  address: string;
+  neighborhood: string;
+  city: string;
+  beds: number;
+  baths: number;
+  /** Full market rent before roommate or partner split. */
+  marketRentMonthly: MoneyCents;
+}
+
 export interface V1CharacterDraft {
   scenarioId: V1StarterScenarioId;
   name: string;
@@ -59,6 +71,8 @@ export interface V1CharacterDraft {
     cookingSkill: V1CookingSkill;
   };
   balanceSheet: V1BalanceSheetDraft;
+  /** Set when the player picks a lease on /create/rental. */
+  rentalSelection?: V1RentalListingSelection;
 }
 
 export interface TraitOption<T extends string | number> {
