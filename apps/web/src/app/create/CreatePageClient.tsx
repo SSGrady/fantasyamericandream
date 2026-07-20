@@ -171,7 +171,7 @@ export function CreatePageClient() {
           <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
-              checked={draft.childrenPlanned}
+              checked={draft.childrenPlanned ?? false}
               onChange={(event) =>
                 updateDraft({
                   childrenPlanned: event.target.checked,
@@ -248,7 +248,7 @@ export function CreatePageClient() {
           <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
-              checked={draft.relationshipSimulation}
+              checked={draft.relationshipSimulation ?? false}
               onChange={(event) =>
                 updateDraft({ relationshipSimulation: event.target.checked })
               }
@@ -288,7 +288,7 @@ export function CreatePageClient() {
         <label className="flex cursor-pointer items-start gap-3">
           <input
             type="checkbox"
-            checked={draft.includeEmployerHealthPlan}
+            checked={draft.includeEmployerHealthPlan ?? true}
             onChange={(event) =>
               updateDraft({ includeEmployerHealthPlan: event.target.checked })
             }
