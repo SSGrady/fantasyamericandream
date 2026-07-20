@@ -1,4 +1,5 @@
-import { centsToDollars, dollarsToCents, type V1BalanceSheetDraft } from '@fad/shared';
+import { centsToDollars, dollarsToCents, balanceSheetNetWorth, type V1BalanceSheetDraft } from '@fad/shared';
+import { formatMoney } from '../../lib/format-money';
 
 interface BalanceField {
   key: keyof V1BalanceSheetDraft;
@@ -9,6 +10,7 @@ interface BalanceField {
 const BALANCE_FIELDS: readonly BalanceField[] = [
   { key: 'checking', label: 'Checking', hint: 'Everyday cash buffer' },
   { key: 'hysa', label: 'High-yield savings', hint: 'Emergency fund target' },
+  { key: 'brokerage', label: 'Taxable brokerage', hint: 'Investments outside retirement accounts' },
   { key: 'rothIra', label: 'Roth IRA', hint: 'Post-tax retirement savings' },
   { key: 'traditional401k', label: '401(k)', hint: 'Employer retirement balance' },
   { key: 'studentLoan', label: 'Student loans', hint: 'Outstanding education debt' },
@@ -25,11 +27,14 @@ export function BalanceSheetForm({ value, onChange }: BalanceSheetFormProps) {
     onChange({ ...value, [key]: dollarsToCents(dollars) });
   };
 
+  const netWorth = balanceSheetNetWorth(value);
+
   return (
     <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
       <h2 className="font-serif text-xl text-ink">Starting balance sheet</h2>
       <p className="mt-1 text-sm text-muted">
-        Enter starting balances in dollars. Debts are positive amounts owed.
+        Enter starting balances in dollars. Debts are positive amounts owed. All accounts shown here
+        are used at simulation start; nothing is added silently.
       </p>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {BALANCE_FIELDS.map((field) => (
@@ -52,6 +57,13 @@ export function BalanceSheetForm({ value, onChange }: BalanceSheetFormProps) {
           </label>
         ))}
       </div>
+      <p className="mt-4 rounded-md bg-surface px-3 py-2 text-sm text-muted">
+        Starting net worth:{' '}
+        <span className="font-semibold text-ink">{formatMoney(netWorth)}</span>
+        <span className="block text-xs">
+          Assets (checking, HYSA, brokerage, Roth, 401(k)) minus debts entered above.
+        </span>
+      </p>
     </section>
   );
 }

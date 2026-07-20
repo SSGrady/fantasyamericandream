@@ -1,5 +1,6 @@
 import type { AuditSnapshot, GameState, LiteracySkillId, LiteracyProgress, SampledEventOccurrence, SimulationEndReason } from '@fad/shared';
 import { createDefaultLiteracyProgress, DEFAULT_HOUSEHOLD, LITERACY_SKILL_STUBS } from '@fad/shared';
+import { netWorth } from '@fad/ledger';
 import type {
   EmergencyRunwayBreakdown,
   HousingBurdenBreakdown,
@@ -27,6 +28,7 @@ export interface PendingDecision {
 export interface PeriodHistoryEntry {
   periodIndex: number;
   asOf: AuditSnapshot['asOf'];
+  startNetWorth: number;
   netWorth: number;
   netWorthDelta: number;
   savingsRate: number;
@@ -45,6 +47,8 @@ export interface SkillTreeEntry {
 export interface PlaySession {
   gameState: GameState;
   deferral401kRate: number;
+  /** Ledger net worth at simulation start (before any ticks). */
+  startingNetWorth: number;
   currentAudit: AuditSnapshot | null;
   pendingDecisions: PendingDecision[];
   playerAction: string;
@@ -62,6 +66,7 @@ export interface PlaySession {
 }
 
 export interface RibbonMetrics {
+  startNetWorth: number;
   netWorth: number;
   netWorthDelta: number;
   takeHomePayMonthly: number;
@@ -163,13 +168,21 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function normalizeSession(parsed: PlaySession): PlaySession {
+  const startingNetWorth =
+    parsed.startingNetWorth ??
+    netWorth(parsed.gameState.accounts, parsed.gameState.debts);
+
   return {
     ...parsed,
+    startingNetWorth,
     gameState: {
       ...parsed.gameState,
       household: parsed.gameState.household ?? DEFAULT_HOUSEHOLD,
     },
-    periodHistory: parsed.periodHistory ?? [],
+    periodHistory: (parsed.periodHistory ?? []).map((entry) => ({
+      ...entry,
+      startNetWorth: entry.startNetWorth ?? startingNetWorth,
+    })),
     endReason: parsed.endReason ?? null,
     endedByDemoLimit: parsed.endedByDemoLimit ?? false,
     literacyQuizAnswered: parsed.literacyQuizAnswered ?? false,
@@ -213,9 +226,11 @@ export function initializePlaySession(
   config: V1RunConfig,
 ): PlaySession {
   const { gameState, deferral401kRate } = buildInitialGameState(draft, config);
+  const startingNetWorth = netWorth(gameState.accounts, gameState.debts);
   const session: PlaySession = {
     gameState,
     deferral401kRate,
+    startingNetWorth,
     currentAudit: null,
     pendingDecisions: [],
     playerAction: '',
@@ -301,6 +316,7 @@ export function computeRibbonMetrics(
   const dti = monthlyNetPay > 0 ? monthlyDebt / monthlyNetPay : 0;
 
   return {
+    startNetWorth: audit.startNetWorth,
     netWorth: audit.netWorth,
     netWorthDelta: audit.netWorthDelta,
     takeHomePayMonthly: monthlyNetPay,
@@ -382,6 +398,7 @@ export function appendPeriodHistory(
   return {
     periodIndex: session.periodIndex,
     asOf: audit.asOf,
+    startNetWorth: audit.startNetWorth,
     netWorth: audit.netWorth,
     netWorthDelta: audit.netWorthDelta,
     savingsRate: audit.savingsRate,

@@ -92,7 +92,7 @@ function buildImpactCards(
       id: 'net-worth-delta',
       label: 'Net worth delta',
       value: formatMoney(audit.netWorthDelta, { signed: true }),
-      detail: `Closing net worth ${formatMoney(audit.netWorth)} after this six-month window.`,
+      detail: `Started at ${formatMoney(audit.startNetWorth)}; closing net worth ${formatMoney(audit.netWorth)} after this six-month window.`,
       tone: deltaTone,
       mathSummary:
         'Ledger waterfall by category: income increases net worth, expenses and debt service reduce it, growth reflects investment returns.',

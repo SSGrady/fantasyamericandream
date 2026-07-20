@@ -187,6 +187,8 @@ export interface MetricBreakdownSnapshot {
 
 export interface AuditSnapshot {
   asOf: IsoDate;
+  /** Net worth at the start of this audit window (ledger state before period ticks). */
+  startNetWorth: MoneyCents;
   netWorth: MoneyCents;
   netWorthDelta: MoneyCents;
   waterfall: NetWorthWaterfallLine[];

@@ -27,7 +27,16 @@ export function loadCharacterDraft(): V1CharacterDraft | null {
       parsed.housingArrangement && isHousingArrangementAllowed(parsed.housingArrangement, maritalStatus)
         ? parsed.housingArrangement
         : defaultHousingArrangement(maritalStatus);
-    return { ...parsed, maritalStatus, housingArrangement };
+    return {
+      ...parsed,
+      maritalStatus,
+      housingArrangement,
+      balanceSheet: {
+        ...getDefaultV1CharacterDraft(parsed.scenarioId).balanceSheet,
+        ...parsed.balanceSheet,
+        brokerage: parsed.balanceSheet.brokerage ?? 0,
+      },
+    };
   } catch {
     return null;
   }

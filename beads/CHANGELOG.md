@@ -4,6 +4,8 @@ Aggregated progress log. Append dated entries when closing tickets.
 
 ## 2026-07-19 (continued)
 
+- **T026** - Starting net worth transparency: brokerage on balance sheet, no hidden V0 fixture injection, `startNetWorth` on audit snapshot, timeline baseline, rental COL-tier jitter, regression test.
+
 - **T025** - Rental picker: `/create/rental` with synthetic listings, player rent share, draft storage, flow before briefing.
 - **T016c** - Metric breakdown on audit snapshot, impact analysis math display (runway costs, savings numerator), IRS 2026 limits in UI copy.
 - **T017** - Housing arrangement rent split: character creator selector, `housing-rent.ts` fractions, `LocationState.marketRentMonthly`, player share on monthly tick.

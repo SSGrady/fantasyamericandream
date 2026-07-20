@@ -3,10 +3,12 @@ import type { AuditSnapshot, SampledEventOccurrence } from '@fad/shared';
 /** Template-based briefing. LLM optional in V1. */
 export function renderBriefingHeadline(audit: AuditSnapshot): string {
   const delta = audit.netWorthDelta;
+  const start = audit.startNetWorth;
+  const end = audit.netWorth;
   if (delta >= 0) {
-    return `Net worth grew $${(delta / 100).toFixed(0)} over the last six months`;
+    return `Net worth grew $${(delta / 100).toFixed(0)} (${(start / 100).toFixed(0)} → ${(end / 100).toFixed(0)})`;
   }
-  return `Net worth fell $${(Math.abs(delta) / 100).toFixed(0)}. Here is what happened.`;
+  return `Net worth fell $${(Math.abs(delta) / 100).toFixed(0)} (${(start / 100).toFixed(0)} → ${(end / 100).toFixed(0)})`;
 }
 
 export function renderBriefingEventsSummary(events: SampledEventOccurrence[]): string {

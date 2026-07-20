@@ -31,6 +31,8 @@ export type V1CookingSkill = 0 | 1 | 2 | 3;
 export interface V1BalanceSheetDraft {
   checking: MoneyCents;
   hysa: MoneyCents;
+  /** Taxable brokerage; defaults to $0 unless scenario or player sets it. */
+  brokerage: MoneyCents;
   rothIra: MoneyCents;
   traditional401k: MoneyCents;
   studentLoan: MoneyCents;
@@ -159,6 +161,7 @@ export const V1_COOKING_OPTIONS: readonly TraitOption<V1CookingSkill>[] = [
 const DEFAULT_BALANCE: V1BalanceSheetDraft = {
   checking: 2_000_00,
   hysa: 1_000_00,
+  brokerage: 0,
   rothIra: 0,
   traditional401k: 0,
   studentLoan: 25_000_00,
@@ -203,6 +206,7 @@ const SCENARIO_DEFAULTS: Partial<
     balanceSheet: {
       checking: 8_000_00,
       hysa: 15_000_00,
+      brokerage: 25_000_00,
       rothIra: 12_000_00,
       traditional401k: 45_000_00,
       studentLoan: 18_000_00,
@@ -265,4 +269,16 @@ export function dollarsToCents(dollars: number): MoneyCents {
 
 export function centsToDollars(cents: MoneyCents): number {
   return cents / 100;
+}
+
+/** Assets minus liabilities from the character creator balance sheet draft. */
+export function balanceSheetNetWorth(sheet: V1BalanceSheetDraft): MoneyCents {
+  const assets =
+    sheet.checking +
+    sheet.hysa +
+    sheet.brokerage +
+    sheet.rothIra +
+    sheet.traditional401k;
+  const liabilities = sheet.studentLoan + sheet.creditCard;
+  return assets - liabilities;
 }

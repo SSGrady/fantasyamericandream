@@ -75,7 +75,11 @@ export function DashboardPageClient() {
 
       <section className="space-y-3">
         <h2 className="font-serif text-xl text-ink">Timeline</h2>
-        <TimelineHistory entries={session.periodHistory ?? []} />
+        <TimelineHistory
+          entries={session.periodHistory ?? []}
+          startingNetWorth={session.startingNetWorth}
+          startDate={session.gameState.run.startDate}
+        />
       </section>
 
       <section className="space-y-3">

@@ -50,6 +50,7 @@ describe('tickSixMonths', () => {
     expect(result.endDate).toBe(fixture.expected.endDate);
     expect(result.transactions).toHaveLength(fixture.expected.transactionCount);
     expect(result.audit.asOf).toBe(fixture.expected.audit.asOf);
+    expect(result.audit.startNetWorth).toBe(fixture.expected.audit.startNetWorth);
     expect(result.audit.netWorth).toBe(fixture.expected.netWorth);
     expect(result.audit.netWorthDelta).toBe(fixture.expected.audit.netWorthDelta);
     expect(result.audit.waterfall).toEqual(fixture.expected.audit.waterfall);

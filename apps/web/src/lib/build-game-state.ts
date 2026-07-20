@@ -51,9 +51,9 @@ export function buildInitialGameState(
   });
 
   const accounts = {
-    ...fixture.accounts,
     checking: { id: 'checking', balance: draft.balanceSheet.checking },
     hysa: { id: 'hysa', balance: draft.balanceSheet.hysa },
+    brokerage: { id: 'brokerage', balance: draft.balanceSheet.brokerage },
     rothIra: {
       id: 'roth',
       balance: draft.balanceSheet.rothIra,

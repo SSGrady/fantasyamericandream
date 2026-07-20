@@ -15,7 +15,8 @@ const METRIC_ITEMS: {
   {
     key: 'netWorth',
     label: 'Net worth',
-    format: (m) => `${formatMoney(m.netWorth)} (${formatMoney(m.netWorthDelta, { signed: true })})`,
+    format: (m) =>
+      `${formatMoney(m.netWorth)} from ${formatMoney(m.startNetWorth)} (${formatMoney(m.netWorthDelta, { signed: true })})`,
   },
   {
     key: 'takeHomePayMonthly',

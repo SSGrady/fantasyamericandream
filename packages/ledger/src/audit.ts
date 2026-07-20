@@ -292,6 +292,7 @@ export function buildAuditSnapshot(input: {
 
   return {
     asOf: input.asOf,
+    startNetWorth,
     netWorth: endNetWorth,
     netWorthDelta: endNetWorth - startNetWorth,
     waterfall: buildWaterfallFromTransactions(input.transactions),

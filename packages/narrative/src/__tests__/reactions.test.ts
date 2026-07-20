@@ -4,6 +4,7 @@ import { renderStakeholderReactions } from '../reactions.js';
 
 const baseAudit: AuditSnapshot = {
   asOf: '2026-06-30',
+  startNetWorth: 41_500_00,
   netWorth: 45_000_00,
   netWorthDelta: 3_500_00,
   waterfall: [],

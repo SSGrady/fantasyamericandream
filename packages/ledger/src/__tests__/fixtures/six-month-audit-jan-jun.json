@@ -60,6 +60,7 @@
     "startNetWorth": -1050000,
     "audit": {
       "asOf": "2026-07-01",
+      "startNetWorth": -1050000,
       "netWorth": 877261,
       "netWorthDelta": 1927261,
       "waterfall": [

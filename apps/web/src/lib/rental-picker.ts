@@ -37,6 +37,9 @@ const STREET_NAMES = [
   'Summit Place',
 ];
 
+/** COL tier anchors spread below/above metro market rent (seeded, not linear steps). */
+const COL_TIER_FACTORS = [0.68, 0.76, 0.84, 0.92, 1.0, 1.08, 1.16, 1.24] as const;
+
 function seededUnit(seed: string, index: number): number {
   let state = 0;
   const input = `${seed}:rental:${index}`;
@@ -73,6 +76,13 @@ function baselineMarketRent(draft: V1CharacterDraft): MoneyCents {
   return fixture.location.marketRentMonthly;
 }
 
+function marketRentForListing(baseline: MoneyCents, seed: string, index: number): MoneyCents {
+  const tierFactor = COL_TIER_FACTORS[index] ?? 1;
+  const jitter = (seededUnit(seed, index * 7 + 3) - 0.5) * 0.14;
+  const raw = baseline * (tierFactor + jitter);
+  return Math.max(50_00, Math.round(raw / 25_00) * 25_00);
+}
+
 export function generateRentalListings(draft: V1CharacterDraft): RentalListing[] {
   const seed = `${draft.scenarioId}-${draft.stateCode}-${draft.careerSector}-${draft.name.trim() || 'anon'}`;
   const baseline = baselineMarketRent(draft);
@@ -81,15 +91,14 @@ export function generateRentalListings(draft: V1CharacterDraft): RentalListing[]
 
   for (let i = 0; i < 8; i += 1) {
     const unit = seededUnit(seed, i);
-    const rentFactor = 0.72 + unit * 0.55;
-    const marketRentMonthly = Math.round(baseline * rentFactor);
+    const marketRentMonthly = marketRentForListing(baseline, seed, i);
     const beds = 1 + Math.floor(unit * 3);
     const baths = 1 + Math.floor(seededUnit(seed, i + 11) * 2);
     const sqft = 550 + Math.floor(seededUnit(seed, i + 22) * 1400);
 
     listings.push({
       id: `rental-${draft.stateCode}-${i}`,
-      address: `${120 + i * 13} ${STREET_NAMES[i] ?? 'Main Street'}`,
+      address: `${120 + Math.floor(seededUnit(seed, i + 33) * 900)} ${STREET_NAMES[i] ?? 'Main Street'}`,
       neighborhood: `${city} ${['Heights', 'District', 'Village', 'Quarter', 'Commons'][i % 5]}`,
       city,
       stateCode: draft.stateCode,

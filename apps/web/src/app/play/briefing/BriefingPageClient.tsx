@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { MetricsRibbon } from '../../../components/play/MetricsRibbon';
+import { formatMoney } from '../../../lib/format-money';
 import {
   applyTickToSession,
   computeRibbonMetrics,
@@ -100,9 +101,9 @@ export function BriefingPageClient() {
         <h2 className="mt-1 font-serif text-2xl text-ink">{headline}</h2>
         <p className="mt-3 text-muted">
           {session.gameState.player.name}, your {session.gameState.career.title} role in{' '}
-          {session.gameState.location.stateCode} closed this audit at{' '}
-          {audit.asOf}. Net worth is now tracked through the ledger; the next screen is decision
-          day for the following six months.
+          {session.gameState.location.stateCode} closed this audit at {audit.asOf}. Starting net
+          worth was {formatMoney(audit.startNetWorth)}; it is now {formatMoney(audit.netWorth)}.
+          Savings rate measures payroll deferrals and transfers only, not investment returns.
         </p>
         <p className="mt-3 rounded-md bg-surface px-3 py-2 text-sm text-muted">{eventsSummary}</p>
       </div>
