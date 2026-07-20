@@ -6,7 +6,7 @@ export default function HomePage() {
     <PageShell>
       <div className="rounded-lg border border-border bg-card p-8 shadow-sm sm:p-10">
         <p className="text-sm font-medium uppercase tracking-wide text-accent">Class of 2026</p>
-        <h1 className="mt-3 font-serif text-4xl text-ink sm:text-5xl">Life Ledger</h1>
+        <h1 className="mt-3 font-serif text-4xl text-ink sm:text-5xl">Fantasy American Dream</h1>
         <p className="mt-4 text-xl text-muted">
           Build a career. Survive the economy. Buy back your time.
         </p>

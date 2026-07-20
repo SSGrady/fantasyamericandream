@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-Life Ledger is a personal project developed with AI agent assistance. It needs lightweight project tracking without Jira overhead, while preserving epic/sprint/ticket hierarchy for multi-month simulation work.
+Fantasy American Dream is a personal project developed with AI agent assistance. It needs lightweight project tracking without Jira overhead, while preserving epic/sprint/ticket hierarchy for multi-month simulation work.
 
 Cineborough's beads pattern (ADR-007) and AutoCode's bead data model proved effective: markdown files in git, agent-readable, no external tooling.
 

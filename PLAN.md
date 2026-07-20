@@ -1,4 +1,4 @@
-# Life Ledger - Implementation Plan
+# Fantasy American Dream - Implementation Plan
 
 Phased delivery for the Class of 2026 personal-finance life simulator.
 

@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-Fantasy President Career's core UX is a repeatable sequence that makes complex policy outcomes legible. Life Ledger needs an equivalent interaction grammar for financial life decisions without copying branding, assets, or prose.
+Fantasy President Career's core UX is a repeatable sequence that makes complex policy outcomes legible. Fantasy American Dream needs an equivalent interaction grammar for financial life decisions without copying branding, assets, or prose.
 
 ## Decision
 
@@ -34,9 +34,9 @@ Net-worth audit dashboard
 (loop or end report)
 ```
 
-### Fantasy President → Life Ledger mapping
+### Fantasy President → Fantasy American Dream mapping
 
-| President UI | Life Ledger equivalent |
+| President UI | Fantasy American Dream equivalent |
 |--------------|------------------------|
 | Choose era/scenario | Choose financial starting life (Class of 2026, Gig Economy, etc.) |
 | Character setup | Person + household + balance sheet + module toggles |

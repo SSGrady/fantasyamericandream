@@ -1,10 +1,10 @@
 # AGENTS.md - AI Agent Orientation
 
-This file helps AI agents work effectively in **Life Ledger** (repo: `fantasyamericandream`).
+This file helps AI agents work effectively in **Fantasy American Dream** (repo: `fantasyamericandream`).
 
 ## What This Project Is
 
-**Life Ledger: Class of 2026** is a personal-finance life-path simulator inspired by [fantasypresidentcareer.com](https://fantasypresidentcareer.com). Players build a career starting in 2026, survive macro and household shocks, and learn financial judgment through a consequence pipeline - not trivia rewards.
+**Fantasy American Dream: Class of 2026** is a personal-finance life-path simulator inspired by [fantasypresidentcareer.com](https://fantasypresidentcareer.com). Players build a career starting in 2026, survive macro and household shocks, and learn financial judgment through a consequence pipeline - not trivia rewards.
 
 Tagline: *Build a career. Survive the economy. Buy back your time.*
 

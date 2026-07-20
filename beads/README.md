@@ -1,6 +1,6 @@
 # Beads - Project Tracking
 
-File-based project management for Life Ledger. Adapted from [Cineborough ADR-007](https://github.com) / AutoCode bead data model.
+File-based project management for Fantasy American Dream. Adapted from [Cineborough ADR-007](https://github.com) / AutoCode bead data model.
 
 ## Hierarchy
 

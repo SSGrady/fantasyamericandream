@@ -11,7 +11,7 @@ sprints:
 
 ## Goal
 
-Expand Life Ledger from single-player rent-only to household simulation: partner income, children, homeownership, insurance depth, relocation, gig work, divorce toggle, full state tax tables.
+Expand Fantasy American Dream from single-player rent-only to household simulation: partner income, children, homeownership, insurance depth, relocation, gig work, divorce toggle, full state tax tables.
 
 From [PLAN.md](../../PLAN.md) V2 and [feature-set.md](../../docs/vision/feature-set.md) sections D, F, H.
 

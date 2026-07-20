@@ -21,7 +21,7 @@ export function PageShell({
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:px-6">
           <Link href="/" className="font-serif text-xl text-ink hover:text-accent">
-            Life Ledger
+            Fantasy American Dream
           </Link>
           {backHref ? (
             <Link href={backHref} className="text-sm text-muted hover:text-accent">

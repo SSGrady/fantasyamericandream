@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-Architecture Decision Records (ADRs) for **Life Ledger** - a personal-finance life-path simulator (Class of 2026).
+Architecture Decision Records (ADRs) for **Fantasy American Dream** - a personal-finance life-path simulator (Class of 2026).
 
 ---
 
@@ -16,6 +16,7 @@ Architecture Decision Records (ADRs) for **Life Ledger** - a personal-finance li
 | [006](./006-beads-project-tracking.md) | Beads Project Tracking System | Accepted | 2026-07-19 |
 | [007](./007-ui-consequence-pipeline.md) | UI: President-Simulator Consequence Pipeline | Accepted | 2026-07-19 |
 | [008](./008-data-calibration-strategy.md) | Data Calibration and Versioned Rulesets | Accepted | 2026-07-19 |
+| [009](./009-metro-rent-multipliers.md) | Metro Rent Multipliers (Stub) | Accepted | 2026-07-20 |
 
 ---
 
@@ -23,7 +24,7 @@ Architecture Decision Records (ADRs) for **Life Ledger** - a personal-finance li
 
 ### ADR 001 - Project Vision and Phased Delivery
 
-Life Ledger is a life-path RPG where money, career, health, relationships, geography, time, and knowledge interact. The simulator performs rigorous accounting underneath; players receive forensic six-month briefings and make the next set of decisions. Financial literacy unlocks analysis tools - not market luck.
+Fantasy American Dream is a life-path RPG where money, career, health, relationships, geography, time, and knowledge interact. The simulator performs rigorous accounting underneath; players receive forensic six-month briefings and make the next set of decisions. Financial literacy unlocks analysis tools - not market luck.
 
 Phases: V0 engine → V1 playable game → V2 household → V3 platform.
 

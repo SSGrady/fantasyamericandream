@@ -1,6 +1,6 @@
 # Product Thesis
 
-**Life Ledger: Class of 2026**  
+**Fantasy American Dream: Class of 2026**  
 *Build a career. Survive the economy. Buy back your time.*
 
 ## The Problem

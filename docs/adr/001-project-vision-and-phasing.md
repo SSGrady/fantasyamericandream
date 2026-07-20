@@ -14,11 +14,11 @@ Millennial and Gen Z workers entering the workforce in 2026 face a structurally 
 
 Existing tools split into budgeting apps (transaction tracking without narrative consequence), FIRE calculators (single-path deterministic math), and trivia quizzes (memorization without judgment). None combine immersive life-path choices, Monte Carlo uncertainty, and teachable financial literacy in a replayable RPG loop.
 
-Fantasy President Career demonstrates that a **consequence pipeline** - briefing, player action, analytical report, human reactions, updated dashboard - makes complex systems emotionally memorable. Life Ledger applies that grammar to personal finance.
+Fantasy President Career demonstrates that a **consequence pipeline** - briefing, player action, analytical report, human reactions, updated dashboard - makes complex systems emotionally memorable. Fantasy American Dream applies that grammar to personal finance.
 
 ## Decision
 
-Build **Life Ledger: Class of 2026** as a life-path simulator with three foundational principles:
+Build **Fantasy American Dream: Class of 2026** as a life-path simulator with three foundational principles:
 
 1. **Ledger truth** - All money is computed deterministically; randomness affects events, not arithmetic integrity.
 2. **Knowledge as skill tree** - Quizzes unlock analysis (affordability gates, fee warnings, Monte Carlo). They do not increase market returns.

@@ -1,6 +1,6 @@
 # Consequence Pipeline - UI Design
 
-Borrowed interaction **grammar** from Fantasy President Career; original Life Ledger branding and components.
+Borrowed interaction **grammar** from Fantasy President Career; original Fantasy American Dream branding and components.
 
 ## Screen Flow
 
