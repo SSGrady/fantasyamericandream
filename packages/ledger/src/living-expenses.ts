@@ -15,6 +15,8 @@ export const LIVING_EXPENSE_STUB_2026 = {
   groceriesBaseMonthly: 600_00,
   /** Subscriptions + cell + gym ($40 + $55 + $110). */
   subscriptionsStubMonthly: 205_00,
+  /** Target monthly card spend including groceries (Payday Playbook). */
+  creditCardPlaybookMonthly: 1_039_00,
 } as const;
 
 export const LIVING_EXPENSE_ACCOUNT_IDS = {
@@ -22,9 +24,13 @@ export const LIVING_EXPENSE_ACCOUNT_IDS = {
   utilities: 'expense:utilities',
   groceries: 'expense:groceries',
   subscriptions: 'expense:subscriptions',
+  discretionary: 'expense:discretionary',
 } as const;
 
 export type LivingExpenseCategory = keyof typeof LIVING_EXPENSE_ACCOUNT_IDS;
+
+/** Categories charged to credit card then paid in full from checking. */
+export type CreditCardExpenseCategory = 'groceries' | 'subscriptions' | 'discretionary';
 
 export interface LivingExpensesInput {
   career: Pick<CareerState, 'employmentType' | 'baseSalaryAnnual'>;
@@ -32,6 +38,7 @@ export interface LivingExpensesInput {
   cookingSkill?: V1CookingSkill;
   deliveryFrequency?: V1DeliveryFrequency;
   includeEmployerHealthPlan?: boolean;
+  creditCardId?: string;
 }
 
 export interface MonthlyLivingExpenseAmounts {
@@ -39,6 +46,7 @@ export interface MonthlyLivingExpenseAmounts {
   utilities: MoneyCents;
   groceries: MoneyCents;
   subscriptions: MoneyCents;
+  discretionary: MoneyCents;
 }
 
 const COOKING_SKILL_MULTIPLIER: Record<V1CookingSkill, number> = {
@@ -78,16 +86,24 @@ export function computeMonthlyLivingExpenses(input: LivingExpensesInput): Monthl
     input.career.employmentType === 'w2' &&
     input.career.baseSalaryAnnual > 0;
 
+  const groceries = computeGroceriesMonthlyCents({
+    cookingSkill: input.cookingSkill,
+    deliveryFrequency: input.deliveryFrequency,
+  });
+  const subscriptions = LIVING_EXPENSE_STUB_2026.subscriptionsStubMonthly;
+  const discretionary = Math.max(
+    0,
+    LIVING_EXPENSE_STUB_2026.creditCardPlaybookMonthly - groceries - subscriptions,
+  );
+
   return {
     healthInsurance: includeHealth ? LIVING_EXPENSE_STUB_2026.healthInsuranceSingleMonthly : 0,
     utilities: roundCents(
       LIVING_EXPENSE_STUB_2026.utilitiesBaseMonthly * housingArrangementFraction(arrangement),
     ),
-    groceries: computeGroceriesMonthlyCents({
-      cookingSkill: input.cookingSkill,
-      deliveryFrequency: input.deliveryFrequency,
-    }),
-    subscriptions: LIVING_EXPENSE_STUB_2026.subscriptionsStubMonthly,
+    groceries,
+    subscriptions,
+    discretionary,
   };
 }
 
@@ -96,25 +112,59 @@ const LIVING_EXPENSE_DESCRIPTIONS: Record<LivingExpenseCategory, string> = {
   utilities: 'Utilities',
   groceries: 'Groceries',
   subscriptions: 'Subscriptions and phone',
+  discretionary: 'Discretionary card spend',
 };
+
+const CHECKING_CATEGORIES: LivingExpenseCategory[] = ['healthInsurance', 'utilities'];
+const CREDIT_CARD_CATEGORIES: CreditCardExpenseCategory[] = [
+  'groceries',
+  'subscriptions',
+  'discretionary',
+];
 
 export function buildLivingExpenseTransaction(
   monthKey: string,
   category: LivingExpenseCategory,
   amountCents: MoneyCents,
+  target: 'checking' | `creditCard:${string}`,
 ): LedgerTransaction | null {
   if (amountCents <= 0) {
     return null;
   }
 
   const accountId = LIVING_EXPENSE_ACCOUNT_IDS[category];
+  const liabilityLine =
+    target === 'checking'
+      ? { accountId: 'checking' as const, debitCents: 0, creditCents: amountCents }
+      : { accountId: target, debitCents: 0, creditCents: amountCents };
+
   return {
     id: `tx-${monthKey}-living-${category}`,
     description: LIVING_EXPENSE_DESCRIPTIONS[category],
     source: 'expense',
     lines: [
       { accountId, debitCents: amountCents, creditCents: 0 },
-      { accountId: 'checking', debitCents: 0, creditCents: amountCents },
+      liabilityLine,
+    ],
+  };
+}
+
+export function buildCreditCardAutopayTransaction(
+  monthKey: string,
+  cardId: string,
+  balanceCents: MoneyCents,
+): LedgerTransaction | null {
+  if (balanceCents <= 0) {
+    return null;
+  }
+
+  return {
+    id: `tx-${monthKey}-zz-cc-autopay-${cardId}`,
+    description: 'Pay credit card statement in full',
+    source: 'transfer',
+    lines: [
+      { accountId: `creditCard:${cardId}`, debitCents: balanceCents, creditCents: 0 },
+      { accountId: 'checking', debitCents: 0, creditCents: balanceCents },
     ],
   };
 }
@@ -128,9 +178,35 @@ export function buildLivingExpenseTransactions(
   }
 
   const amounts = computeMonthlyLivingExpenses(input);
-  return (Object.keys(amounts) as LivingExpenseCategory[])
-    .map((category) => buildLivingExpenseTransaction(monthKey, category, amounts[category]))
-    .filter((tx): tx is LedgerTransaction => tx !== null);
+  const transactions: LedgerTransaction[] = [];
+
+  for (const category of CHECKING_CATEGORIES) {
+    const tx = buildLivingExpenseTransaction(
+      monthKey,
+      category,
+      amounts[category],
+      'checking',
+    );
+    if (tx) {
+      transactions.push(tx);
+    }
+  }
+
+  if (input.creditCardId) {
+    for (const category of CREDIT_CARD_CATEGORIES) {
+      const tx = buildLivingExpenseTransaction(
+        monthKey,
+        category,
+        amounts[category],
+        `creditCard:${input.creditCardId}`,
+      );
+      if (tx) {
+        transactions.push(tx);
+      }
+    }
+  }
+
+  return transactions;
 }
 
 export const LIVING_EXPENSE_WATERFALL_LABELS: Record<LivingExpenseCategory, string> = {
@@ -138,4 +214,5 @@ export const LIVING_EXPENSE_WATERFALL_LABELS: Record<LivingExpenseCategory, stri
   utilities: 'Utilities',
   groceries: 'Groceries',
   subscriptions: 'Subscriptions',
+  discretionary: 'Discretionary spend',
 };

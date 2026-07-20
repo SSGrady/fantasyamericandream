@@ -43,26 +43,28 @@
           "apr": 0.055,
           "minimumPayment": 28000
         }
-      ]
+      ],
+      "mortgages": []
     },
     "career": {
       "employmentType": "w2",
       "baseSalaryAnnual": 7500000
     },
     "location": {
-      "rentPaymentMonthly": 150000
+      "rentPaymentMonthly": 150000,
+      "housingMode": "rent"
     },
     "deferral401kRate": 0.06
   },
   "expected": {
     "endDate": "2026-07-01",
-    "transactionCount": 48,
+    "transactionCount": 55,
     "startNetWorth": -1050000,
     "audit": {
       "asOf": "2026-07-01",
       "startNetWorth": -1050000,
-      "netWorth": 181261,
-      "netWorthDelta": 1231261,
+      "netWorth": 63700,
+      "netWorthDelta": 1113700,
       "waterfall": [
         {
           "label": "Net pay to checking",
@@ -77,7 +79,12 @@
         {
           "label": "Credit card interest",
           "category": "expense",
-          "amount": -5755
+          "amount": -916
+        },
+        {
+          "label": "Discretionary spend",
+          "category": "expense",
+          "amount": -122400
         },
         {
           "label": "Groceries",
@@ -112,7 +119,7 @@
       ],
       "periodNetPayCents": 2675622,
       "savingsRate": 0.08409259603935085,
-      "emergencyRunwayMonths": 3.233792251099887,
+      "emergencyRunwayMonths": 2.842004763045013,
       "contributionProgress": {
         "traditional401k": {
           "contributedCents": 225000,
@@ -167,9 +174,9 @@
           ]
         },
         "emergencyRunway": {
-          "checkingBalanceCents": 1411622,
-          "monthlyBurnCents": 436522.1666666667,
-          "months": 3.233792251099887,
+          "checkingBalanceCents": 1238306,
+          "monthlyBurnCents": 435715.6666666667,
+          "months": 2.842004763045013,
           "formula": "Checking balance divided by monthly essential burn from the audit period. Burn includes rent, baseline living expenses (insurance, utilities, groceries, subscriptions), childcare, payroll taxes, and debt service.",
           "burnComponents": [
             {
@@ -202,7 +209,7 @@
             },
             {
               "label": "Credit card interest (6-month total)",
-              "amountCents": 5755
+              "amountCents": 916
             },
             {
               "label": "Student loan interest (6-month total)",
@@ -218,7 +225,7 @@
     },
     "accounts": {
       "checking": {
-        "balance": 1411622
+        "balance": 1238306
       },
       "traditional401k": {
         "id": "401k",
@@ -230,7 +237,7 @@
       "creditCards": [
         {
           "id": "cc1",
-          "balance": 55755,
+          "balance": 0,
           "limit": 500000,
           "apr": 0.2199,
           "minimumPayment": 2500
@@ -245,6 +252,6 @@
         }
       ]
     },
-    "netWorth": 181261
+    "netWorth": 63700
   }
 }

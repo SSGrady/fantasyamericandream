@@ -13,6 +13,7 @@ const accounts: Accounts = {
 const debts: Debts = {
   creditCards: [],
   studentLoans: [],
+  mortgages: [],
 };
 
 const macro: MacroState = {

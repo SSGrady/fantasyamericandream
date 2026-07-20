@@ -20,6 +20,7 @@ const baseAccounts: Accounts = {
 const baseDebts: Debts = {
   creditCards: [],
   studentLoans: [],
+  mortgages: [],
 };
 
 const dualIncomeHousehold: HouseholdState = {
@@ -41,7 +42,7 @@ describe('dual-income household payroll', () => {
       accounts: baseAccounts,
       debts: baseDebts,
       career: { employmentType: 'w2', baseSalaryAnnual: 120_000_00 },
-      location: { rentPaymentMonthly: 2_000_00 },
+      location: { rentPaymentMonthly: 2_000_00, housingMode: 'rent' },
       household: dualIncomeHousehold,
       deferral401kRate: 0.06,
     });
@@ -72,19 +73,18 @@ describe('dual-income household payroll', () => {
       accounts: baseAccounts,
       debts: baseDebts,
       career: { employmentType: 'w2', baseSalaryAnnual: 120_000_00 },
-      location: { rentPaymentMonthly: 0 },
+      location: { rentPaymentMonthly: 0, housingMode: 'rent' },
       household: dualIncomeHousehold,
       deferral401kRate: 0.06,
     });
 
-    const livingTotal = Object.values(
-      computeMonthlyLivingExpenses({
-        career: { employmentType: 'w2', baseSalaryAnnual: 120_000_00 },
-      }),
-    ).reduce((sum, amount) => sum + amount, 0);
+    const living = computeMonthlyLivingExpenses({
+      career: { employmentType: 'w2', baseSalaryAnnual: 120_000_00 },
+    });
+    const checkingLiving = living.healthInsurance + living.utilities;
 
     expect(result.accounts.checking.balance).toBe(
-      baseAccounts.checking.balance + playerNet + partnerNet - livingTotal,
+      baseAccounts.checking.balance + playerNet + partnerNet - checkingLiving,
     );
   });
 
@@ -94,7 +94,7 @@ describe('dual-income household payroll', () => {
       accounts: baseAccounts,
       debts: baseDebts,
       career: { employmentType: 'w2', baseSalaryAnnual: 120_000_00 },
-      location: { rentPaymentMonthly: 2_000_00 },
+      location: { rentPaymentMonthly: 2_000_00, housingMode: 'rent' },
       deferral401kRate: 0.06,
     });
 
@@ -103,7 +103,7 @@ describe('dual-income household payroll', () => {
       accounts: baseAccounts,
       debts: baseDebts,
       career: { employmentType: 'w2', baseSalaryAnnual: 120_000_00 },
-      location: { rentPaymentMonthly: 2_000_00 },
+      location: { rentPaymentMonthly: 2_000_00, housingMode: 'rent' },
       household: dualIncomeHousehold,
       deferral401kRate: 0.06,
     });

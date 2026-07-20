@@ -12,7 +12,11 @@ import type {
 } from '@fad/shared';
 import { childcareMonthlyCents } from '@fad/shared';
 import { applyTransactions, type ApplyTransactionsResult } from './apply-transaction.js';
-import { buildLivingExpenseTransactions } from './living-expenses.js';
+import {
+  buildCreditCardAutopayTransaction,
+  buildLivingExpenseTransactions,
+} from './living-expenses.js';
+import { buildMortgagePitiTransaction } from './mortgage.js';
 import { buildPayrollFromCareer } from './payroll.js';
 
 export interface MonthlyTickInput {
@@ -20,7 +24,10 @@ export interface MonthlyTickInput {
   accounts: Accounts;
   debts: Debts;
   career: Pick<CareerState, 'employmentType' | 'baseSalaryAnnual'>;
-  location: Pick<LocationState, 'rentPaymentMonthly' | 'housingArrangement'>;
+  location: Pick<
+    LocationState,
+    'rentPaymentMonthly' | 'housingArrangement' | 'housingMode' | 'homeValueCents'
+  >;
   household?: Pick<HouseholdState, 'partner' | 'dependentsCount'>;
   player?: Pick<PlayerState, 'habits' | 'includeEmployerHealthPlan'>;
   deferral401kRate?: number;
@@ -80,6 +87,25 @@ export function buildRentTransaction(
       { accountId: 'checking', debitCents: 0, creditCents: rentPaymentMonthly },
     ],
   };
+}
+
+export function buildCreditCardAutopayTransactions(
+  monthKey: string,
+  accounts: Accounts,
+  debts: Debts,
+  pendingCharges: LedgerTransaction[],
+): LedgerTransaction[] {
+  const applied = applyTransactions(accounts, debts, pendingCharges);
+  const transactions: LedgerTransaction[] = [];
+
+  for (const card of applied.debts.creditCards) {
+    const tx = buildCreditCardAutopayTransaction(monthKey, card.id, card.balance);
+    if (tx) {
+      transactions.push(tx);
+    }
+  }
+
+  return transactions;
 }
 
 export function buildChildcareTransaction(
@@ -167,6 +193,7 @@ export function buildStudentLoanPaymentTransactions(
 
 export function buildMonthlyTransactions(input: MonthlyTickInput): LedgerTransaction[] {
   const transactions: LedgerTransaction[] = [];
+  const primaryCard = input.debts.creditCards[0];
 
   if (input.career.employmentType === 'w2' && input.career.baseSalaryAnnual > 0) {
     transactions.push(
@@ -194,19 +221,37 @@ export function buildMonthlyTransactions(input: MonthlyTickInput): LedgerTransac
     });
   }
 
-  transactions.push(
-    ...buildLivingExpenseTransactions(input.monthKey, {
-      career: input.career,
-      housingArrangement: input.location.housingArrangement as V1HousingArrangement | undefined,
-      cookingSkill: input.player?.habits.cookingSkill,
-      deliveryFrequency: input.player?.habits.deliveryFrequency,
-      includeEmployerHealthPlan: input.player?.includeEmployerHealthPlan,
-    }),
-  );
+  const ccInterest = buildCreditCardInterestTransactions(input.monthKey, input.debts);
+  transactions.push(...ccInterest);
 
-  transactions.push(...buildCreditCardInterestTransactions(input.monthKey, input.debts));
+  const livingExpenseCharges = buildLivingExpenseTransactions(input.monthKey, {
+    career: input.career,
+    housingArrangement: input.location.housingArrangement as V1HousingArrangement | undefined,
+    cookingSkill: input.player?.habits.cookingSkill,
+    deliveryFrequency: input.player?.habits.deliveryFrequency,
+    includeEmployerHealthPlan: input.player?.includeEmployerHealthPlan,
+    creditCardId: primaryCard?.id,
+  });
+  transactions.push(...livingExpenseCharges);
 
-  if (input.location.rentPaymentMonthly > 0) {
+  if (primaryCard) {
+    const ccBalanceTransactions = [...ccInterest, ...livingExpenseCharges];
+    transactions.push(
+      ...buildCreditCardAutopayTransactions(
+        input.monthKey,
+        input.accounts,
+        input.debts,
+        ccBalanceTransactions,
+      ),
+    );
+  }
+
+  if (input.location.housingMode === 'own') {
+    const mortgage = input.debts.mortgages?.[0];
+    if (mortgage && mortgage.monthlyPiti > 0) {
+      transactions.push(buildMortgagePitiTransaction(input.monthKey, mortgage.monthlyPiti));
+    }
+  } else if (input.location.rentPaymentMonthly > 0) {
     transactions.push(buildRentTransaction(input.monthKey, input.location.rentPaymentMonthly));
   }
 

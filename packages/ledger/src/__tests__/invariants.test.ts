@@ -26,6 +26,7 @@ const baseDebts = (): Debts => ({
     { id: 'cc1', balance: 500_00, limit: 5_000_00, apr: 0.2199, minimumPayment: 25_00 },
   ],
   studentLoans: [{ id: 'sl1', principal: 25_000_00, apr: 0.055, minimumPayment: 280_00 }],
+  mortgages: [],
 });
 
 describe('invariant 1: balance equation', () => {

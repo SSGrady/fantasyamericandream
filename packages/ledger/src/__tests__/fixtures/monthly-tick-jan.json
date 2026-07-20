@@ -43,14 +43,16 @@
           "apr": 0.055,
           "minimumPayment": 28000
         }
-      ]
+      ],
+      "mortgages": []
     },
     "career": {
       "employmentType": "w2",
       "baseSalaryAnnual": 7500000
     },
     "location": {
-      "rentPaymentMonthly": 150000
+      "rentPaymentMonthly": 150000,
+      "housingMode": "rent"
     },
     "deferral401kRate": 0.06
   },
@@ -71,7 +73,7 @@
     },
     "accounts": {
       "checking": {
-        "balance": 651937
+        "balance": 580621
       },
       "traditional401k": {
         "balance": 37500,
@@ -82,7 +84,7 @@
       "creditCards": [
         {
           "id": "cc1",
-          "balance": 50916
+          "balance": 0
         }
       ],
       "studentLoans": [
@@ -92,6 +94,6 @@
         }
       ]
     },
-    "netWorth": -844937
+    "netWorth": -865337
   }
 }

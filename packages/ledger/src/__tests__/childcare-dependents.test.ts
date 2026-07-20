@@ -24,6 +24,7 @@ const baseAccounts: Accounts = {
 const baseDebts: Debts = {
   creditCards: [],
   studentLoans: [],
+  mortgages: [],
 };
 
 const householdWithDependents = (dependentsCount: number): HouseholdState => ({
@@ -43,7 +44,7 @@ describe('childcare dependents stub', () => {
       accounts: baseAccounts,
       debts: baseDebts,
       career: { employmentType: 'w2', baseSalaryAnnual: 100_000_00 },
-      location: { rentPaymentMonthly: 0 },
+      location: { rentPaymentMonthly: 0, housingMode: 'rent' },
       household: householdWithDependents(0),
     });
 
@@ -78,7 +79,7 @@ describe('childcare dependents stub', () => {
       accounts: baseAccounts,
       debts: baseDebts,
       career: { employmentType: 'unemployed', baseSalaryAnnual: 0 },
-      location: { rentPaymentMonthly: 0 },
+      location: { rentPaymentMonthly: 0, housingMode: 'rent' },
       household: householdWithDependents(dependentsCount),
     });
 
@@ -92,7 +93,7 @@ describe('childcare dependents stub', () => {
       accounts: baseAccounts,
       debts: baseDebts,
       career: { employmentType: 'unemployed', baseSalaryAnnual: 0 },
-      location: { rentPaymentMonthly: 0 },
+      location: { rentPaymentMonthly: 0, housingMode: 'rent' },
       household: householdWithDependents(1),
     });
 

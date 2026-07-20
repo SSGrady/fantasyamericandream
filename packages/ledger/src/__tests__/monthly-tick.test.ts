@@ -146,6 +146,7 @@ describe('applyMonthlyTick edge cases', () => {
   const baseDebts = (): Debts => ({
     creditCards: [],
     studentLoans: [],
+    mortgages: [],
   });
 
   it('skips payroll when not W2 employed', () => {
@@ -154,7 +155,7 @@ describe('applyMonthlyTick edge cases', () => {
       accounts: baseAccounts(),
       debts: baseDebts(),
       career: { employmentType: 'unemployed', baseSalaryAnnual: 0 },
-      location: { rentPaymentMonthly: 1_500_00 },
+      location: { rentPaymentMonthly: 1_500_00, housingMode: 'rent' },
     });
 
     expect(result.transactions.some((tx) => tx.id.includes('payroll'))).toBe(false);

@@ -18,6 +18,7 @@ export {
   computeGroceriesMonthlyCents,
   computeMonthlyLivingExpenses,
   buildLivingExpenseTransaction,
+  buildCreditCardAutopayTransaction,
   buildLivingExpenseTransactions,
 } from './living-expenses.js';
 export type {
@@ -29,6 +30,7 @@ export {
   applyMonthlyTick,
   buildMonthlyTransactions,
   buildCreditCardInterestTransactions,
+  buildCreditCardAutopayTransactions,
   buildRentTransaction,
   buildChildcareTransaction,
   buildStudentLoanPaymentTransaction,
@@ -38,10 +40,16 @@ export {
 } from './monthly-tick.js';
 export type { MonthlyTickInput, MonthlyTickResult, StudentLoanPaymentSplit } from './monthly-tick.js';
 export {
+  computeMortgagePitiStub,
+  buildMortgagePitiTransaction,
+} from './mortgage.js';
+export type { MortgagePitiStubInput, MortgagePitiStubResult } from './mortgage.js';
+export {
   tickSixMonths,
   buildAuditSnapshot,
   buildWaterfallFromTransactions,
   buildContributionProgress,
+  computeAccountInvestmentReturns,
   buildMetricBreakdownSnapshot,
   exportAuditJson,
   waterfallReconciles,

@@ -3,6 +3,7 @@ import {
   buildLivingExpenseTransactions,
   computeGroceriesMonthlyCents,
   computeMonthlyLivingExpenses,
+  LIVING_EXPENSE_STUB_2026,
 } from '../living-expenses.js';
 
 describe('living expenses', () => {
@@ -19,6 +20,11 @@ describe('living expenses', () => {
     expect(amounts.utilities).toBe(18_500);
     expect(amounts.groceries).toBe(53_550);
     expect(amounts.subscriptions).toBe(20_500);
+    expect(amounts.discretionary).toBe(
+      LIVING_EXPENSE_STUB_2026.creditCardPlaybookMonthly -
+        amounts.groceries -
+        amounts.subscriptions,
+    );
   });
 
   it('applies cooking and delivery modifiers to groceries', () => {
@@ -56,15 +62,25 @@ describe('living expenses', () => {
     expect(transactions).toHaveLength(0);
   });
 
-  it('posts balanced expense transactions to checking', () => {
+  it('posts card spend to credit card and essentials to checking', () => {
     const transactions = buildLivingExpenseTransactions('2026-01', {
       career: { employmentType: 'w2', baseSalaryAnnual: 120_000_00 },
       housingArrangement: 'solo',
       cookingSkill: 1,
       deliveryFrequency: 'low',
+      creditCardId: 'cc1',
     });
 
-    expect(transactions).toHaveLength(4);
+    expect(transactions).toHaveLength(5);
+    const checkingCredits = transactions.filter((tx) =>
+      tx.lines.some((line) => line.accountId === 'checking' && line.creditCents > 0),
+    );
+    const cardCredits = transactions.filter((tx) =>
+      tx.lines.some((line) => line.accountId === 'creditCard:cc1' && line.creditCents > 0),
+    );
+    expect(checkingCredits).toHaveLength(2);
+    expect(cardCredits).toHaveLength(3);
+
     for (const tx of transactions) {
       const debits = tx.lines.reduce((sum, line) => sum + line.debitCents, 0);
       const credits = tx.lines.reduce((sum, line) => sum + line.creditCents, 0);

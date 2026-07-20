@@ -45,7 +45,8 @@
           "apr": 0.055,
           "minimumPayment": 28000
         }
-      ]
+      ],
+      "mortgages": []
     },
     "career": {
       "sector": "tech",
@@ -68,7 +69,7 @@
   },
   "expected": {
     "endDate": "2027-01-01",
-    "netWorth": 5117181,
+    "netWorth": 4883638,
     "layoffCount": 0,
     "employmentType": "w2",
     "brokerageBalance": 3049051,

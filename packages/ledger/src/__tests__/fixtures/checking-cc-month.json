@@ -35,7 +35,8 @@
           "minimumPayment": 2500
         }
       ],
-      "studentLoans": []
+      "studentLoans": [],
+      "mortgages": []
     }
   },
   "transactions": [
