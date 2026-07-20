@@ -17,9 +17,21 @@ importers:
 
   apps/web:
     dependencies:
+      '@fad/data':
+        specifier: workspace:*
+        version: link:../../packages/data
+      '@fad/ledger':
+        specifier: workspace:*
+        version: link:../../packages/ledger
+      '@fad/narrative':
+        specifier: workspace:*
+        version: link:../../packages/narrative
       '@fad/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@fad/sim-engine':
+        specifier: workspace:*
+        version: link:../../packages/sim-engine
       '@tailwindcss/postcss':
         specifier: ^4.3.3
         version: 4.3.3

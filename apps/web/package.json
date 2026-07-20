@@ -9,7 +9,11 @@
     "test": "echo \"UI tests in V1\""
   },
   "dependencies": {
+    "@fad/data": "workspace:*",
+    "@fad/ledger": "workspace:*",
+    "@fad/narrative": "workspace:*",
     "@fad/shared": "workspace:*",
+    "@fad/sim-engine": "workspace:*",
     "@tailwindcss/postcss": "^4.3.3",
     "next": "^15.0.0",
     "postcss": "^8.5.20",

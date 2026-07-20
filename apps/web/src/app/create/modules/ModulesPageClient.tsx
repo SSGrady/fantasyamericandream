@@ -12,6 +12,7 @@ import { ModuleToggleSection } from '../../../components/create/ModuleToggleSect
 import { SegmentedControl } from '../../../components/create/SegmentedControl';
 import { ToggleRow } from '../../../components/create/ToggleRow';
 import { loadCharacterDraft } from '../../../lib/character-draft';
+import { clearPlaySession } from '../../../lib/play-session';
 import { loadOrCreateRunConfig, saveRunConfig } from '../../../lib/run-config';
 
 export function ModulesPageClient() {
@@ -53,6 +54,7 @@ export function ModulesPageClient() {
   const handleBeginSimulation = () => {
     if (!config) return;
     saveRunConfig(config);
+    clearPlaySession();
     router.push('/play/briefing');
   };
 

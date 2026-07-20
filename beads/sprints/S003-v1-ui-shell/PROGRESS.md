@@ -7,10 +7,17 @@ Last updated: 2026-07-19
 - [x] **T008** - UI shell + scenario select (Tailwind, landing, `/scenarios`, `/create` stub)
 - [x] **T009** - Character creator
 - [x] **T010** - Module toggles
-- [ ] **T011** - Core play loop screens
+- [x] **T011** - Core play loop screens
 - [ ] **T012** - V1 content and endings
 
 ## Notes
+
+### 2026-07-19 (T011)
+
+- Core play loop: briefing through audit wired to `tickSixMonthsWithSimulation` via `/api/sim/tick`.
+- Session play state in `play-session.ts`; GameState built from character draft + run config.
+- Metrics ribbon, audit waterfall, balance sheet, contribution rings on play screens.
+- Analysis/reactions/dashboard remain minimal stubs for T012.
 
 ### 2026-07-19 (T010)
 
@@ -38,4 +45,4 @@ None.
 
 ## Velocity
 
-3/5 tickets done (60%).
+4/5 tickets done (80%).

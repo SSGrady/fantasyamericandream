@@ -1,29 +1,73 @@
 'use client';
 
-import { enabledModulesFromV1RunConfig } from '@fad/shared';
+import { renderBriefingHeadline } from '@fad/narrative';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { loadCharacterDraft } from '../../../lib/character-draft';
-import { loadRunConfig } from '../../../lib/run-config';
+import { MetricsRibbon } from '../../../components/play/MetricsRibbon';
+import {
+  applyTickToSession,
+  computeRibbonMetrics,
+  formatPeriodLabel,
+  runSimTick,
+  savePlaySession,
+  type PlaySession,
+} from '../../../lib/play-session';
+import { usePlaySession } from '../../../lib/use-play-session';
 
 export function BriefingPageClient() {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
-  const [moduleCount, setModuleCount] = useState(0);
+  const { session, ready, setSession } = usePlaySession({ redirectTo: '/create/modules' });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const draft = loadCharacterDraft();
-    const config = loadRunConfig();
-    if (!draft || !config) {
-      router.replace('/create');
+    if (!ready || !session) return;
+
+    if (session.currentAudit) {
+      setLoading(false);
       return;
     }
-    setModuleCount(enabledModulesFromV1RunConfig(config).length);
-    setReady(true);
-  }, [router]);
 
-  if (!ready) {
+    let cancelled = false;
+
+    async function tick() {
+      setLoading(true);
+      setError(null);
+      savePlaySession({ ...session!, tickInProgress: true });
+
+      try {
+        const result = await runSimTick({
+          startDate: session!.gameState.run.currentDate,
+          randomSeed: session!.gameState.run.randomSeed,
+          accounts: session!.gameState.accounts,
+          debts: session!.gameState.debts,
+          career: session!.gameState.career,
+          location: session!.gameState.location,
+          macro: session!.gameState.macro,
+          deferral401kRate: session!.deferral401kRate,
+        });
+
+        if (cancelled) return;
+        const updated = applyTickToSession(session!, result);
+        setSession(updated);
+      } catch (tickError) {
+        if (cancelled) return;
+        savePlaySession({ ...session!, tickInProgress: false });
+        setError(tickError instanceof Error ? tickError.message : 'Simulation failed');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    void tick();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, session, setSession]);
+
+  if (!ready || !session) {
     return (
       <div className="rounded-lg border border-border bg-card p-6 text-muted shadow-sm">
         Loading briefing…
@@ -31,14 +75,31 @@ export function BriefingPageClient() {
     );
   }
 
+  if (loading || !session.currentAudit) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-6 text-muted shadow-sm">
+        {error ?? 'Running six-month simulation…'}
+      </div>
+    );
+  }
+
+  const audit = session.currentAudit;
+  const metrics = computeRibbonMetrics(audit, session.gameState);
+  const headline = renderBriefingHeadline(audit);
+  const periodLabel = formatPeriodLabel(audit.asOf);
+
   return (
     <div className="space-y-6">
+      <MetricsRibbon metrics={metrics} />
+
       <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-        <p className="text-sm font-medium text-accent">H1 2026 briefing</p>
-        <h2 className="mt-1 font-serif text-2xl text-ink">First briefing coming in T011</h2>
+        <p className="text-sm font-medium text-accent">{periodLabel}</p>
+        <h2 className="mt-1 font-serif text-2xl text-ink">{headline}</h2>
         <p className="mt-3 text-muted">
-          Your character draft and run config ({moduleCount} enabled modules) are saved for this
-          session. T011 will add the metrics ribbon, narrative, and decision-day navigation.
+          {session.gameState.player.name}, your {session.gameState.career.title} role in{' '}
+          {session.gameState.location.stateCode} closed this audit at{' '}
+          {audit.asOf}. Net worth is now tracked through the ledger; the next screen is decision
+          day for the following six months.
         </p>
       </div>
 
@@ -49,9 +110,13 @@ export function BriefingPageClient() {
         >
           Back to module toggles
         </Link>
-        <span className="inline-flex items-center justify-center rounded-md bg-surface px-5 py-2.5 text-sm text-muted">
-          Decision day (T011)
-        </span>
+        <button
+          type="button"
+          onClick={() => router.push('/play/decide')}
+          className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent/90"
+        >
+          Continue to decision day
+        </button>
       </div>
     </div>
   );

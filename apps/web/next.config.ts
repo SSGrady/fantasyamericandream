@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@fad/shared'],
+  transpilePackages: ['@fad/shared', '@fad/data', '@fad/ledger', '@fad/sim-engine', '@fad/narrative'],
   webpack: (config) => {
     config.resolve.extensionAlias = {
       '.js': ['.ts', '.tsx', '.js', '.jsx'],

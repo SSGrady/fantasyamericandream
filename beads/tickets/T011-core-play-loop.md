@@ -1,7 +1,7 @@
 ---
 id: T011
 title: Core play loop screens
-status: open
+status: done
 type: feature
 priority: P1
 epic: E002
@@ -18,4 +18,13 @@ acceptance:
 
 ## Description
 
-Implement consequence pipeline stages from ADR-007 as routed screens with placeholder content wired to sim-engine later.
+Implement consequence pipeline stages from ADR-007 as routed screens wired to sim-engine via `/api/sim/tick`, sessionStorage play state, and audit display components.
+
+## Completion (2026-07-19)
+
+- `/play/briefing` runs first six-month tick, metrics ribbon, narrative headline
+- `/play/decide` pending decisions stub + open action textarea
+- `/play/processing`, `/play/analysis`, `/play/reactions` minimal forward stubs
+- `/play/audit` balance sheet, waterfall, contribution rings from AuditSnapshot
+- `/play/dashboard` end stub after four periods
+- `play-session.ts` persists GameState; loop clears audit between periods

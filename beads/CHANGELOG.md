@@ -4,6 +4,7 @@ Aggregated progress log. Append dated entries when closing tickets.
 
 ## 2026-07-19
 
+- **T011** - Core play loop: sim tick API, play session, briefing through audit screens, pipeline stubs.
 - **T010** - Module toggles: grouped panels on `/create/modules`, V1RunConfig types, session run config, `/play/briefing` stub.
 - **T009** - Character creator: trait grids, balance sheet, session draft, `/create/modules` stub, shared V1CharacterDraft types.
 - **E002** - V1 Playable Game epic opened; S003 UI shell sprint started.
